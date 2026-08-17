@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, History, ChevronRight, Calculator, AlertCircle } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { formatChipStrategy, formatDifferentialFactor } from "./solve";
 
 export default function HistoryPage() {
   const { data: solves, isLoading } = useListSolves();
@@ -83,6 +84,18 @@ export default function HistoryPage() {
                         <Calculator className="h-3 w-3" />
                         {solve.request.horizon} GW horizon
                       </p>
+                      {(formatChipStrategy(solve.request.chips) || formatDifferentialFactor(solve.request.differentialFactor)) && (
+                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1 pt-1">
+                          {formatChipStrategy(solve.request.chips)?.split(" · ").map((c) => (
+                            <Badge key={c} variant="secondary" className="text-[10px] font-mono font-bold">{c}</Badge>
+                          ))}
+                          {formatDifferentialFactor(solve.request.differentialFactor) && (
+                            <Badge variant="outline" className="text-[10px] font-mono font-bold border-primary/40 text-primary">
+                              {formatDifferentialFactor(solve.request.differentialFactor)}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Team info */}

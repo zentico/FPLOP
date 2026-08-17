@@ -109,7 +109,7 @@ export default function SolveDetail() {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           
           {/* Metadata Card */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="bg-card border rounded-lg p-4 shadow-sm">
               <div className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Projection</div>
               <div className="font-mono mt-1 text-sm truncate">{solve.projectionFilename}</div>
@@ -121,6 +121,14 @@ export default function SolveDetail() {
             <div className="bg-card border rounded-lg p-4 shadow-sm">
               <div className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Horizon</div>
               <div className="font-mono mt-1 text-sm">{solve.request.horizon} Gameweeks</div>
+            </div>
+            <div className="bg-card border rounded-lg p-4 shadow-sm">
+              <div className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Strategy</div>
+              <div className="font-mono mt-1 text-sm">
+                {[formatChipStrategy(solve.request.chips), formatDifferentialFactor(solve.request.differentialFactor)]
+                  .filter(Boolean)
+                  .join(" · ") || "No chips · k 0%"}
+              </div>
             </div>
             <div className="bg-card border rounded-lg p-4 shadow-sm">
               <div className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Compute Time</div>
@@ -322,6 +330,32 @@ function FixtureColumnHead({ fixturesError }: { fixturesError: boolean }) {
       )}
     </div>
   );
+}
+
+const CHIP_ABBR: Record<string, string> = {
+  wildcard: "WC",
+  bench_boost: "BB",
+  free_hit: "FH",
+  triple_captain: "TC",
+};
+
+/** e.g. "BB GW1 · WC GW7" from a run's chip assignments. */
+export function formatChipStrategy(
+  chips: { chip: string; gameweek: number }[] | null | undefined,
+): string | null {
+  if (!chips?.length) return null;
+  return [...chips]
+    .sort((a, b) => a.gameweek - b.gameweek)
+    .map((c) => `${CHIP_ABBR[c.chip] ?? c.chip.toUpperCase()} GW${c.gameweek}`)
+    .join(" · ");
+}
+
+/** e.g. "k 20%" when a differential factor was applied. */
+export function formatDifferentialFactor(
+  k: number | null | undefined,
+): string | null {
+  if (!k || k <= 0) return null;
+  return `k ${Math.round(k * 1000) / 10}%`;
 }
 
 function GameweekView({ plan }: { plan: GameweekPlan }) {
