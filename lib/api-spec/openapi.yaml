@@ -10,6 +10,12 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: projections
+    description: Points projection files
+  - name: solves
+    description: Optimization runs
+  - name: fpl
+    description: Official FPL data
 paths:
   /healthz:
     get:
@@ -24,6 +30,205 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /projections:
+    get:
+      operationId: listProjections
+      tags: [projections]
+      summary: List uploaded projection files
+      responses:
+        "200":
+          description: List of projection files
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Projection"
+    post:
+      operationId: uploadProjection
+      tags: [projections]
+      summary: Upload a points projection CSV
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectionInput"
+      responses:
+        "201":
+          description: Uploaded projection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Projection"
+        "400":
+          description: Invalid CSV
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+  /projections/{id}:
+    delete:
+      operationId: deleteProjection
+      tags: [projections]
+      summary: Delete a projection file
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+  /projections/{id}/players:
+    get:
+      operationId: getProjectionPlayers
+      tags: [projections]
+      summary: Top projected players in a projection file
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Players sorted by total projected points over the horizon
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProjectedPlayer"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+  /fpl/gameweek:
+    get:
+      operationId: getGameweekInfo
+      tags: [fpl]
+      summary: Current gameweek info from the official FPL API
+      responses:
+        "200":
+          description: Gameweek info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameweekInfo"
+  /fpl/team/{teamId}:
+    get:
+      operationId: getFplTeam
+      tags: [fpl]
+      summary: Fetch an FPL team by team code from the official FPL site
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Team summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FplTeam"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+  /solves:
+    get:
+      operationId: listSolves
+      tags: [solves]
+      summary: List optimization runs, most recent first
+      responses:
+        "200":
+          description: List of solve runs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SolveRun"
+    post:
+      operationId: createSolve
+      tags: [solves]
+      summary: Start an optimization run
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolveInput"
+      responses:
+        "201":
+          description: Solve run started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SolveRun"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+  /solves/{id}:
+    get:
+      operationId: getSolve
+      tags: [solves]
+      summary: Get a solve run with its result when completed
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Solve run
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SolveRun"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+    delete:
+      operationId: deleteSolve
+      tags: [solves]
+      summary: Delete a solve run
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +238,223 @@ components:
           type: string
       required:
         - status
-
+    ErrorMessage:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+    Projection:
+      type: object
+      required: [id, filename, uploadedAt, playerCount, gameweeks]
+      properties:
+        id:
+          type: string
+        filename:
+          type: string
+        uploadedAt:
+          type: string
+        playerCount:
+          type: number
+        gameweeks:
+          type: array
+          description: Gameweek numbers covered by the projection file
+          items:
+            type: number
+    ProjectionInput:
+      type: object
+      required: [filename, content]
+      properties:
+        filename:
+          type: string
+        content:
+          type: string
+          description: Raw CSV file content
+    ProjectedPlayer:
+      type: object
+      required: [name, team, position, price, totalPoints]
+      properties:
+        name:
+          type: string
+        team:
+          type: string
+        position:
+          type: string
+          description: One of G, D, M, F
+        price:
+          type: number
+        totalPoints:
+          type: number
+          description: Sum of projected points across the horizon
+        pointsPerGameweek:
+          type: array
+          items:
+            $ref: "#/components/schemas/GameweekPoints"
+    GameweekPoints:
+      type: object
+      required: [gameweek, points]
+      properties:
+        gameweek:
+          type: number
+        points:
+          type: number
+    GameweekInfo:
+      type: object
+      required: [nextGameweek, isFirstGameweek]
+      properties:
+        nextGameweek:
+          type: number
+        isFirstGameweek:
+          type: boolean
+        deadline:
+          type: ["string", "null"]
+          description: ISO deadline of the next gameweek
+    FplTeam:
+      type: object
+      required: [teamId, name, managerName, bank, squad]
+      properties:
+        teamId:
+          type: number
+        name:
+          type: string
+        managerName:
+          type: string
+        overallRank:
+          type: ["number", "null"]
+        totalPoints:
+          type: ["number", "null"]
+        bank:
+          type: number
+          description: Money in the bank, in millions
+        squad:
+          type: array
+          items:
+            $ref: "#/components/schemas/FplSquadPlayer"
+    FplSquadPlayer:
+      type: object
+      required: [playerId, name, team, position, sellPrice]
+      properties:
+        playerId:
+          type: number
+        name:
+          type: string
+        team:
+          type: string
+        position:
+          type: string
+        sellPrice:
+          type: number
+    ChipAssignment:
+      type: object
+      required: [chip, gameweek]
+      properties:
+        chip:
+          type: string
+          description: One of wildcard, bench_boost, free_hit, triple_captain
+        gameweek:
+          type: number
+    SolveInput:
+      type: object
+      required: [projectionId, firstGameweek]
+      properties:
+        projectionId:
+          type: string
+        firstGameweek:
+          type: boolean
+          description: True when there is no existing team and a full squad is optimized from scratch
+        teamId:
+          type: ["number", "null"]
+          description: FPL team code, required when firstGameweek is false
+        horizon:
+          type: number
+          description: Number of gameweeks to optimize over (default 5)
+        chips:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChipAssignment"
+    SolveRun:
+      type: object
+      required: [id, status, createdAt, request]
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          description: One of queued, running, completed, failed
+        createdAt:
+          type: string
+        completedAt:
+          type: ["string", "null"]
+        error:
+          type: ["string", "null"]
+        request:
+          $ref: "#/components/schemas/SolveInput"
+        projectionFilename:
+          type: ["string", "null"]
+        totalExpectedPoints:
+          type: ["number", "null"]
+        result:
+          oneOf:
+            - $ref: "#/components/schemas/SolveResult"
+            - type: "null"
+    SolveResult:
+      type: object
+      required: [gameweeks, totalExpectedPoints]
+      properties:
+        totalExpectedPoints:
+          type: number
+        gameweeks:
+          type: array
+          items:
+            $ref: "#/components/schemas/GameweekPlan"
+    GameweekPlan:
+      type: object
+      required: [gameweek, lineup, bench, expectedPoints, transfersIn, transfersOut]
+      properties:
+        gameweek:
+          type: number
+        chip:
+          type: ["string", "null"]
+          description: Chip played this gameweek, if any
+        expectedPoints:
+          type: number
+        bank:
+          type: ["number", "null"]
+        lineup:
+          type: array
+          items:
+            $ref: "#/components/schemas/PickPlayer"
+        bench:
+          type: array
+          items:
+            $ref: "#/components/schemas/PickPlayer"
+        transfersIn:
+          type: array
+          items:
+            type: string
+        transfersOut:
+          type: array
+          items:
+            type: string
+    PickPlayer:
+      type: object
+      required: [name, team, position, price, expectedPoints, isCaptain, isViceCaptain]
+      properties:
+        name:
+          type: string
+        team:
+          type: string
+        position:
+          type: string
+          description: One of G, D, M, F
+        price:
+          type: number
+        expectedPoints:
+          type: number
+        isCaptain:
+          type: boolean
+        isViceCaptain:
+          type: boolean
+        benchOrder:
+          type: ["number", "null"]
+          description: 0-3 for bench players, null for starters

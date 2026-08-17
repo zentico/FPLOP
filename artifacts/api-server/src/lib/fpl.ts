@@ -1,0 +1,144 @@
+const BASE_URL = "https://fantasy.premierleague.com/api";
+
+interface BootstrapElement {
+  id: number;
+  web_name: string;
+  team: number;
+  element_type: number;
+  now_cost: number;
+}
+
+interface BootstrapTeam {
+  id: number;
+  short_name: string;
+  name: string;
+}
+
+interface BootstrapEvent {
+  id: number;
+  is_next: boolean;
+  finished: boolean;
+  deadline_time: string;
+}
+
+export interface Bootstrap {
+  elements: BootstrapElement[];
+  teams: BootstrapTeam[];
+  events: BootstrapEvent[];
+}
+
+let bootstrapCache: { data: Bootstrap; at: number } | null = null;
+
+async function fplFetch<T>(path: string): Promise<T> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    headers: { "User-Agent": "Mozilla/5.0 (fpl-optimizer)" },
+  });
+  if (!res.ok) {
+    throw Object.assign(new Error(`FPL API ${res.status} for ${path}`), {
+      status: res.status,
+    });
+  }
+  return (await res.json()) as T;
+}
+
+export async function getBootstrap(): Promise<Bootstrap> {
+  if (bootstrapCache && Date.now() - bootstrapCache.at < 10 * 60 * 1000) {
+    return bootstrapCache.data;
+  }
+  const data = await fplFetch<Bootstrap>("/bootstrap-static/");
+  bootstrapCache = { data, at: Date.now() };
+  return data;
+}
+
+const POSITIONS: Record<number, string> = { 1: "G", 2: "D", 3: "M", 4: "F" };
+
+export async function getGameweekInfo(): Promise<{
+  nextGameweek: number;
+  isFirstGameweek: boolean;
+  deadline: string | null;
+}> {
+  const bootstrap = await getBootstrap();
+  const next = bootstrap.events.find((e) => e.is_next);
+  const nextGameweek = next ? next.id : 38;
+  return {
+    nextGameweek,
+    isFirstGameweek: nextGameweek === 1,
+    deadline: next ? next.deadline_time : null,
+  };
+}
+
+interface Entry {
+  id: number;
+  name: string;
+  player_first_name: string;
+  player_last_name: string;
+  summary_overall_rank: number | null;
+  summary_overall_points: number | null;
+  last_deadline_bank: number | null;
+  current_event: number | null;
+}
+
+interface EventPicks {
+  picks: { element: number }[];
+  entry_history?: { bank: number };
+}
+
+export async function getFplTeam(teamId: number): Promise<{
+  teamId: number;
+  name: string;
+  managerName: string;
+  overallRank: number | null;
+  totalPoints: number | null;
+  bank: number;
+  squad: {
+    playerId: number;
+    name: string;
+    team: string;
+    position: string;
+    sellPrice: number;
+  }[];
+}> {
+  const entry = await fplFetch<Entry>(`/entry/${teamId}/`);
+  const bootstrap = await getBootstrap();
+  const elementById = new Map(bootstrap.elements.map((e) => [e.id, e]));
+  const teamById = new Map(bootstrap.teams.map((t) => [t.id, t]));
+
+  let squad: {
+    playerId: number;
+    name: string;
+    team: string;
+    position: string;
+    sellPrice: number;
+  }[] = [];
+  let bank = (entry.last_deadline_bank ?? 0) / 10;
+
+  if (entry.current_event) {
+    const picks = await fplFetch<EventPicks>(
+      `/entry/${teamId}/event/${entry.current_event}/picks/`,
+    );
+    if (picks.entry_history) {
+      bank = picks.entry_history.bank / 10;
+    }
+    squad = picks.picks.map((p) => {
+      const el = elementById.get(p.element);
+      return {
+        playerId: p.element,
+        name: el?.web_name ?? `Player ${p.element}`,
+        team: el ? (teamById.get(el.team)?.short_name ?? "?") : "?",
+        position: el ? (POSITIONS[el.element_type] ?? "?") : "?",
+        sellPrice: el ? el.now_cost / 10 : 0,
+      };
+    });
+  }
+
+  return {
+    teamId: entry.id,
+    name: entry.name,
+    managerName:
+      `${entry.player_first_name} ${entry.player_last_name}`.trim(),
+    overallRank: entry.summary_overall_rank,
+    totalPoints: entry.summary_overall_points,
+    bank,
+    squad,
+  };
+}

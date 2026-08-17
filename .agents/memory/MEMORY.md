@@ -1,0 +1,1 @@
+- [open-fpl-solver integration](solver-integration.md) — vendored git clone must stay pristine; per-run config via --config; results found by datasource prefix; use `type: number` in openapi.yaml (orval/zod-v3 clash).

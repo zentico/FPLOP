@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "FPL Team Optimizer"
+description = "A web app for optimizing a Fantasy Premier League team. Users upload a points-projection CSV, assign chips (Bench Boost, Wildcard, Free Hit, Triple Captain) to future gameweeks, and either build a fresh squad for GW1 or enter their FPL team ID to pull their current squad. The app runs the open-fpl-solver optimizer and shows the optimal squad, transfers, captaincy, and bench per gameweek."
+version = "1.0.0"
+id = "artifacts/fpl-optimizer"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19118
+
+[services.development]
+run = "pnpm --filter @workspace/fpl-optimizer run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/fpl-optimizer", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/fpl-optimizer/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19118"
+BASE_PATH = "/"
