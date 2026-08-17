@@ -103,6 +103,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorMessage"
+  /projections/{id}/csv:
+    get:
+      operationId: downloadProjectionCsv
+      tags: [projections]
+      summary: Download the raw projection CSV file
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
   /settings/ffh-session:
     get:
       operationId: getFfhSessionStatus
@@ -499,6 +523,22 @@ components:
           oneOf:
             - $ref: "#/components/schemas/SolveResult"
             - type: "null"
+        progress:
+          oneOf:
+            - $ref: "#/components/schemas/SolveProgress"
+            - type: "null"
+    SolveProgress:
+      type: object
+      required: [stage, message]
+      properties:
+        stage:
+          type: string
+          description: One of preparing, pool, solving, finalizing
+        message:
+          type: string
+        gapPercent:
+          type: ["number", "null"]
+          description: Current optimality gap while the MIP solver runs
     SolveResult:
       type: object
       required: [gameweeks, totalExpectedPoints]

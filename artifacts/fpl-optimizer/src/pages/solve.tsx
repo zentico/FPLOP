@@ -77,8 +77,10 @@ export default function SolveDetail() {
           </div>
           <h3 className="text-xl font-bold mb-2">Optimizer is running...</h3>
           <p className="text-muted-foreground max-w-md mx-auto">
-            Exploring thousands of transfer combinations over a {solve.request.horizon}-gameweek horizon to find the mathematically optimal path.
+            {solve.progress?.message ||
+              `Exploring thousands of transfer combinations over a ${solve.request.horizon}-gameweek horizon to find the mathematically optimal path.`}
           </p>
+          <SolveProgressBar progress={solve.progress ?? null} createdAt={solve.createdAt} />
           <div className="mt-8 flex gap-2">
             <div className="h-2 w-2 bg-primary rounded-full animate-ping" style={{ animationDelay: '0ms' }} />
             <div className="h-2 w-2 bg-primary rounded-full animate-ping" style={{ animationDelay: '150ms' }} />
@@ -150,6 +152,65 @@ export default function SolveDetail() {
 
         </div>
       )}
+    </div>
+  );
+}
+
+const STAGES = ["preparing", "pool", "solving", "finalizing"] as const;
+const STAGE_LABEL: Record<string, string> = {
+  preparing: "Preparing",
+  pool: "Building model",
+  solving: "Optimizing",
+  finalizing: "Finalizing",
+};
+
+function SolveProgressBar({
+  progress,
+  createdAt,
+}: {
+  progress: { stage: string; message: string; gapPercent?: number | null } | null;
+  createdAt: string;
+}) {
+  const [now, setNow] = React.useState(() => Date.now());
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const elapsed = Math.max(0, Math.floor((now - new Date(createdAt).getTime()) / 1000));
+  const stageIdx = Math.max(0, STAGES.indexOf((progress?.stage ?? "preparing") as (typeof STAGES)[number]));
+
+  // During the solving stage, the optimality gap shrinking toward 0 is the
+  // best available signal — map it onto the solving segment of the bar.
+  let pct = (stageIdx / STAGES.length) * 100;
+  if (progress?.stage === "solving") {
+    const gap = progress.gapPercent;
+    const within = gap != null && gap <= 100 ? 1 - gap / 100 : 0.1;
+    pct = 50 + within * 25;
+  } else if (progress?.stage === "finalizing") {
+    pct = 90;
+  } else if (progress?.stage === "pool") {
+    pct = 30;
+  } else {
+    pct = 10;
+  }
+
+  return (
+    <div className="w-full max-w-md mx-auto mt-8 space-y-2">
+      <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+        <div
+          className="h-full bg-primary rounded-full transition-all duration-1000 ease-out"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <div className="flex justify-between text-xs text-muted-foreground font-mono">
+        <span>
+          {STAGE_LABEL[progress?.stage ?? "preparing"] ?? "Working"}
+          {progress?.stage === "solving" && progress.gapPercent != null
+            ? ` — gap ${progress.gapPercent.toFixed(2)}%`
+            : ""}
+        </span>
+        <span>{Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, "0")}</span>
+      </div>
     </div>
   );
 }

@@ -69,6 +69,16 @@ export const ImportProjectionResponse = zod.object({
 
 
 /**
+ * @summary Download the raw projection CSV file
+ */
+export const DownloadProjectionCsvParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DownloadProjectionCsvResponse = zod.unknown()
+
+
+/**
  * @summary Whether a Fantasy Football Hub session cookie is configured
  */
 export const GetFfhSessionStatusResponse = zod.object({
@@ -204,6 +214,11 @@ export const ListSolvesResponseItem = zod.object({
   "transfersIn": zod.array(zod.string()),
   "transfersOut": zod.array(zod.string())
 }))
+}),zod.null()]).optional(),
+  "progress": zod.union([zod.object({
+  "stage": zod.string().describe('One of preparing, pool, solving, finalizing'),
+  "message": zod.string(),
+  "gapPercent": zod.number().nullish().describe('Current optimality gap while the MIP solver runs')
 }),zod.null()]).optional()
 })
 export const ListSolvesResponse = zod.array(ListSolvesResponseItem)
@@ -271,6 +286,11 @@ export const CreateSolveResponse = zod.object({
   "transfersIn": zod.array(zod.string()),
   "transfersOut": zod.array(zod.string())
 }))
+}),zod.null()]).optional(),
+  "progress": zod.union([zod.object({
+  "stage": zod.string().describe('One of preparing, pool, solving, finalizing'),
+  "message": zod.string(),
+  "gapPercent": zod.number().nullish().describe('Current optimality gap while the MIP solver runs')
 }),zod.null()]).optional()
 })
 
@@ -330,6 +350,11 @@ export const GetSolveResponse = zod.object({
   "transfersIn": zod.array(zod.string()),
   "transfersOut": zod.array(zod.string())
 }))
+}),zod.null()]).optional(),
+  "progress": zod.union([zod.object({
+  "stage": zod.string().describe('One of preparing, pool, solving, finalizing'),
+  "message": zod.string(),
+  "gapPercent": zod.number().nullish().describe('Current optimality gap while the MIP solver runs')
 }),zod.null()]).optional()
 })
 

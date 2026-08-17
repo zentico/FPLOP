@@ -157,7 +157,7 @@ function buildConfig(request: SolveRequest): Record<string, unknown> {
     datasource: request.projectionId,
     horizon: request.horizon ?? 5,
     no_transfer_last_gws: 0,
-    verbose: false,
+    verbose: true,
     print_squads: false,
     print_result_table: false,
     print_decay_metrics: false,
@@ -275,6 +275,74 @@ export function startSolve(runId: string, request: SolveRequest): void {
       });
     }
   });
+}
+
+export interface SolveProgress {
+  stage: string;
+  message: string;
+  gapPercent: number | null;
+}
+
+/** Derive a human-readable progress snapshot from the solver's log file. */
+export function getRunProgress(runId: string): SolveProgress {
+  let content = "";
+  try {
+    content = fs.readFileSync(path.join(RUNS_DIR, runId, "solver.log"), "utf-8");
+  } catch {
+    // no log yet
+  }
+
+  if (content.includes("Solving report")) {
+    return {
+      stage: "finalizing",
+      message: "Optimal plan found — writing out the solution",
+      gapPercent: null,
+    };
+  }
+
+  // HiGHS branch-and-bound progress rows look like:
+  //   "  0  0  0   0.00%   126.759  126.715   0.03%   7  5  4  2387  1.4s"
+  // The FIRST percentage is B&B tree exploration, the LAST one is the
+  // optimality gap; when the gap is unknown HiGHS prints "Large"/"inf"
+  // instead, leaving only one percentage on the row. Only trust rows that
+  // end with an elapsed-time token, and take the most recent finite gap.
+  let gap: number | null = null;
+  for (const line of content.split("\n")) {
+    if (!/\d+(?:\.\d+)?s\s*$/.test(line)) continue;
+    const pcts = line.match(/\b\d+(?:\.\d+)?%/g);
+    if (pcts && pcts.length >= 2) {
+      const last = Number(pcts[pcts.length - 1]!.replace("%", ""));
+      if (Number.isFinite(last)) gap = last;
+    } else if (pcts && pcts.length === 1 && /\b(Large|inf)\b/.test(line)) {
+      gap = null; // gap column is Large/inf — genuinely unknown right now
+    }
+  }
+
+  if (content.includes("Solving MIP model") || content.includes("Presolving model")) {
+    return {
+      stage: "solving",
+      message:
+        gap != null
+          ? `Exploring transfer plans — current solution within ${gap.toFixed(2)}% of the theoretical best`
+          : "Exploring transfer plans with the MIP solver",
+      gapPercent: gap,
+    };
+  }
+
+  const pool = /Filtered player pool from (\d+) to (\d+) players/.exec(content);
+  if (pool) {
+    return {
+      stage: "pool",
+      message: `Building the optimization model from a pool of ${pool[2]} candidate players`,
+      gapPercent: null,
+    };
+  }
+
+  return {
+    stage: "preparing",
+    message: "Preparing the solver environment and loading projections",
+    gapPercent: null,
+  };
 }
 
 function readLogTail(logPath: string): string {

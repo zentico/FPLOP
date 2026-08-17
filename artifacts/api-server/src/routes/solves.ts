@@ -7,7 +7,7 @@ import {
   GetSolveResponse,
   ListSolvesResponse,
 } from "@workspace/api-zod";
-import { startSolve } from "../lib/solver";
+import { getRunProgress, startSolve } from "../lib/solver";
 import {
   type SolveRunMeta,
   listProjectionMetas,
@@ -91,7 +91,11 @@ router.get("/solves/:id", async (req, res): Promise<void> => {
     res.status(404).json({ error: "Solve run not found" });
     return;
   }
-  res.json(GetSolveResponse.parse(run));
+  const progress =
+    run.status === "running" || run.status === "queued"
+      ? getRunProgress(run.id)
+      : null;
+  res.json(GetSolveResponse.parse({ ...run, progress }));
 });
 
 router.delete("/solves/:id", async (req, res): Promise<void> => {

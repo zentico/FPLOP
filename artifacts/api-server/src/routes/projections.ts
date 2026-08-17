@@ -182,6 +182,33 @@ router.delete("/projections/:id", async (req, res): Promise<void> => {
   res.sendStatus(204);
 });
 
+router.get("/projections/:id/csv", async (req, res): Promise<void> => {
+  const params = GetProjectionPlayersParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  const meta = listProjectionMetas().find((m) => m.id === params.data.id);
+  if (!meta) {
+    res.status(404).json({ error: "Projection not found" });
+    return;
+  }
+  const filePath = projectionCsvPath(params.data.id);
+  if (!fs.existsSync(filePath)) {
+    res.status(404).json({ error: "Projection file is missing" });
+    return;
+  }
+  const downloadName = meta.filename.toLowerCase().endsWith(".csv")
+    ? meta.filename
+    : `${meta.filename}.csv`;
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="${downloadName.replace(/[^\w.\- ]/g, "_")}"`,
+  );
+  fs.createReadStream(filePath).pipe(res);
+});
+
 router.get("/projections/:id/players", async (req, res): Promise<void> => {
   const params = GetProjectionPlayersParams.safeParse(req.params);
   if (!params.success) {

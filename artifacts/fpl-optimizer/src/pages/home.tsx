@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "@/components/ui/switch";
 import { useLocation } from "wouter";
-import { AlertCircle, UploadCloud, DownloadCloud, Trash2, Database, ShieldAlert, Cpu, Trophy, Banknote, Users, LineChart } from "lucide-react";
+import { AlertCircle, UploadCloud, DownloadCloud, Download, Trash2, Database, ShieldAlert, Cpu, Trophy, Banknote, Users, LineChart } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 
@@ -211,9 +211,16 @@ export default function Home() {
                               </span>
                             </Label>
                           </div>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDeleteProjection(p.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" asChild>
+                              <a href={`${import.meta.env.BASE_URL}api/projections/${p.id}/csv`} download title="Download CSV">
+                                <Download className="h-4 w-4" />
+                              </a>
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDeleteProjection(p.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </RadioGroup>

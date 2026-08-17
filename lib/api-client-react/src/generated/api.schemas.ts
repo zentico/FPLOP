@@ -152,6 +152,17 @@ export interface SolveResult {
   gameweeks: GameweekPlan[];
 }
 
+export interface SolveProgress {
+  /** One of preparing, pool, solving, finalizing */
+  stage: string;
+  message: string;
+  /**
+     * Current optimality gap while the MIP solver runs
+     * @nullable
+     */
+  gapPercent?: number | null;
+}
+
 export interface SolveRun {
   id: string;
   /** One of queued, running, completed, failed */
@@ -167,5 +178,6 @@ export interface SolveRun {
   /** @nullable */
   totalExpectedPoints?: number | null;
   result?: SolveResult | null;
+  progress?: SolveProgress | null;
 }
 

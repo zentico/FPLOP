@@ -22,5 +22,6 @@ export * from './projectedPlayer';
 export * from './projection';
 export * from './projectionInput';
 export * from './solveInput';
+export * from './solveProgress';
 export * from './solveResult';
 export * from './solveRun';

@@ -358,6 +358,83 @@ export const useImportProjection = <TError = ErrorType<ErrorMessage>,
       return useMutation(getImportProjectionMutationOptions(options));
     }
 
+export const getDownloadProjectionCsvUrl = (id: string,) => {
+
+
+
+
+  return `/api/projections/${id}/csv`
+}
+
+/**
+ * @summary Download the raw projection CSV file
+ */
+export const downloadProjectionCsv = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<string> => {
+
+  return customFetch<string>(getDownloadProjectionCsvUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadProjectionCsvQueryKey = (id: string,) => {
+    return [
+    `/api/projections/${id}/csv`
+    ] as const;
+    }
+
+
+export const getDownloadProjectionCsvQueryOptions = <TData = Awaited<ReturnType<typeof downloadProjectionCsv>>, TError = ErrorType<ErrorMessage>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadProjectionCsv>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadProjectionCsvQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadProjectionCsv>>> = ({ signal }) => downloadProjectionCsv(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadProjectionCsv>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadProjectionCsvQueryResult = NonNullable<Awaited<ReturnType<typeof downloadProjectionCsv>>>
+export type DownloadProjectionCsvQueryError = ErrorType<ErrorMessage>
+
+
+/**
+ * @summary Download the raw projection CSV file
+ */
+
+export function useDownloadProjectionCsv<TData = Awaited<ReturnType<typeof downloadProjectionCsv>>, TError = ErrorType<ErrorMessage>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadProjectionCsv>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadProjectionCsvQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getGetFfhSessionStatusUrl = () => {
 
 

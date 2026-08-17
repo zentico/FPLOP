@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { SolveInput } from './solveInput';
+import type { SolveProgress } from './solveProgress';
 import type { SolveResult } from './solveResult';
 
 export interface SolveRun {
@@ -23,4 +24,5 @@ export interface SolveRun {
   /** @nullable */
   totalExpectedPoints?: number | null;
   result?: SolveResult | null;
+  progress?: SolveProgress | null;
 }
