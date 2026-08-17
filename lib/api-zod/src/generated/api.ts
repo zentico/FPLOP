@@ -76,7 +76,9 @@ export const ListFixturesResponseItem = zod.object({
   "home": zod.string().describe('Home team short name (3-letter FPL code)'),
   "away": zod.string().describe('Away team short name (3-letter FPL code)'),
   "homeName": zod.string().describe('Home team full name'),
-  "awayName": zod.string().describe('Away team full name')
+  "awayName": zod.string().describe('Away team full name'),
+  "homeDifficulty": zod.number().describe('FPL fixture difficulty rating (1-5) for the home team'),
+  "awayDifficulty": zod.number().describe('FPL fixture difficulty rating (1-5) for the away team')
 })
 export const ListFixturesResponse = zod.array(ListFixturesResponseItem)
 

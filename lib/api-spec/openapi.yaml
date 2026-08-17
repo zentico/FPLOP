@@ -574,7 +574,7 @@ components:
           description: Add noise to projections for alternative solutions
     FixtureInfo:
       type: object
-      required: [gameweek, home, away, homeName, awayName]
+      required: [gameweek, home, away, homeName, awayName, homeDifficulty, awayDifficulty]
       properties:
         gameweek:
           type: ["number", "null"]
@@ -590,6 +590,12 @@ components:
         awayName:
           type: string
           description: Away team full name
+        homeDifficulty:
+          type: number
+          description: FPL fixture difficulty rating (1-5) for the home team
+        awayDifficulty:
+          type: number
+          description: FPL fixture difficulty rating (1-5) for the away team
     SolveRun:
       type: object
       required: [id, status, createdAt, request]

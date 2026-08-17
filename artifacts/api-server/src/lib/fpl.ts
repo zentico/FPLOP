@@ -56,6 +56,8 @@ interface RawFixture {
   event: number | null;
   team_h: number;
   team_a: number;
+  team_h_difficulty: number;
+  team_a_difficulty: number;
 }
 
 export interface FixtureInfo {
@@ -64,6 +66,10 @@ export interface FixtureInfo {
   away: string;
   homeName: string;
   awayName: string;
+  /** FDR 1-5 for the home team in this fixture */
+  homeDifficulty: number;
+  /** FDR 1-5 for the away team in this fixture */
+  awayDifficulty: number;
 }
 
 let fixturesCache: { data: FixtureInfo[]; at: number } | null = null;
@@ -84,6 +90,8 @@ export async function getFixtures(): Promise<FixtureInfo[]> {
     away: teamShort.get(f.team_a) ?? "?",
     homeName: teamFull.get(f.team_h) ?? "?",
     awayName: teamFull.get(f.team_a) ?? "?",
+    homeDifficulty: f.team_h_difficulty ?? 3,
+    awayDifficulty: f.team_a_difficulty ?? 3,
   }));
   fixturesCache = { data, at: Date.now() };
   return data;

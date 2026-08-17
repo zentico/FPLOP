@@ -225,40 +225,77 @@ function StatusBadge({ status }: { status: string }) {
   }
 }
 
+interface FixtureChip {
+  label: string;
+  difficulty: number;
+}
+
+/** Returns FDR-based Tailwind classes for background and text. */
+function fdrClasses(difficulty: number): string {
+  if (difficulty <= 1) return "bg-teal-500 text-white";
+  if (difficulty === 2) return "bg-green-400 text-white";
+  if (difficulty === 3) return "bg-gray-200 text-gray-800 dark:bg-gray-600 dark:text-gray-100";
+  if (difficulty === 4) return "bg-orange-400 text-white";
+  return "bg-red-600 text-white";
+}
+
 /**
- * Map team identifier -> "OPP (H/A)" (joined with ", " for double gameweeks).
+ * Map team identifier -> array of {label, difficulty} fixtures for the gameweek.
  * Keyed on both the FPL short code (e.g. "ARS") and the full name (e.g.
  * "Arsenal") so results from the solver CSV — which may use either format —
  * are matched correctly.
  */
-function useOpponents(gameweek: number): Map<string, string> {
+function useOpponents(gameweek: number): Map<string, FixtureChip[]> {
   const { data: fixtures } = useListFixtures();
   return React.useMemo(() => {
-    const raw = new Map<string, string[]>();
+    const raw = new Map<string, FixtureChip[]>();
     for (const f of fixtures ?? []) {
       if (f.gameweek !== gameweek) continue;
-      raw.set(f.home, [...(raw.get(f.home) ?? []), `${f.away} (H)`]);
-      raw.set(f.away, [...(raw.get(f.away) ?? []), `${f.home} (A)`]);
+      raw.set(f.home, [
+        ...(raw.get(f.home) ?? []),
+        { label: `${f.away} (H)`, difficulty: f.homeDifficulty ?? 3 },
+      ]);
+      raw.set(f.away, [
+        ...(raw.get(f.away) ?? []),
+        { label: `${f.home} (A)`, difficulty: f.awayDifficulty ?? 3 },
+      ]);
     }
-    const map = new Map<string, string>();
-    for (const [key, opps] of raw) {
-      const val = opps.join(", ");
-      map.set(key, val);
+    const map = new Map<string, FixtureChip[]>();
+    for (const [key, chips] of raw) {
+      map.set(key, chips);
     }
     // Also key on full names so solver results that use full names match too
     for (const f of fixtures ?? []) {
       if (f.gameweek !== gameweek) continue;
       if (f.homeName && !map.has(f.homeName)) {
-        const val = raw.get(f.home);
-        if (val) map.set(f.homeName, val.join(", "));
+        const chips = raw.get(f.home);
+        if (chips) map.set(f.homeName, chips);
       }
       if (f.awayName && !map.has(f.awayName)) {
-        const val = raw.get(f.away);
-        if (val) map.set(f.awayName, val.join(", "));
+        const chips = raw.get(f.away);
+        if (chips) map.set(f.awayName, chips);
       }
     }
     return map;
   }, [fixtures, gameweek]);
+}
+
+function FixtureCell({ chips }: { chips: FixtureChip[] | undefined }) {
+  if (!chips || chips.length === 0) {
+    return <span className="text-xs font-mono text-muted-foreground">—</span>;
+  }
+  return (
+    <div className="flex flex-wrap gap-1">
+      {chips.map((c, i) => (
+        <span
+          key={i}
+          className={`inline-block rounded px-1.5 py-0.5 text-[11px] font-bold font-mono leading-tight ${fdrClasses(c.difficulty)}`}
+        >
+          {c.label}
+        </span>
+      ))}
+    </div>
+  );
 }
 
 function GameweekView({ plan }: { plan: GameweekPlan }) {
@@ -377,7 +414,7 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                           </div>
                         </TableCell>
                         <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{player.team}</TableCell>
-                        <TableCell className="text-xs font-mono text-muted-foreground">{opponents.get(player.team) ?? "—"}</TableCell>
+                        <TableCell><FixtureCell chips={opponents.get(player.team)} /></TableCell>
                         <TableCell className="text-right font-mono text-sm">£{player.price.toFixed(1)}</TableCell>
                         <TableCell className="text-right pr-6 font-mono font-bold text-primary">
                           {(player.expectedPoints * (player.isCaptain ? (plan.chip === 'triple_captain' ? 3 : 2) : 1)).toFixed(2)}
@@ -417,7 +454,7 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                         </div>
                       </TableCell>
                       <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{player.team}</TableCell>
-                      <TableCell className="text-xs font-mono text-muted-foreground">{opponents.get(player.team) ?? "—"}</TableCell>
+                      <TableCell><FixtureCell chips={opponents.get(player.team)} /></TableCell>
                       <TableCell className="text-right font-mono text-sm">£{player.price.toFixed(1)}</TableCell>
                       <TableCell className="text-right pr-6 font-mono font-bold">{player.expectedPoints.toFixed(2)}</TableCell>
                     </TableRow>
