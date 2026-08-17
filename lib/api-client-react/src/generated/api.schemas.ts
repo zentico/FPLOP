@@ -102,6 +102,20 @@ export interface ChipAssignment {
 }
 
 /**
+ * Restrict the solver's player pool to players matching ANY of the three criteria (OR). Locked players are always kept.
+ */
+export interface PoolFilter {
+  /** High impact: points per match strictly greater than this */
+  impactPpm: number;
+  /** High value: (points per match / price) strictly greater than this */
+  valuePpmPerM: number;
+  /** Quality bench: price strictly below this (millions) */
+  benchMaxPrice: number;
+  /** Quality bench: points per match strictly greater than this */
+  benchMinPpm: number;
+}
+
+/**
  * Advanced solver settings, mirroring open-fpl-solver config keys
  */
 export interface SolveOptions {
@@ -184,8 +198,20 @@ export interface SolveInput {
   horizon?: number;
   /** Differential factor k as a fraction (e.g. 0.2 for 20%). Each player's projected points are scaled by 1 + k * (100 - ownership%) / 100 before optimization. Requires the projection to include an Ownership column. */
   differentialFactor?: number;
+  poolFilter?: PoolFilter | null;
   chips?: ChipAssignment[];
   options?: SolveOptions | null;
+}
+
+export interface PoolPlayerStat {
+  /** FPL player id */
+  id: number;
+  name: string;
+  /** One of G, D, M, F */
+  position: string;
+  price: number;
+  /** Points per match (total projected points / gameweeks in the projection) */
+  ppm: number;
 }
 
 export interface FixtureInfo {
@@ -282,6 +308,16 @@ export interface SolveRun {
   projectionFilename?: string | null;
   /** @nullable */
   totalExpectedPoints?: number | null;
+  /**
+     * Players in the solver pool after filtering (null when unfiltered)
+     * @nullable
+     */
+  poolKept?: number | null;
+  /**
+     * Total players in the projection when a pool filter was used
+     * @nullable
+     */
+  poolTotal?: number | null;
   result?: SolveResult | null;
   progress?: SolveProgress | null;
 }

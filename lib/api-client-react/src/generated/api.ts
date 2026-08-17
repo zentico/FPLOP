@@ -28,6 +28,7 @@ import type {
   GameweekInfo,
   HealthStatus,
   ImportProjectionInput,
+  PoolPlayerStat,
   ProjectedPlayer,
   Projection,
   ProjectionInput,
@@ -797,6 +798,83 @@ export function useGetProjectionPlayers<TData = Awaited<ReturnType<typeof getPro
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetProjectionPlayersQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetProjectionPoolStatsUrl = (id: string,) => {
+
+
+
+
+  return `/api/projections/${id}/pool-stats`
+}
+
+/**
+ * @summary Per-player pool stats (price, points per match) for pool filtering
+ */
+export const getProjectionPoolStats = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<PoolPlayerStat[]> => {
+
+  return customFetch<PoolPlayerStat[]>(getGetProjectionPoolStatsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetProjectionPoolStatsQueryKey = (id: string,) => {
+    return [
+    `/api/projections/${id}/pool-stats`
+    ] as const;
+    }
+
+
+export const getGetProjectionPoolStatsQueryOptions = <TData = Awaited<ReturnType<typeof getProjectionPoolStats>>, TError = ErrorType<ErrorMessage>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProjectionPoolStats>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetProjectionPoolStatsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProjectionPoolStats>>> = ({ signal }) => getProjectionPoolStats(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProjectionPoolStats>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetProjectionPoolStatsQueryResult = NonNullable<Awaited<ReturnType<typeof getProjectionPoolStats>>>
+export type GetProjectionPoolStatsQueryError = ErrorType<ErrorMessage>
+
+
+/**
+ * @summary Per-player pool stats (price, points per match) for pool filtering
+ */
+
+export function useGetProjectionPoolStats<TData = Awaited<ReturnType<typeof getProjectionPoolStats>>, TError = ErrorType<ErrorMessage>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProjectionPoolStats>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetProjectionPoolStatsQueryOptions(id,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ChipAssignment } from './chipAssignment';
+import type { PoolFilter } from './poolFilter';
 import type { SolveOptions } from './solveOptions';
 
 export interface SolveInput {
@@ -21,6 +22,7 @@ export interface SolveInput {
   horizon?: number;
   /** Differential factor k as a fraction (e.g. 0.2 for 20%). Each player's projected points are scaled by 1 + k * (100 - ownership%) / 100 before optimization. Requires the projection to include an Ownership column. */
   differentialFactor?: number;
+  poolFilter?: PoolFilter | null;
   chips?: ChipAssignment[];
   options?: SolveOptions | null;
 }

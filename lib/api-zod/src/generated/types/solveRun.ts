@@ -23,6 +23,16 @@ export interface SolveRun {
   projectionFilename?: string | null;
   /** @nullable */
   totalExpectedPoints?: number | null;
+  /**
+     * Players in the solver pool after filtering (null when unfiltered)
+     * @nullable
+     */
+  poolKept?: number | null;
+  /**
+     * Total players in the projection when a pool filter was used
+     * @nullable
+     */
+  poolTotal?: number | null;
   result?: SolveResult | null;
   progress?: SolveProgress | null;
 }

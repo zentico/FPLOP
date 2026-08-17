@@ -234,6 +234,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorMessage"
+  /projections/{id}/pool-stats:
+    get:
+      operationId: getProjectionPoolStats
+      tags: [projections]
+      summary: Per-player pool stats (price, points per match) for pool filtering
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: One entry per player in the projection
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PoolPlayerStat"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
   /fpl/gameweek:
     get:
       operationId: getGameweekInfo
@@ -520,6 +546,10 @@ components:
             Differential factor k as a fraction (e.g. 0.2 for 20%). Each player's
             projected points are scaled by 1 + k * (100 - ownership%) / 100 before
             optimization. Requires the projection to include an Ownership column.
+        poolFilter:
+          oneOf:
+            - $ref: "#/components/schemas/PoolFilter"
+            - type: "null"
         chips:
           type: array
           items:
@@ -528,6 +558,42 @@ components:
           oneOf:
             - $ref: "#/components/schemas/SolveOptions"
             - type: "null"
+    PoolPlayerStat:
+      type: object
+      required: [id, name, position, price, ppm]
+      properties:
+        id:
+          type: number
+          description: FPL player id
+        name:
+          type: string
+        position:
+          type: string
+          description: One of G, D, M, F
+        price:
+          type: number
+        ppm:
+          type: number
+          description: Points per match (total projected points / gameweeks in the projection)
+    PoolFilter:
+      type: object
+      description: >
+        Restrict the solver's player pool to players matching ANY of the three
+        criteria (OR). Locked players are always kept.
+      required: [impactPpm, valuePpmPerM, benchMaxPrice, benchMinPpm]
+      properties:
+        impactPpm:
+          type: number
+          description: "High impact: points per match strictly greater than this"
+        valuePpmPerM:
+          type: number
+          description: "High value: (points per match / price) strictly greater than this"
+        benchMaxPrice:
+          type: number
+          description: "Quality bench: price strictly below this (millions)"
+        benchMinPpm:
+          type: number
+          description: "Quality bench: points per match strictly greater than this"
     SolveOptions:
       type: object
       description: Advanced solver settings, mirroring open-fpl-solver config keys
@@ -623,6 +689,12 @@ components:
           type: ["string", "null"]
         totalExpectedPoints:
           type: ["number", "null"]
+        poolKept:
+          type: ["number", "null"]
+          description: Players in the solver pool after filtering (null when unfiltered)
+        poolTotal:
+          type: ["number", "null"]
+          description: Total players in the projection when a pool filter was used
         result:
           oneOf:
             - $ref: "#/components/schemas/SolveResult"

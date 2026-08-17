@@ -145,6 +145,23 @@ export const GetProjectionPlayersResponse = zod.array(GetProjectionPlayersRespon
 
 
 /**
+ * @summary Per-player pool stats (price, points per match) for pool filtering
+ */
+export const GetProjectionPoolStatsParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const GetProjectionPoolStatsResponseItem = zod.object({
+  "id": zod.number().describe('FPL player id'),
+  "name": zod.string(),
+  "position": zod.string().describe('One of G, D, M, F'),
+  "price": zod.number(),
+  "ppm": zod.number().describe('Points per match (total projected points \/ gameweeks in the projection)')
+})
+export const GetProjectionPoolStatsResponse = zod.array(GetProjectionPoolStatsResponseItem)
+
+
+/**
  * @summary Current gameweek info from the official FPL API
  */
 export const GetGameweekInfoResponse = zod.object({
@@ -193,6 +210,12 @@ export const ListSolvesResponseItem = zod.object({
   "teamId": zod.number().nullish().describe('FPL team code, required when firstGameweek is false'),
   "horizon": zod.number().optional().describe('Number of gameweeks to optimize over (default 5)'),
   "differentialFactor": zod.number().optional().describe('Differential factor k as a fraction (e.g. 0.2 for 20%). Each player\'s projected points are scaled by 1 + k \* (100 - ownership%) \/ 100 before optimization. Requires the projection to include an Ownership column.\n'),
+  "poolFilter": zod.union([zod.object({
+  "impactPpm": zod.number().describe('High impact: points per match strictly greater than this'),
+  "valuePpmPerM": zod.number().describe('High value: (points per match \/ price) strictly greater than this'),
+  "benchMaxPrice": zod.number().describe('Quality bench: price strictly below this (millions)'),
+  "benchMinPpm": zod.number().describe('Quality bench: points per match strictly greater than this')
+}).describe('Restrict the solver\'s player pool to players matching ANY of the three criteria (OR). Locked players are always kept.\n'),zod.null()]).optional(),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()
@@ -216,6 +239,8 @@ export const ListSolvesResponseItem = zod.object({
 }),
   "projectionFilename": zod.string().nullish(),
   "totalExpectedPoints": zod.number().nullish(),
+  "poolKept": zod.number().nullish().describe('Players in the solver pool after filtering (null when unfiltered)'),
+  "poolTotal": zod.number().nullish().describe('Total players in the projection when a pool filter was used'),
   "result": zod.union([zod.object({
   "totalExpectedPoints": zod.number(),
   "totalBaseExpectedPoints": zod.number().nullish().describe('Total using unadjusted projections, when a differential factor was applied'),
@@ -269,6 +294,12 @@ export const CreateSolveBody = zod.object({
   "teamId": zod.number().nullish().describe('FPL team code, required when firstGameweek is false'),
   "horizon": zod.number().optional().describe('Number of gameweeks to optimize over (default 5)'),
   "differentialFactor": zod.number().optional().describe('Differential factor k as a fraction (e.g. 0.2 for 20%). Each player\'s projected points are scaled by 1 + k \* (100 - ownership%) \/ 100 before optimization. Requires the projection to include an Ownership column.\n'),
+  "poolFilter": zod.union([zod.object({
+  "impactPpm": zod.number().describe('High impact: points per match strictly greater than this'),
+  "valuePpmPerM": zod.number().describe('High value: (points per match \/ price) strictly greater than this'),
+  "benchMaxPrice": zod.number().describe('Quality bench: price strictly below this (millions)'),
+  "benchMinPpm": zod.number().describe('Quality bench: points per match strictly greater than this')
+}).describe('Restrict the solver\'s player pool to players matching ANY of the three criteria (OR). Locked players are always kept.\n'),zod.null()]).optional(),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()
@@ -303,6 +334,12 @@ export const CreateSolveResponse = zod.object({
   "teamId": zod.number().nullish().describe('FPL team code, required when firstGameweek is false'),
   "horizon": zod.number().optional().describe('Number of gameweeks to optimize over (default 5)'),
   "differentialFactor": zod.number().optional().describe('Differential factor k as a fraction (e.g. 0.2 for 20%). Each player\'s projected points are scaled by 1 + k \* (100 - ownership%) \/ 100 before optimization. Requires the projection to include an Ownership column.\n'),
+  "poolFilter": zod.union([zod.object({
+  "impactPpm": zod.number().describe('High impact: points per match strictly greater than this'),
+  "valuePpmPerM": zod.number().describe('High value: (points per match \/ price) strictly greater than this'),
+  "benchMaxPrice": zod.number().describe('Quality bench: price strictly below this (millions)'),
+  "benchMinPpm": zod.number().describe('Quality bench: points per match strictly greater than this')
+}).describe('Restrict the solver\'s player pool to players matching ANY of the three criteria (OR). Locked players are always kept.\n'),zod.null()]).optional(),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()
@@ -326,6 +363,8 @@ export const CreateSolveResponse = zod.object({
 }),
   "projectionFilename": zod.string().nullish(),
   "totalExpectedPoints": zod.number().nullish(),
+  "poolKept": zod.number().nullish().describe('Players in the solver pool after filtering (null when unfiltered)'),
+  "poolTotal": zod.number().nullish().describe('Total players in the projection when a pool filter was used'),
   "result": zod.union([zod.object({
   "totalExpectedPoints": zod.number(),
   "totalBaseExpectedPoints": zod.number().nullish().describe('Total using unadjusted projections, when a differential factor was applied'),
@@ -388,6 +427,12 @@ export const GetSolveResponse = zod.object({
   "teamId": zod.number().nullish().describe('FPL team code, required when firstGameweek is false'),
   "horizon": zod.number().optional().describe('Number of gameweeks to optimize over (default 5)'),
   "differentialFactor": zod.number().optional().describe('Differential factor k as a fraction (e.g. 0.2 for 20%). Each player\'s projected points are scaled by 1 + k \* (100 - ownership%) \/ 100 before optimization. Requires the projection to include an Ownership column.\n'),
+  "poolFilter": zod.union([zod.object({
+  "impactPpm": zod.number().describe('High impact: points per match strictly greater than this'),
+  "valuePpmPerM": zod.number().describe('High value: (points per match \/ price) strictly greater than this'),
+  "benchMaxPrice": zod.number().describe('Quality bench: price strictly below this (millions)'),
+  "benchMinPpm": zod.number().describe('Quality bench: points per match strictly greater than this')
+}).describe('Restrict the solver\'s player pool to players matching ANY of the three criteria (OR). Locked players are always kept.\n'),zod.null()]).optional(),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()
@@ -411,6 +456,8 @@ export const GetSolveResponse = zod.object({
 }),
   "projectionFilename": zod.string().nullish(),
   "totalExpectedPoints": zod.number().nullish(),
+  "poolKept": zod.number().nullish().describe('Players in the solver pool after filtering (null when unfiltered)'),
+  "poolTotal": zod.number().nullish().describe('Total players in the projection when a pool filter was used'),
   "result": zod.union([zod.object({
   "totalExpectedPoints": zod.number(),
   "totalBaseExpectedPoints": zod.number().nullish().describe('Total using unadjusted projections, when a differential factor was applied'),

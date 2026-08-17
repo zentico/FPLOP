@@ -32,12 +32,20 @@ export interface SolveOptions {
   randomized?: boolean | null;
 }
 
+export interface PoolFilter {
+  impactPpm: number;
+  valuePpmPerM: number;
+  benchMaxPrice: number;
+  benchMinPpm: number;
+}
+
 export interface SolveRequest {
   projectionId: string;
   firstGameweek: boolean;
   teamId?: number | null;
   horizon?: number;
   differentialFactor?: number | null;
+  poolFilter?: PoolFilter | null;
   chips?: ChipAssignment[];
   options?: SolveOptions | null;
 }
@@ -81,6 +89,8 @@ export interface SolveRunMeta {
   request: SolveRequest;
   projectionFilename?: string | null;
   totalExpectedPoints?: number | null;
+  poolKept?: number | null;
+  poolTotal?: number | null;
   result?: SolveResult | null;
 }
 

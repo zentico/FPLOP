@@ -11,3 +11,5 @@ description: Constraints for running the vendored FPL MILP solver from the API s
 - Orval + zod v3 pitfall: `type: integer` in openapi.yaml makes orval emit zod-v4 `zod.int()` which breaks typecheck; use `type: number`. Also avoid mixing path + query params on one operation (duplicate export collision).
 
 **Differential factor:** ownership-adjusted solves write a temp copy of the projection CSV as datasource `<projectionId>-k<runId>` in the solver data dir (deleted after the run); base points are recovered by dividing solver outputs by each player's factor, so both totals stay consistent with xp_cont weighting.
+
+**Pool filter:** "points per match" that matches FFH's user-facing numbers is total projected pts ÷ gameweeks in the projection (NOT per-90 from xMins — per-90 nearly triples the eligible count). Pool filtering reuses the per-run CSV mechanism; quota validation must mirror the exact effective pool (eligible ∪ locked, minus banned) with unrounded ppm.

@@ -5,6 +5,8 @@ import {
   GetFfhSessionStatusResponse,
   GetProjectionPlayersParams,
   GetProjectionPlayersResponse,
+  GetProjectionPoolStatsParams,
+  GetProjectionPoolStatsResponse,
   UpdateFfhSessionBody,
   UpdateFfhSessionResponse,
   ImportProjectionBody,
@@ -24,7 +26,7 @@ import {
   saveCookie,
 } from "../lib/ffh";
 import { getGameweekInfo } from "../lib/fpl";
-import { projectionCsvPath } from "../lib/solver";
+import { computePoolStats, projectionCsvPath } from "../lib/solver";
 import {
   listProjectionMetas,
   newId,
@@ -255,6 +257,20 @@ router.get("/projections/:id/players", async (req, res): Promise<void> => {
     .slice(0, 25);
 
   res.json(GetProjectionPlayersResponse.parse(players));
+});
+
+router.get("/projections/:id/pool-stats", async (req, res): Promise<void> => {
+  const params = GetProjectionPoolStatsParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  const meta = listProjectionMetas().find((m) => m.id === params.data.id);
+  if (!meta) {
+    res.status(404).json({ error: "Projection not found" });
+    return;
+  }
+  res.json(GetProjectionPoolStatsResponse.parse(computePoolStats(params.data.id)));
 });
 
 export default router;

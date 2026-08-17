@@ -125,7 +125,11 @@ export default function SolveDetail() {
             <div className="bg-card border rounded-lg p-4 shadow-sm">
               <div className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Strategy</div>
               <div className="font-mono mt-1 text-sm">
-                {[formatChipStrategy(solve.request.chips), formatDifferentialFactor(solve.request.differentialFactor)]
+                {[
+                  formatChipStrategy(solve.request.chips),
+                  formatDifferentialFactor(solve.request.differentialFactor),
+                  formatPool(solve.poolKept, solve.poolTotal),
+                ]
                   .filter(Boolean)
                   .join(" · ") || "No chips · k 0%"}
               </div>
@@ -348,6 +352,15 @@ export function formatChipStrategy(
     .sort((a, b) => a.gameweek - b.gameweek)
     .map((c) => `${CHIP_ABBR[c.chip] ?? c.chip.toUpperCase()} GW${c.gameweek}`)
     .join(" · ");
+}
+
+/** e.g. "Pool 111/568" when a player-pool filter was applied. */
+export function formatPool(
+  kept: number | null | undefined,
+  total: number | null | undefined,
+): string | null {
+  if (kept == null || total == null) return null;
+  return `Pool ${kept}/${total}`;
 }
 
 /** e.g. "k 20%" when a differential factor was applied. */

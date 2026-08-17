@@ -8,7 +8,9 @@ import {
   ListSolvesResponse,
 } from "@workspace/api-zod";
 import {
+  computePoolStats,
   getRunProgress,
+  poolEligible,
   projectionHasOwnership,
   resolvePlayerRefs,
   startSolve,
@@ -65,19 +67,33 @@ router.post("/solves", async (req, res): Promise<void> => {
     return;
   }
 
+  const resolved: Record<"banned" | "locked", number[]> = {
+    banned: [],
+    locked: [],
+  };
   for (const [label, refs] of [
     ["banned", request.options?.banned],
     ["locked", request.options?.locked],
   ] as const) {
     if (refs?.length) {
-      const { unknown } = resolvePlayerRefs(request.projectionId, refs);
+      const { ids, unknown } = resolvePlayerRefs(request.projectionId, refs);
       if (unknown.length > 0) {
         res.status(400).json({
           error: `Unknown ${label} player(s): ${unknown.join(", ")}. Use names exactly as they appear in the projection (e.g. "Haaland").`,
         });
         return;
       }
+      resolved[label] = ids;
     }
+  }
+  const bannedIds = new Set(resolved.banned);
+  const overlap = resolved.locked.filter((id) => bannedIds.has(id));
+  if (overlap.length > 0) {
+    res.status(400).json({
+      error:
+        "A player can't be both locked and banned. Remove the conflict and try again.",
+    });
+    return;
   }
 
   const k = request.differentialFactor ?? 0;
@@ -93,6 +109,54 @@ router.post("/solves", async (req, res): Promise<void> => {
         "This projection has no Ownership column, so a differential factor can't be applied. Re-import predictions from Fantasy Football Hub to get ownership data.",
     });
     return;
+  }
+
+  const filter = request.poolFilter;
+  if (filter) {
+    for (const [label, v, lo, hi] of [
+      ["High impact points/match", filter.impactPpm, 0, 20],
+      ["High value points/match per £m", filter.valuePpmPerM, 0, 5],
+      ["Quality bench max price", filter.benchMaxPrice, 0, 20],
+      ["Quality bench points/match", filter.benchMinPpm, 0, 20],
+    ] as const) {
+      if (!Number.isFinite(v) || v < lo || v > hi) {
+        res.status(400).json({
+          error: `${label} must be between ${lo} and ${hi}`,
+        });
+        return;
+      }
+    }
+    // A legal squad needs 2 GK, 5 DEF, 5 MID, 3 FWD — reject filters that
+    // cannot produce one instead of letting the solver fail cryptically.
+    // Mirror the effective solver pool exactly: locked players are always
+    // kept in the CSV, and banned players can never be picked.
+    const lockedIds = new Set(resolved.locked);
+    const stats = computePoolStats(request.projectionId);
+    const byPos: Record<string, number> = { G: 0, D: 0, M: 0, F: 0 };
+    for (const p of stats) {
+      if (bannedIds.has(p.id)) continue;
+      if (
+        (poolEligible(filter, p.price, p.ppm) || lockedIds.has(p.id)) &&
+        p.position in byPos
+      ) {
+        byPos[p.position]!++;
+      }
+    }
+    const quotas: [string, string, number][] = [
+      ["G", "goalkeepers", 2],
+      ["D", "defenders", 5],
+      ["M", "midfielders", 5],
+      ["F", "forwards", 3],
+    ];
+    const short = quotas.filter(([pos, , need]) => byPos[pos]! < need);
+    if (short.length > 0) {
+      res.status(400).json({
+        error: `The pool filter leaves too few players to build a legal squad (${short
+          .map(([pos, label, need]) => `${byPos[pos]} of ${need} ${label}`)
+          .join(", ")}). Loosen the filter thresholds.`,
+      });
+      return;
+    }
   }
 
   const run: SolveRunMeta = {

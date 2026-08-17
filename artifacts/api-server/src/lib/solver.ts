@@ -76,19 +76,96 @@ export function projectionHasOwnership(projectionId: string): boolean {
   }
 }
 
+export interface PoolFilter {
+  impactPpm: number;
+  valuePpmPerM: number;
+  benchMaxPrice: number;
+  benchMinPpm: number;
+}
+
+export interface PoolPlayerStat {
+  id: number;
+  name: string;
+  position: string;
+  price: number;
+  ppm: number;
+}
+
+const POS_LETTER: Record<string, string> = {
+  G: "G", GK: "G", GKP: "G",
+  D: "D", DEF: "D",
+  M: "M", MID: "M",
+  F: "F", FWD: "F", FW: "F",
+};
+
+/** Points per match: total projected points / number of gameweeks in the projection. */
+function rowPpm(row: Record<string, string>, headers: string[]): number {
+  let pts = 0;
+  let gws = 0;
+  for (const h of headers) {
+    if (/^\d+_Pts$/.test(h)) {
+      pts += Number(row[h]) || 0;
+      gws++;
+    }
+  }
+  if (gws <= 0) return 0;
+  return pts / gws;
+}
+
+/** True when a player passes the OR of the three pool-filter criteria. */
+export function poolEligible(
+  filter: PoolFilter,
+  price: number,
+  ppm: number,
+): boolean {
+  if (ppm > filter.impactPpm) return true;
+  if (price > 0 && ppm / price > filter.valuePpmPerM) return true;
+  if (price < filter.benchMaxPrice && ppm > filter.benchMinPpm) return true;
+  return false;
+}
+
+/** Per-player stats used for pool filtering (price and points per match). */
+export function computePoolStats(projectionId: string): PoolPlayerStat[] {
+  const content = fs.readFileSync(projectionCsvPath(projectionId), "utf-8");
+  const rows = parseCsv(content);
+  if (rows.length === 0) return [];
+  const headers = Object.keys(rows[0]!);
+  const first = rows[0]!;
+  const priceCol = ["Value", "Price", "BV", "SV", "Cost"].find((c) => c in first);
+  const nameCol = ["Name", "name", "Player"].find((c) => c in first) ?? "Name";
+  const posCol = ["Pos", "Position", "pos"].find((c) => c in first) ?? "Pos";
+  const idCol = ["ID", "Id", "id"].find((c) => c in first);
+  // ppm is intentionally unrounded so eligibility decisions here, in the
+  // frontend live count, and in the per-run CSV filter agree at boundaries.
+  return rows
+    .map((r) => ({
+      id: idCol ? Number(r[idCol]) || 0 : 0,
+      name: r[nameCol] ?? "",
+      position: POS_LETTER[(r[posCol] ?? "").toUpperCase()] ?? "?",
+      price: priceCol ? Number(r[priceCol]) || 0 : 0,
+      ppm: rowPpm(r, headers),
+    }))
+    .filter((p) => p.name);
+}
+
 const csvField = (v: string): string =>
   /[",\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
 
 /**
- * Write a copy of the projection CSV with every per-GW points column scaled
- * by 1 + k * (100 - ownership%) / 100. Returns the per-player factor map
- * (keyed by normalized player id).
+ * Write the per-run copy of the projection CSV the solver reads:
+ * - when `filter` is set, drop players failing all three pool criteria
+ *   (locked players in `keepIds` are always kept);
+ * - when k > 0, scale every per-GW points column by
+ *   1 + k * (100 - ownership%) / 100.
+ * Returns the per-player factor map (null when k = 0) and pool counts.
  */
-function writeAdjustedProjection(
+function writeRunProjection(
   projectionId: string,
   datasource: string,
   k: number,
-): Map<string, number> {
+  filter: PoolFilter | null,
+  keepIds: Set<number>,
+): { factors: Map<string, number> | null; kept: number; total: number } {
   const content = fs.readFileSync(projectionCsvPath(projectionId), "utf-8");
   const rows = parseCsv(content);
   const headers = content
@@ -96,24 +173,43 @@ function writeAdjustedProjection(
     .split(",")
     .map((h) => h.trim());
   const idCol = headers.find((h) => ["ID", "Id", "id"].includes(h));
-  if (!idCol || !headers.includes("Ownership")) {
-    throw new Error("Projection is missing ID or Ownership columns");
+  if (!idCol) throw new Error("Projection is missing an ID column");
+  if (k > 0 && !headers.includes("Ownership")) {
+    throw new Error("Projection is missing the Ownership column");
   }
   const ptsCols = new Set(headers.filter((h) => /^\d+_Pts$/.test(h)));
+  const priceCol = ["Value", "Price", "BV", "SV", "Cost"].find((c) =>
+    headers.includes(c),
+  );
 
-  const factors = new Map<string, number>();
+  const factors = k > 0 ? new Map<string, number>() : null;
   const lines = [headers.map(csvField).join(",")];
+  let kept = 0;
   for (const r of rows) {
-    const ownership = Number(r["Ownership"]);
-    const factor = Number.isFinite(ownership)
-      ? 1 + (k * (100 - Math.min(Math.max(ownership, 0), 100))) / 100
-      : 1;
-    factors.set(String(Number(r[idCol])), factor);
+    if (filter) {
+      const price = priceCol ? Number(r[priceCol]) || 0 : 0;
+      const ppm = rowPpm(r, headers);
+      if (
+        !poolEligible(filter, price, ppm) &&
+        !keepIds.has(Number(r[idCol]))
+      ) {
+        continue;
+      }
+    }
+    kept++;
+    let factor = 1;
+    if (factors) {
+      const ownership = Number(r["Ownership"]);
+      factor = Number.isFinite(ownership)
+        ? 1 + (k * (100 - Math.min(Math.max(ownership, 0), 100))) / 100
+        : 1;
+      factors.set(String(Number(r[idCol])), factor);
+    }
     lines.push(
       headers
         .map((h) => {
           const v = r[h] ?? "";
-          if (ptsCols.has(h)) {
+          if (factors && ptsCols.has(h)) {
             const n = Number(v);
             if (Number.isFinite(n)) return String(Math.round(n * factor * 1000) / 1000);
           }
@@ -126,7 +222,7 @@ function writeAdjustedProjection(
     path.join(SOLVER_DATA_DIR, `${datasource}.csv`),
     lines.join("\n") + "\n",
   );
-  return factors;
+  return { factors, kept, total: rows.length };
 }
 
 interface PickRow {
@@ -370,24 +466,12 @@ export function startSolve(runId: string, request: SolveRequest): void {
   const runDir = path.join(RUNS_DIR, runId);
   fs.mkdirSync(runDir, { recursive: true });
 
-  // With a differential factor, solve against an ownership-adjusted copy of
-  // the projection so the solver optimizes the adjusted scores.
+  // With a differential factor or pool filter, solve against a per-run copy
+  // of the projection (adjusted scores and/or reduced player pool).
   const k = clampDifferentialFactor(request.differentialFactor ?? 0);
-  const useAdjusted = k > 0;
-  const datasource = useAdjusted ? `${request.projectionId}-k${runId}` : request.projectionId;
-  let factors: Map<string, number> | null = null;
-  if (useAdjusted) {
-    try {
-      factors = writeAdjustedProjection(request.projectionId, datasource, k);
-    } catch (err) {
-      updateRun(runId, {
-        status: "failed",
-        completedAt: new Date().toISOString(),
-        error: `Could not apply differential factor: ${(err as Error).message}`,
-      });
-      return;
-    }
-  }
+  const filter = request.poolFilter ?? null;
+  const useAdjusted = k > 0 || filter != null;
+  const datasource = useAdjusted ? `${request.projectionId}-r${runId}` : request.projectionId;
   const cleanupAdjusted = () => {
     if (!useAdjusted) return;
     try {
@@ -397,25 +481,62 @@ export function startSolve(runId: string, request: SolveRequest): void {
     }
   };
 
-  const configPath = path.join(runDir, "config.json");
-  fs.writeFileSync(
-    configPath,
-    JSON.stringify(buildConfig(request, datasource), null, 2),
-  );
-  const logPath = path.join(runDir, "solver.log");
-  const logStream = fs.createWriteStream(logPath);
+  // Everything from projection preparation to process spawn shares one
+  // failure boundary so a partially written per-run CSV never leaks.
+  let factors: Map<string, number> | null = null;
+  let child: ReturnType<typeof spawn>;
+  let logStream: fs.WriteStream;
+  let logPath: string;
+  let startedAt: number;
+  try {
+    if (useAdjusted) {
+      const keepIds = new Set<number>(
+        request.options?.locked?.length
+          ? resolvePlayerRefs(request.projectionId, request.options.locked).ids
+          : [],
+      );
+      const written = writeRunProjection(
+        request.projectionId,
+        datasource,
+        k,
+        filter,
+        keepIds,
+      );
+      factors = written.factors;
+      if (filter) {
+        updateRun(runId, { poolKept: written.kept, poolTotal: written.total });
+      }
+    }
 
-  const startedAt = Date.now();
-  updateRun(runId, { status: "running" });
+    const configPath = path.join(runDir, "config.json");
+    fs.writeFileSync(
+      configPath,
+      JSON.stringify(buildConfig(request, datasource), null, 2),
+    );
+    logPath = path.join(runDir, "solver.log");
+    logStream = fs.createWriteStream(logPath);
 
-  const child = spawn(
-    "uv",
-    ["run", "python", "run/solve.py", "--config", configPath],
-    { cwd: SOLVER_REPO, env: { ...process.env } },
-  );
+    startedAt = Date.now();
+    updateRun(runId, { status: "running" });
 
-  child.stdout.pipe(logStream);
-  child.stderr.pipe(logStream);
+    child = spawn(
+      "uv",
+      ["run", "python", "run/solve.py", "--config", configPath],
+      { cwd: SOLVER_REPO, env: { ...process.env } },
+    );
+  } catch (err) {
+    cleanupAdjusted();
+    updateRun(runId, {
+      status: "failed",
+      completedAt: new Date().toISOString(),
+      error: `Could not prepare the solve: ${(err as Error).message}`,
+    });
+    return;
+  }
+
+  // stdio defaults to "pipe", so stdout/stderr are always present.
+  child.stdout!.pipe(logStream);
+  child.stderr!.pipe(logStream);
 
   const timeout = setTimeout(() => {
     logger.warn({ runId }, "Solve timed out, killing solver process");

@@ -1,5 +1,5 @@
 import React from "react";
-import { useUploadProjection, useImportProjection, useGetFfhSessionStatus, useUpdateFfhSession, useListProjections, useDeleteProjection, useGetProjectionPlayers, useGetGameweekInfo, useGetFplTeam, useCreateSolve, getGetFplTeamQueryKey, getGetProjectionPlayersQueryKey } from "@workspace/api-client-react";
+import { useUploadProjection, useImportProjection, useGetFfhSessionStatus, useUpdateFfhSession, useListProjections, useDeleteProjection, useGetProjectionPlayers, useGetProjectionPoolStats, useGetGameweekInfo, useGetFplTeam, useCreateSolve, getGetFplTeamQueryKey, getGetProjectionPlayersQueryKey, getGetProjectionPoolStatsQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,13 @@ export default function Home() {
   const [horizon, setHorizon] = React.useState<number>(5);
   const [chips, setChips] = React.useState<Record<string, string>>({}); // chip type -> gameweek string
   const [diffFactorStr, setDiffFactorStr] = React.useState<string>("0");
+  const [poolEnabled, setPoolEnabled] = React.useState(false);
+  const [poolThresholds, setPoolThresholds] = React.useState({
+    impactPpm: "3.5",
+    valuePpmPerM: "0.6",
+    benchMaxPrice: "5.0",
+    benchMinPpm: "2.0",
+  });
   const [showAdvanced, setShowAdvanced] = React.useState<boolean>(false);
   // Advanced solver settings — empty string means "solver default"
   const [adv, setAdv] = React.useState<Record<string, string>>({});
@@ -63,6 +70,32 @@ export default function Home() {
   const { data: topPlayers } = useGetProjectionPlayers(projectionId, {
     query: { enabled: !!projectionId, queryKey: getGetProjectionPlayersQueryKey(projectionId) }
   });
+  const { data: poolStats } = useGetProjectionPoolStats(projectionId, {
+    query: { enabled: !!projectionId && poolEnabled, queryKey: getGetProjectionPoolStatsQueryKey(projectionId) }
+  });
+
+  // Parsed pool thresholds; NaN when the field is not a valid number.
+  const poolNums = {
+    impactPpm: Number(poolThresholds.impactPpm),
+    valuePpmPerM: Number(poolThresholds.valuePpmPerM),
+    benchMaxPrice: Number(poolThresholds.benchMaxPrice),
+    benchMinPpm: Number(poolThresholds.benchMinPpm),
+  };
+  const poolValid = Object.values(poolNums).every((n) => Number.isFinite(n) && n >= 0);
+
+  // Live count of players passing the OR of the three criteria (mirrors the server rule).
+  const poolCount = React.useMemo(() => {
+    if (!poolStats || !poolValid) return null;
+    let eligible = 0;
+    for (const p of poolStats) {
+      if (
+        p.ppm > poolNums.impactPpm ||
+        (p.price > 0 && p.ppm / p.price > poolNums.valuePpmPerM) ||
+        (p.price < poolNums.benchMaxPrice && p.ppm > poolNums.benchMinPpm)
+      ) eligible++;
+    }
+    return { eligible, total: poolStats.length };
+  }, [poolStats, poolValid, poolNums.impactPpm, poolNums.valuePpmPerM, poolNums.benchMaxPrice, poolNums.benchMinPpm]);
 
   // Mutations
   const uploadMutation = useUploadProjection();
@@ -162,6 +195,15 @@ export default function Home() {
       return;
     }
 
+    if (poolEnabled && !poolValid) {
+      toast({
+        title: "Invalid pool filter",
+        description: "All pool filter thresholds must be non-negative numbers.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const chipsArray = Object.entries(chips).map(([chip, gw]) => ({
       chip,
       gameweek: parseInt(gw, 10)
@@ -204,6 +246,7 @@ export default function Home() {
         teamId: firstGameweek ? null : teamIdNum,
         horizon,
         differentialFactor: diffPct > 0 ? diffPct / 100 : undefined,
+        poolFilter: poolEnabled ? poolNums : undefined,
         chips: chipsArray.length > 0 ? chipsArray : undefined,
         options: hasOptions ? options : undefined
       }
@@ -462,6 +505,76 @@ export default function Home() {
                   E.g. with k = 20%, a player at 71.8% ownership and 5.94 predicted points is optimized at 6.28.
                   Set 0 to optimize on raw predictions. Requires ownership data (Hub imports include it).
                 </p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <Switch id="pool-filter" checked={poolEnabled} onCheckedChange={setPoolEnabled} />
+                    <Label htmlFor="pool-filter" className="cursor-pointer">Filter Player Pool</Label>
+                  </div>
+                  {poolEnabled && (
+                    <span className="font-mono font-bold bg-primary/10 text-primary px-2 py-1 rounded-md text-sm">
+                      {poolCount ? `${poolCount.eligible} of ${poolCount.total} players` : "…"}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Shrink the player pool to speed up the solve. A player is kept when they match
+                  <span className="font-semibold"> any</span> of the three criteria below. Locked players are always kept.
+                </p>
+                {poolEnabled && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-3 p-3 border rounded-lg bg-muted/20">
+                      <div className="text-sm">
+                        <span className="font-semibold">High impact</span>
+                        <span className="text-muted-foreground"> — points per match &gt;</span>
+                      </div>
+                      <Input
+                        inputMode="decimal"
+                        className="w-24 h-8 font-mono text-right"
+                        value={poolThresholds.impactPpm}
+                        onChange={(e) => setPoolThresholds((t) => ({ ...t, impactPpm: e.target.value }))}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between gap-3 p-3 border rounded-lg bg-muted/20">
+                      <div className="text-sm">
+                        <span className="font-semibold">High value</span>
+                        <span className="text-muted-foreground"> — points per match per £m &gt;</span>
+                      </div>
+                      <Input
+                        inputMode="decimal"
+                        className="w-24 h-8 font-mono text-right"
+                        value={poolThresholds.valuePpmPerM}
+                        onChange={(e) => setPoolThresholds((t) => ({ ...t, valuePpmPerM: e.target.value }))}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between gap-3 p-3 border rounded-lg bg-muted/20 flex-wrap">
+                      <div className="text-sm">
+                        <span className="font-semibold">Quality bench</span>
+                        <span className="text-muted-foreground"> — price &lt; £m</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          inputMode="decimal"
+                          className="w-20 h-8 font-mono text-right"
+                          value={poolThresholds.benchMaxPrice}
+                          onChange={(e) => setPoolThresholds((t) => ({ ...t, benchMaxPrice: e.target.value }))}
+                        />
+                        <span className="text-sm text-muted-foreground">and pts/match &gt;</span>
+                        <Input
+                          inputMode="decimal"
+                          className="w-20 h-8 font-mono text-right"
+                          value={poolThresholds.benchMinPpm}
+                          onChange={(e) => setPoolThresholds((t) => ({ ...t, benchMinPpm: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Points per match = total projected points ÷ gameweeks covered by the projection.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">
