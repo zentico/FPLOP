@@ -245,9 +245,9 @@ function fdrClasses(difficulty: number): string {
  * "Arsenal") so results from the solver CSV — which may use either format —
  * are matched correctly.
  */
-function useOpponents(gameweek: number): Map<string, FixtureChip[]> {
-  const { data: fixtures } = useListFixtures();
-  return React.useMemo(() => {
+function useOpponents(gameweek: number): { opponents: Map<string, FixtureChip[]>; fixturesLoading: boolean; fixturesError: boolean } {
+  const { data: fixtures, isLoading: fixturesLoading, isError: fixturesError } = useListFixtures();
+  const opponents = React.useMemo(() => {
     const raw = new Map<string, FixtureChip[]>();
     for (const f of fixtures ?? []) {
       if (f.gameweek !== gameweek) continue;
@@ -278,10 +278,18 @@ function useOpponents(gameweek: number): Map<string, FixtureChip[]> {
     }
     return map;
   }, [fixtures, gameweek]);
+  return { opponents, fixturesLoading, fixturesError };
 }
 
-function FixtureCell({ chips }: { chips: FixtureChip[] | undefined }) {
-  if (!chips || chips.length === 0) {
+function FixtureCell({ chips, fixturesLoading, fixturesError }: {
+  chips: FixtureChip[] | undefined;
+  fixturesLoading: boolean;
+  fixturesError: boolean;
+}) {
+  if (fixturesLoading) {
+    return <div className="h-4 w-20 bg-muted animate-pulse rounded" />;
+  }
+  if (fixturesError || !chips || chips.length === 0) {
     return <span className="text-xs font-mono text-muted-foreground">—</span>;
   }
   return (
@@ -298,8 +306,21 @@ function FixtureCell({ chips }: { chips: FixtureChip[] | undefined }) {
   );
 }
 
+function FixtureColumnHead({ fixturesError }: { fixturesError: boolean }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      Fixture
+      {fixturesError && (
+        <span title="Fixture data unavailable — FPL API may be slow or down">
+          <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+        </span>
+      )}
+    </div>
+  );
+}
+
 function GameweekView({ plan }: { plan: GameweekPlan }) {
-  const opponents = useOpponents(plan.gameweek);
+  const { opponents, fixturesLoading, fixturesError } = useOpponents(plan.gameweek);
   const transfersInSet = React.useMemo(
     () => new Set(plan.transfersIn),
     [plan.transfersIn],
@@ -391,7 +412,7 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                   <TableHead className="w-12 text-center">Pos</TableHead>
                   <TableHead>Player</TableHead>
                   <TableHead className="hidden md:table-cell">Team</TableHead>
-                  <TableHead>Fixture</TableHead>
+                  <TableHead><FixtureColumnHead fixturesError={fixturesError} /></TableHead>
                   <TableHead className="text-right">Price</TableHead>
                   <TableHead className="text-right pr-6">xPts</TableHead>
                 </TableRow>
@@ -414,7 +435,9 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                           </div>
                         </TableCell>
                         <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{player.team}</TableCell>
-                        <TableCell><FixtureCell chips={opponents.get(player.team)} /></TableCell>
+                        <TableCell>
+                          <FixtureCell chips={opponents.get(player.team)} fixturesLoading={fixturesLoading} fixturesError={fixturesError} />
+                        </TableCell>
                         <TableCell className="text-right font-mono text-sm">£{player.price.toFixed(1)}</TableCell>
                         <TableCell className="text-right pr-6 font-mono font-bold text-primary">
                           {(player.expectedPoints * (player.isCaptain ? (plan.chip === 'triple_captain' ? 3 : 2) : 1)).toFixed(2)}
@@ -454,7 +477,9 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                         </div>
                       </TableCell>
                       <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{player.team}</TableCell>
-                      <TableCell><FixtureCell chips={opponents.get(player.team)} /></TableCell>
+                      <TableCell>
+                        <FixtureCell chips={opponents.get(player.team)} fixturesLoading={fixturesLoading} fixturesError={fixturesError} />
+                      </TableCell>
                       <TableCell className="text-right font-mono text-sm">£{player.price.toFixed(1)}</TableCell>
                       <TableCell className="text-right pr-6 font-mono font-bold">{player.expectedPoints.toFixed(2)}</TableCell>
                     </TableRow>
