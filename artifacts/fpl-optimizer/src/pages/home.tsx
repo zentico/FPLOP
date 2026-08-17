@@ -52,7 +52,13 @@ export default function Home() {
   });
   const [showAdvanced, setShowAdvanced] = React.useState<boolean>(false);
   // Advanced solver settings — empty string means "solver default"
-  const [adv, setAdv] = React.useState<Record<string, string>>({});
+  const [adv, setAdv] = React.useState<Record<string, string>>({
+    decayBase: "0.9",
+    ftValue: "0.75",
+    itbValue: "0.1",
+    secs: "900",
+    gap: "0.05",
+  });
   const [advFlags, setAdvFlags] = React.useState<{ noFutureTransfer: boolean; randomized: boolean }>({ noFutureTransfer: false, randomized: false });
 
   // Queries
@@ -634,12 +640,12 @@ export default function Home() {
                       <AdvField label="Exact transfers next GW" placeholder="auto" hint="Force this many transfers next gameweek" value={adv.numTransfers || ""} onChange={(v) => setAdv({ ...adv, numTransfers: v })} />
                       <AdvField label="Total hit limit" placeholder="unlimited" hint="Max points hits over the horizon" value={adv.hitLimit || ""} onChange={(v) => setAdv({ ...adv, hitLimit: v })} />
                       <AdvField label="Weekly hit limit" placeholder="0" hint="Max hits in any single gameweek" value={adv.weeklyHitLimit || ""} onChange={(v) => setAdv({ ...adv, weeklyHitLimit: v })} />
-                      <AdvField label="Decay base" placeholder="1.0" hint="Weight of future GWs (0.85 = near-term focus)" value={adv.decayBase || ""} onChange={(v) => setAdv({ ...adv, decayBase: v })} />
-                      <AdvField label="Free transfer value" placeholder="1.5" hint="Points value of carrying a free transfer" value={adv.ftValue || ""} onChange={(v) => setAdv({ ...adv, ftValue: v })} />
-                      <AdvField label="In-the-bank value" placeholder="0.08" hint="Points value per £1.0 left in the bank" value={adv.itbValue || ""} onChange={(v) => setAdv({ ...adv, itbValue: v })} />
+                      <AdvField label="Decay base" placeholder="0.9" hint="Weight of future GWs (0.85 = near-term focus)" value={adv.decayBase || ""} onChange={(v) => setAdv({ ...adv, decayBase: v })} />
+                      <AdvField label="Free transfer value" placeholder="0.75" hint="Points value of carrying a free transfer" value={adv.ftValue || ""} onChange={(v) => setAdv({ ...adv, ftValue: v })} />
+                      <AdvField label="In-the-bank value" placeholder="0.1" hint="Points value per £1.0 left in the bank" value={adv.itbValue || ""} onChange={(v) => setAdv({ ...adv, itbValue: v })} />
                       <AdvField label="Min expected minutes" placeholder="300" hint="Exclude players below this xMins total" value={adv.xminLb || ""} onChange={(v) => setAdv({ ...adv, xminLb: v })} />
-                      <AdvField label="Time limit (seconds)" placeholder="600" hint="Stop the solver after this long" value={adv.secs || ""} onChange={(v) => setAdv({ ...adv, secs: v })} />
-                      <AdvField label="Optimality gap" placeholder="0" hint="e.g. 0.01 accepts within 1% of optimal, much faster" value={adv.gap || ""} onChange={(v) => setAdv({ ...adv, gap: v })} />
+                      <AdvField label="Time limit (seconds)" placeholder="900" hint="Stop the solver after this long" value={adv.secs || ""} onChange={(v) => setAdv({ ...adv, secs: v })} />
+                      <AdvField label="Optimality gap" placeholder="0.05" hint="e.g. 0.05 accepts within 5% of optimal, much faster" value={adv.gap || ""} onChange={(v) => setAdv({ ...adv, gap: v })} />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
