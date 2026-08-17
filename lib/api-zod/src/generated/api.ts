@@ -48,6 +48,27 @@ export const UploadProjectionResponse = zod.object({
 
 
 /**
+ * @summary Import a points projection from an external source
+ */
+export const importProjectionBodyMaxGameweeksMax = 38;
+
+
+
+export const ImportProjectionBody = zod.object({
+  "source": zod.string().describe('External source id. Currently only \"ffh\" (Fantasy Football Hub).'),
+  "maxGameweeks": zod.number().min(1).max(importProjectionBodyMaxGameweeksMax).optional().describe('How many upcoming whole gameweeks to import (default 10, clamped to 1-38)')
+})
+
+export const ImportProjectionResponse = zod.object({
+  "id": zod.string(),
+  "filename": zod.string(),
+  "uploadedAt": zod.string(),
+  "playerCount": zod.number(),
+  "gameweeks": zod.array(zod.number()).describe('Gameweek numbers covered by the projection file')
+})
+
+
+/**
  * @summary Delete a projection file
  */
 export const DeleteProjectionParams = zod.object({

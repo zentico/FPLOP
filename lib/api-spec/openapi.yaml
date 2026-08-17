@@ -67,6 +67,42 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorMessage"
+  /projections/import:
+    post:
+      operationId: importProjection
+      tags: [projections]
+      summary: Import a points projection from an external source
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportProjectionInput"
+      responses:
+        "201":
+          description: Imported projection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Projection"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+        "401":
+          description: The source session has expired and needs to be refreshed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+        "502":
+          description: The source could not be reached
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
   /projections/{id}:
     delete:
       operationId: deleteProjection
@@ -270,6 +306,18 @@ components:
         content:
           type: string
           description: Raw CSV file content
+    ImportProjectionInput:
+      type: object
+      required: [source]
+      properties:
+        source:
+          type: string
+          description: External source id. Currently only "ffh" (Fantasy Football Hub).
+        maxGameweeks:
+          type: number
+          minimum: 1
+          maximum: 38
+          description: How many upcoming whole gameweeks to import (default 10, clamped to 1-38)
     ProjectedPlayer:
       type: object
       required: [name, team, position, price, totalPoints]

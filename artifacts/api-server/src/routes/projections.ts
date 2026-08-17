@@ -4,11 +4,19 @@ import {
   DeleteProjectionParams,
   GetProjectionPlayersParams,
   GetProjectionPlayersResponse,
+  ImportProjectionBody,
+  ImportProjectionResponse,
   ListProjectionsResponse,
   UploadProjectionBody,
   UploadProjectionResponse,
 } from "@workspace/api-zod";
 import { parseCsv } from "../lib/csv";
+import {
+  FfhSessionError,
+  FfhUpstreamError,
+  importFfhProjection,
+} from "../lib/ffh";
+import { getGameweekInfo } from "../lib/fpl";
 import { projectionCsvPath } from "../lib/solver";
 import {
   listProjectionMetas,
@@ -83,6 +91,36 @@ router.post("/projections", async (req, res): Promise<void> => {
   saveProjectionMetas(metas);
 
   res.status(201).json(UploadProjectionResponse.parse(meta));
+});
+
+router.post("/projections/import", async (req, res): Promise<void> => {
+  const parsed = ImportProjectionBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  if (parsed.data.source !== "ffh") {
+    res.status(400).json({ error: `Unknown source "${parsed.data.source}"` });
+    return;
+  }
+  const span = Math.min(Math.max(parsed.data.maxGameweeks ?? 10, 1), 38);
+  try {
+    const { nextGameweek } = await getGameweekInfo();
+    const minGw = nextGameweek;
+    const maxGw = Math.min(minGw + span - 1, 38);
+    const meta = await importFfhProjection(minGw, maxGw);
+    res.status(201).json(ImportProjectionResponse.parse(meta));
+  } catch (err) {
+    if (err instanceof FfhSessionError) {
+      res.status(401).json({ error: err.message });
+    } else if (err instanceof FfhUpstreamError) {
+      res.status(502).json({ error: err.message });
+    } else {
+      res.status(502).json({
+        error: `Import failed: ${err instanceof Error ? err.message : String(err)}`,
+      });
+    }
+  }
 });
 
 router.delete("/projections/:id", async (req, res): Promise<void> => {

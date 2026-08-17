@@ -1,5 +1,5 @@
 import React from "react";
-import { useUploadProjection, useListProjections, useDeleteProjection, useGetProjectionPlayers, useGetGameweekInfo, useGetFplTeam, useCreateSolve, getGetFplTeamQueryKey, getGetProjectionPlayersQueryKey } from "@workspace/api-client-react";
+import { useUploadProjection, useImportProjection, useListProjections, useDeleteProjection, useGetProjectionPlayers, useGetGameweekInfo, useGetFplTeam, useCreateSolve, getGetFplTeamQueryKey, getGetProjectionPlayersQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "@/components/ui/switch";
 import { useLocation } from "wouter";
-import { AlertCircle, UploadCloud, Trash2, Database, ShieldAlert, Cpu, Trophy, Banknote, Users, LineChart } from "lucide-react";
+import { AlertCircle, UploadCloud, DownloadCloud, Trash2, Database, ShieldAlert, Cpu, Trophy, Banknote, Users, LineChart } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 
@@ -45,6 +45,7 @@ export default function Home() {
 
   // Mutations
   const uploadMutation = useUploadProjection();
+  const importMutation = useImportProjection();
   const deleteMutation = useDeleteProjection();
   const createSolveMutation = useCreateSolve();
 
@@ -71,6 +72,22 @@ export default function Home() {
       });
     };
     reader.readAsText(file);
+  };
+
+  const handleImportFfh = () => {
+    importMutation.mutate({ data: { source: "ffh" } }, {
+      onSuccess: (data) => {
+        setProjectionId(data.id);
+        toast({ title: "Predictions imported", description: `${data.playerCount} players, GW${data.gameweeks[0]}–${data.gameweeks[data.gameweeks.length - 1]}` });
+      },
+      onError: (err: any) => {
+        toast({
+          title: "Import failed",
+          description: err?.data?.error || err?.error || "Could not import predictions",
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   const handleDeleteProjection = (id: string) => {
@@ -145,9 +162,10 @@ export default function Home() {
             <CardContent className="space-y-6">
               
               <Tabs defaultValue="select" className="w-full">
-                <TabsList className="w-full grid grid-cols-2">
+                <TabsList className="w-full grid grid-cols-3">
                   <TabsTrigger value="select">Select Existing</TabsTrigger>
                   <TabsTrigger value="upload">Upload New</TabsTrigger>
+                  <TabsTrigger value="import">Import</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="select" className="mt-4">
@@ -192,6 +210,22 @@ export default function Home() {
                     </p>
                     {uploadMutation.isPending && (
                       <p className="text-sm text-primary mt-4 font-medium animate-pulse">Uploading and processing...</p>
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="import" className="mt-4">
+                  <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:bg-muted/30 transition-colors">
+                    <DownloadCloud className="h-10 w-10 mx-auto text-primary mb-4" />
+                    <p className="text-sm font-medium mb-1">Fantasy Football Hub</p>
+                    <p className="text-xs text-muted-foreground mb-4 max-w-md mx-auto">
+                      Pull the latest points predictions, prices and ownership for the upcoming gameweeks directly from your Fantasy Football Hub membership.
+                    </p>
+                    <Button onClick={handleImportFfh} disabled={importMutation.isPending}>
+                      {importMutation.isPending ? "Importing…" : "Import latest predictions"}
+                    </Button>
+                    {importMutation.isPending && (
+                      <p className="text-sm text-primary mt-4 font-medium animate-pulse">Downloading predictions… this can take up to a minute.</p>
                     )}
                   </div>
                 </TabsContent>

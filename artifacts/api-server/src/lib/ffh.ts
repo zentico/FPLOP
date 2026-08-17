@@ -1,0 +1,218 @@
+import fs from "node:fs";
+import { projectionCsvPath } from "./solver";
+import {
+  listProjectionMetas,
+  newId,
+  saveProjectionMetas,
+  type ProjectionMeta,
+} from "./store";
+
+const WWW_BASE = "https://www.fantasyfootballhub.co.uk";
+const API_BASE = "https://public-api.fantasyfootballhub.co.uk";
+const UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+
+export class FfhSessionError extends Error {}
+export class FfhUpstreamError extends Error {}
+
+const POS_MAP: Record<string, string> = {
+  GK: "G",
+  DEF: "D",
+  MID: "M",
+  FWD: "F",
+};
+
+interface FfhFixture {
+  gameweek: number;
+  predictions: { points: number; minutes: number };
+}
+
+interface FfhPlayer {
+  id: string;
+  externalIds: { fplId?: number | null };
+  displayName: string;
+  price: number;
+  position: string;
+  ownership: number | null;
+  team: { shortName: string };
+  fixtures: FfhFixture[];
+}
+
+async function getAccessToken(): Promise<string> {
+  const cookie = process.env.FFH_SESSION_COOKIE?.trim();
+  if (!cookie) {
+    throw new FfhSessionError(
+      "No Fantasy Football Hub session is configured. Add the FFH_SESSION_COOKIE secret.",
+    );
+  }
+  let res: Response;
+  try {
+    res = await fetch(`${WWW_BASE}/auth/access-token`, {
+      headers: { Cookie: `appSession=${cookie}`, "User-Agent": UA },
+    });
+  } catch {
+    throw new FfhUpstreamError("Could not reach Fantasy Football Hub.");
+  }
+  if (res.status === 401) {
+    throw new FfhSessionError(
+      "The Fantasy Football Hub session has expired. Log in at fantasyfootballhub.co.uk and update the FFH_SESSION_COOKIE secret.",
+    );
+  }
+  if (!res.ok) {
+    throw new FfhUpstreamError(
+      `Fantasy Football Hub auth returned status ${res.status}.`,
+    );
+  }
+  const body = (await res.json()) as Record<string, unknown>;
+  const token = body.token ?? body.accessToken ?? body.access_token;
+  if (typeof token !== "string" || token.length === 0) {
+    throw new FfhUpstreamError(
+      "Fantasy Football Hub auth response did not include a token.",
+    );
+  }
+  return token;
+}
+
+async function fetchAllPlayers(
+  token: string,
+  minGameweek: number,
+  maxGameweek: number,
+): Promise<FfhPlayer[]> {
+  const players: FfhPlayer[] = [];
+  let after: string | undefined;
+  let exhausted = false;
+  for (let page = 0; page < 30; page++) {
+    const params = new URLSearchParams({
+      limit: "100",
+      minGameweek: String(minGameweek),
+      maxGameweek: String(maxGameweek),
+      minPrice: "3",
+      maxPrice: "20",
+      sortBy: "predictedPoints",
+      sortDirection: "desc",
+    });
+    if (after) params.set("after", after);
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE}/league/players?${params}`, {
+        headers: { Authorization: `Bearer ${token}`, "User-Agent": UA },
+      });
+    } catch {
+      throw new FfhUpstreamError("Could not reach the Fantasy Football Hub API.");
+    }
+    if (res.status === 401 || res.status === 403) {
+      throw new FfhSessionError(
+        "The Fantasy Football Hub session was rejected. Log in again and update the FFH_SESSION_COOKIE secret.",
+      );
+    }
+    if (!res.ok) {
+      throw new FfhUpstreamError(
+        `Fantasy Football Hub API returned status ${res.status}.`,
+      );
+    }
+    const body = (await res.json()) as {
+      data: FfhPlayer[];
+      meta: { hasMore: boolean; nextCursor?: string | null };
+    };
+    players.push(...body.data);
+    if (!body.meta.hasMore) {
+      exhausted = true;
+      break;
+    }
+    if (!body.meta.nextCursor || body.meta.nextCursor === after) {
+      throw new FfhUpstreamError(
+        "Fantasy Football Hub pagination broke mid-import; no data was saved.",
+      );
+    }
+    after = body.meta.nextCursor;
+  }
+  if (!exhausted) {
+    throw new FfhUpstreamError(
+      "Fantasy Football Hub returned more pages than expected; no data was saved.",
+    );
+  }
+  return players;
+}
+
+function csvEscape(value: string): string {
+  return /[",\r\n]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
+}
+
+export async function importFfhProjection(
+  minGameweek: number,
+  maxGameweek: number,
+): Promise<ProjectionMeta> {
+  const token = await getAccessToken();
+  const players = await fetchAllPlayers(token, minGameweek, maxGameweek);
+
+  const gameweeks: number[] = [];
+  for (let gw = minGameweek; gw <= maxGameweek; gw++) gameweeks.push(gw);
+
+  const header = [
+    "ID",
+    "Name",
+    "Pos",
+    "Team",
+    "Value",
+    "Ownership",
+    ...gameweeks.flatMap((gw) => [`${gw}_Pts`, `${gw}_xMins`]),
+  ];
+  const lines = [header.join(",")];
+  let count = 0;
+  const seen = new Set<number>();
+  for (const p of players) {
+    const fplId = p.externalIds?.fplId;
+    if (fplId == null || seen.has(fplId)) continue;
+    seen.add(fplId);
+    const pos = POS_MAP[p.position];
+    if (!pos) continue;
+    const byGw = new Map<number, { points: number; minutes: number }>();
+    for (const f of p.fixtures ?? []) {
+      const prev = byGw.get(f.gameweek);
+      // double gameweeks: sum points and minutes across fixtures
+      byGw.set(f.gameweek, {
+        points: (prev?.points ?? 0) + (f.predictions?.points ?? 0),
+        minutes: (prev?.minutes ?? 0) + (f.predictions?.minutes ?? 0),
+      });
+    }
+    const cells = [
+      String(fplId),
+      csvEscape(p.displayName),
+      pos,
+      csvEscape(p.team?.shortName ?? ""),
+      String(p.price ?? 0),
+      String(p.ownership ?? 0),
+      ...gameweeks.flatMap((gw) => {
+        const f = byGw.get(gw);
+        return [
+          (f?.points ?? 0).toFixed(2),
+          String(Math.round(f?.minutes ?? 0)),
+        ];
+      }),
+    ];
+    lines.push(cells.join(","));
+    count++;
+  }
+
+  if (count === 0) {
+    throw new FfhUpstreamError(
+      "Fantasy Football Hub returned no players with FPL ids.",
+    );
+  }
+
+  const id = newId();
+  fs.writeFileSync(projectionCsvPath(id), lines.join("\n") + "\n");
+
+  const date = new Date().toISOString().slice(0, 10);
+  const meta: ProjectionMeta = {
+    id,
+    filename: `FFH predictions ${date} (GW${minGameweek}-${maxGameweek})`,
+    uploadedAt: new Date().toISOString(),
+    playerCount: count,
+    gameweeks,
+  };
+  const metas = listProjectionMetas();
+  metas.unshift(meta);
+  saveProjectionMetas(metas);
+  return meta;
+}

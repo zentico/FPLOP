@@ -28,6 +28,17 @@ export interface ProjectionInput {
   content: string;
 }
 
+export interface ImportProjectionInput {
+  /** External source id. Currently only "ffh" (Fantasy Football Hub). */
+  source: string;
+  /**
+     * How many upcoming whole gameweeks to import (default 10, clamped to 1-38)
+     * @minimum 1
+     * @maximum 38
+     */
+  maxGameweeks?: number;
+}
+
 export interface GameweekPoints {
   gameweek: number;
   points: number;

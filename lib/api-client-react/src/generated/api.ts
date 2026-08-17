@@ -24,6 +24,7 @@ import type {
   FplTeam,
   GameweekInfo,
   HealthStatus,
+  ImportProjectionInput,
   ProjectedPlayer,
   Projection,
   ProjectionInput,
@@ -282,6 +283,77 @@ export const useUploadProjection = <TError = ErrorType<ErrorMessage>,
         TContext
       > => {
       return useMutation(getUploadProjectionMutationOptions(options));
+    }
+
+export const getImportProjectionUrl = () => {
+
+
+
+
+  return `/api/projections/import`
+}
+
+/**
+ * @summary Import a points projection from an external source
+ */
+export const importProjection = async (importProjectionInput: ImportProjectionInput, options?: Parameters<typeof customFetch>[1]): Promise<Projection> => {
+
+  return customFetch<Projection>(getImportProjectionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(importProjectionInput)
+  }
+);}
+
+
+
+
+
+export const getImportProjectionMutationOptions = <TError = ErrorType<ErrorMessage>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importProjection>>, TError,{data: BodyType<ImportProjectionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof importProjection>>, TError,{data: BodyType<ImportProjectionInput>}, TContext> => {
+
+const mutationKey = ['importProjection'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof importProjection>>, {data: BodyType<ImportProjectionInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  importProjection(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ImportProjectionMutationResult = NonNullable<Awaited<ReturnType<typeof importProjection>>>
+    export type ImportProjectionMutationBody = BodyType<ImportProjectionInput>
+    export type ImportProjectionMutationError = ErrorType<ErrorMessage>
+
+    /**
+ * @summary Import a points projection from an external source
+ */
+export const useImportProjection = <TError = ErrorType<ErrorMessage>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importProjection>>, TError,{data: BodyType<ImportProjectionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof importProjection>>,
+        TError,
+        {data: BodyType<ImportProjectionInput>},
+        TContext
+      > => {
+      return useMutation(getImportProjectionMutationOptions(options));
     }
 
 export const getDeleteProjectionUrl = (id: string,) => {

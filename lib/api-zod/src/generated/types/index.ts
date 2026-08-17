@@ -14,6 +14,7 @@ export * from './gameweekInfo';
 export * from './gameweekPlan';
 export * from './gameweekPoints';
 export * from './healthStatus';
+export * from './importProjectionInput';
 export * from './pickPlayer';
 export * from './projectedPlayer';
 export * from './projection';
