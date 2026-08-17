@@ -73,8 +73,10 @@ export const ImportProjectionResponse = zod.object({
  */
 export const ListFixturesResponseItem = zod.object({
   "gameweek": zod.number().nullable(),
-  "home": zod.string().describe('Home team short name'),
-  "away": zod.string().describe('Away team short name')
+  "home": zod.string().describe('Home team short name (3-letter FPL code)'),
+  "away": zod.string().describe('Away team short name (3-letter FPL code)'),
+  "homeName": zod.string().describe('Home team full name'),
+  "awayName": zod.string().describe('Away team full name')
 })
 export const ListFixturesResponse = zod.array(ListFixturesResponseItem)
 

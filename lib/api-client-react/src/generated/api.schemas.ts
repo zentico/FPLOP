@@ -189,10 +189,14 @@ export interface SolveInput {
 export interface FixtureInfo {
   /** @nullable */
   gameweek: number | null;
-  /** Home team short name */
+  /** Home team short name (3-letter FPL code) */
   home: string;
-  /** Away team short name */
+  /** Away team short name (3-letter FPL code) */
   away: string;
+  /** Home team full name */
+  homeName: string;
+  /** Away team full name */
+  awayName: string;
 }
 
 export interface PickPlayer {

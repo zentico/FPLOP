@@ -225,22 +225,48 @@ function StatusBadge({ status }: { status: string }) {
   }
 }
 
-/** Map team short name -> "OPP (H)" (joined with ", " for double gameweeks). */
+/**
+ * Map team identifier -> "OPP (H/A)" (joined with ", " for double gameweeks).
+ * Keyed on both the FPL short code (e.g. "ARS") and the full name (e.g.
+ * "Arsenal") so results from the solver CSV — which may use either format —
+ * are matched correctly.
+ */
 function useOpponents(gameweek: number): Map<string, string> {
   const { data: fixtures } = useListFixtures();
   return React.useMemo(() => {
-    const map = new Map<string, string[]>();
+    const raw = new Map<string, string[]>();
     for (const f of fixtures ?? []) {
       if (f.gameweek !== gameweek) continue;
-      map.set(f.home, [...(map.get(f.home) ?? []), `${f.away} (H)`]);
-      map.set(f.away, [...(map.get(f.away) ?? []), `${f.home} (A)`]);
+      raw.set(f.home, [...(raw.get(f.home) ?? []), `${f.away} (H)`]);
+      raw.set(f.away, [...(raw.get(f.away) ?? []), `${f.home} (A)`]);
     }
-    return new Map([...map].map(([team, opps]) => [team, opps.join(", ")]));
+    const map = new Map<string, string>();
+    for (const [key, opps] of raw) {
+      const val = opps.join(", ");
+      map.set(key, val);
+    }
+    // Also key on full names so solver results that use full names match too
+    for (const f of fixtures ?? []) {
+      if (f.gameweek !== gameweek) continue;
+      if (f.homeName && !map.has(f.homeName)) {
+        const val = raw.get(f.home);
+        if (val) map.set(f.homeName, val.join(", "));
+      }
+      if (f.awayName && !map.has(f.awayName)) {
+        const val = raw.get(f.away);
+        if (val) map.set(f.awayName, val.join(", "));
+      }
+    }
+    return map;
   }, [fixtures, gameweek]);
 }
 
 function GameweekView({ plan }: { plan: GameweekPlan }) {
   const opponents = useOpponents(plan.gameweek);
+  const transfersInSet = React.useMemo(
+    () => new Set(plan.transfersIn),
+    [plan.transfersIn],
+  );
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
@@ -337,24 +363,28 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                 {/* Group by position order: G, D, M, F */}
                 {['G', 'D', 'M', 'F'].map(pos => {
                   const players = plan.lineup.filter(p => p.position === pos);
-                  return players.map((player, idx) => (
-                    <TableRow key={`${pos}-${idx}`} className="group hover:bg-muted/30">
-                      <TableCell className="text-center font-mono font-bold text-muted-foreground border-r bg-muted/10">{pos}</TableCell>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          {player.name}
-                          {player.isCaptain && <Badge className="px-1.5 py-0 h-5 text-[10px] bg-primary">C</Badge>}
-                          {player.isViceCaptain && <Badge variant="outline" className="px-1.5 py-0 h-5 text-[10px]">V</Badge>}
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{player.team}</TableCell>
-                      <TableCell className="text-xs font-mono text-muted-foreground">{opponents.get(player.team) ?? "—"}</TableCell>
-                      <TableCell className="text-right font-mono text-sm">£{player.price.toFixed(1)}</TableCell>
-                      <TableCell className="text-right pr-6 font-mono font-bold text-primary">
-                        {(player.expectedPoints * (player.isCaptain ? (plan.chip === 'triple_captain' ? 3 : 2) : 1)).toFixed(2)}
-                      </TableCell>
-                    </TableRow>
-                  ));
+                  return players.map((player, idx) => {
+                    const isTransferIn = transfersInSet.has(player.name);
+                    return (
+                      <TableRow key={`${pos}-${idx}`} className={`group hover:bg-muted/30 ${isTransferIn ? "bg-primary/8 dark:bg-primary/12" : ""}`}>
+                        <TableCell className="text-center font-mono font-bold text-muted-foreground border-r bg-muted/10">{pos}</TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {player.name}
+                            {isTransferIn && <Badge className="px-1.5 py-0 h-5 text-[10px] bg-primary/20 text-primary border border-primary/30" variant="outline">IN</Badge>}
+                            {player.isCaptain && <Badge className="px-1.5 py-0 h-5 text-[10px] bg-primary">C</Badge>}
+                            {player.isViceCaptain && <Badge variant="outline" className="px-1.5 py-0 h-5 text-[10px]">V</Badge>}
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{player.team}</TableCell>
+                        <TableCell className="text-xs font-mono text-muted-foreground">{opponents.get(player.team) ?? "—"}</TableCell>
+                        <TableCell className="text-right font-mono text-sm">£{player.price.toFixed(1)}</TableCell>
+                        <TableCell className="text-right pr-6 font-mono font-bold text-primary">
+                          {(player.expectedPoints * (player.isCaptain ? (plan.chip === 'triple_captain' ? 3 : 2) : 1)).toFixed(2)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  });
                 })}
               </TableBody>
             </Table>
@@ -372,19 +402,27 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
             <Table>
               <TableBody>
                 {/* Sort bench by benchOrder 0-3 (0 is GK usually) */}
-                {[...plan.bench].sort((a, b) => (a.benchOrder ?? 99) - (b.benchOrder ?? 99)).map((player) => (
-                  <TableRow key={player.name} className="opacity-70 hover:opacity-100 transition-opacity">
-                    <TableCell className="w-12 text-center font-mono text-xs border-r bg-muted/10">
-                      {player.benchOrder === 0 ? 'GK' : player.benchOrder}
-                    </TableCell>
-                    <TableCell className="w-12 text-center font-mono font-bold text-muted-foreground">{player.position}</TableCell>
-                    <TableCell className="font-medium text-sm">{player.name}</TableCell>
-                    <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{player.team}</TableCell>
-                    <TableCell className="text-xs font-mono text-muted-foreground">{opponents.get(player.team) ?? "—"}</TableCell>
-                    <TableCell className="text-right font-mono text-sm">£{player.price.toFixed(1)}</TableCell>
-                    <TableCell className="text-right pr-6 font-mono font-bold">{player.expectedPoints.toFixed(2)}</TableCell>
-                  </TableRow>
-                ))}
+                {[...plan.bench].sort((a, b) => (a.benchOrder ?? 99) - (b.benchOrder ?? 99)).map((player) => {
+                  const isTransferIn = transfersInSet.has(player.name);
+                  return (
+                    <TableRow key={player.name} className={`transition-opacity hover:opacity-100 ${isTransferIn ? "opacity-90 bg-primary/8 dark:bg-primary/12" : "opacity-70"}`}>
+                      <TableCell className="w-12 text-center font-mono text-xs border-r bg-muted/10">
+                        {player.benchOrder === 0 ? 'GK' : player.benchOrder}
+                      </TableCell>
+                      <TableCell className="w-12 text-center font-mono font-bold text-muted-foreground">{player.position}</TableCell>
+                      <TableCell className="font-medium text-sm">
+                        <div className="flex items-center gap-2">
+                          {player.name}
+                          {isTransferIn && <Badge className="px-1.5 py-0 h-5 text-[10px] bg-primary/20 text-primary border border-primary/30" variant="outline">IN</Badge>}
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{player.team}</TableCell>
+                      <TableCell className="text-xs font-mono text-muted-foreground">{opponents.get(player.team) ?? "—"}</TableCell>
+                      <TableCell className="text-right font-mono text-sm">£{player.price.toFixed(1)}</TableCell>
+                      <TableCell className="text-right pr-6 font-mono font-bold">{player.expectedPoints.toFixed(2)}</TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </CardContent>

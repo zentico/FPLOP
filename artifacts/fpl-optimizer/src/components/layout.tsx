@@ -14,7 +14,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <Cpu className="h-5 w-5" />
             </div>
             <Link href="/" className="font-bold text-xl tracking-tight cursor-pointer hover:text-primary/80 transition-colors">
-              Optima<span className="text-primary/60">FPL</span>
+              FPL Optimizer <span className="text-primary/60">(FPLOP)</span>
             </Link>
           </div>
           
@@ -47,7 +47,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="container max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <Activity className="h-3.5 w-3.5" />
-            <span>FPL Optimizer Engine</span>
+            <span>FPL Optimizer (FPLOP)</span>
           </div>
           <p>Strictly analytical. No guarantees on matchday.</p>
         </div>

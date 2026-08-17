@@ -62,6 +62,8 @@ export interface FixtureInfo {
   gameweek: number | null;
   home: string;
   away: string;
+  homeName: string;
+  awayName: string;
 }
 
 let fixturesCache: { data: FixtureInfo[]; at: number } | null = null;
@@ -75,10 +77,13 @@ export async function getFixtures(): Promise<FixtureInfo[]> {
     fplFetch<RawFixture[]>("/fixtures/"),
   ]);
   const teamShort = new Map(bootstrap.teams.map((t) => [t.id, t.short_name]));
+  const teamFull = new Map(bootstrap.teams.map((t) => [t.id, t.name]));
   const data = raw.map((f) => ({
     gameweek: f.event,
     home: teamShort.get(f.team_h) ?? "?",
     away: teamShort.get(f.team_a) ?? "?",
+    homeName: teamFull.get(f.team_h) ?? "?",
+    awayName: teamFull.get(f.team_a) ?? "?",
   }));
   fixturesCache = { data, at: Date.now() };
   return data;

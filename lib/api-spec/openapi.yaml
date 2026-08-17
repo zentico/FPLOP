@@ -574,16 +574,22 @@ components:
           description: Add noise to projections for alternative solutions
     FixtureInfo:
       type: object
-      required: [gameweek, home, away]
+      required: [gameweek, home, away, homeName, awayName]
       properties:
         gameweek:
           type: ["number", "null"]
         home:
           type: string
-          description: Home team short name
+          description: Home team short name (3-letter FPL code)
         away:
           type: string
-          description: Away team short name
+          description: Away team short name (3-letter FPL code)
+        homeName:
+          type: string
+          description: Home team full name
+        awayName:
+          type: string
+          description: Away team full name
     SolveRun:
       type: object
       required: [id, status, createdAt, request]
