@@ -42,6 +42,7 @@ export default function Home() {
   const [teamIdStr, setTeamIdStr] = React.useState<string>("");
   const [horizon, setHorizon] = React.useState<number>(5);
   const [chips, setChips] = React.useState<Record<string, string>>({}); // chip type -> gameweek string
+  const [diffFactorStr, setDiffFactorStr] = React.useState<string>("0");
   const [showAdvanced, setShowAdvanced] = React.useState<boolean>(false);
   // Advanced solver settings — empty string means "solver default"
   const [adv, setAdv] = React.useState<Record<string, string>>({});
@@ -151,6 +152,16 @@ export default function Home() {
       return;
     }
     
+    const diffPct = Number(diffFactorStr);
+    if (!Number.isFinite(diffPct) || diffPct < 0 || diffPct > 100) {
+      toast({
+        title: "Invalid differential factor",
+        description: "Enter a percentage between 0 and 100 (0 = no adjustment).",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const chipsArray = Object.entries(chips).map(([chip, gw]) => ({
       chip,
       gameweek: parseInt(gw, 10)
@@ -192,6 +203,7 @@ export default function Home() {
         firstGameweek,
         teamId: firstGameweek ? null : teamIdNum,
         horizon,
+        differentialFactor: diffPct > 0 ? diffPct / 100 : undefined,
         chips: chipsArray.length > 0 ? chipsArray : undefined,
         options: hasOptions ? options : undefined
       }
@@ -430,6 +442,25 @@ export default function Home() {
                 <p className="text-xs text-muted-foreground">
                   Longer horizons are more accurate but take significantly more time to compute.
                   {selectedProjection ? ` The selected projection covers ${selectedProjection.gameweeks.length} gameweeks.` : ""}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="diff-factor">Differential Factor (k)</Label>
+                  <span className="font-mono font-bold bg-primary/10 text-primary px-2 py-1 rounded-md">{diffFactorStr || "0"}%</span>
+                </div>
+                <Input
+                  id="diff-factor"
+                  inputMode="decimal"
+                  value={diffFactorStr}
+                  onChange={(e) => setDiffFactorStr(e.target.value)}
+                  placeholder="0"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Boosts low-ownership players: adjusted points = predicted × (1 + k × (100 − ownership%) / 100).
+                  E.g. with k = 20%, a player at 71.8% ownership and 5.94 predicted points is optimized at 6.28.
+                  Set 0 to optimize on raw predictions. Requires ownership data (Hub imports include it).
                 </p>
               </div>
 

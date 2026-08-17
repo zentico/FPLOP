@@ -15,6 +15,11 @@ export interface GameweekPlan {
      */
   chip?: string | null;
   expectedPoints: number;
+  /**
+     * Gameweek total using unadjusted projections, when a differential factor was applied
+     * @nullable
+     */
+  baseExpectedPoints?: number | null;
   /** @nullable */
   bank?: number | null;
   lineup: PickPlayer[];

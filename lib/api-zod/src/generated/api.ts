@@ -192,6 +192,7 @@ export const ListSolvesResponseItem = zod.object({
   "firstGameweek": zod.boolean().describe('True when there is no existing team and a full squad is optimized from scratch'),
   "teamId": zod.number().nullish().describe('FPL team code, required when firstGameweek is false'),
   "horizon": zod.number().optional().describe('Number of gameweeks to optimize over (default 5)'),
+  "differentialFactor": zod.number().optional().describe('Differential factor k as a fraction (e.g. 0.2 for 20%). Each player\'s projected points are scaled by 1 + k \* (100 - ownership%) \/ 100 before optimization. Requires the projection to include an Ownership column.\n'),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()
@@ -217,10 +218,12 @@ export const ListSolvesResponseItem = zod.object({
   "totalExpectedPoints": zod.number().nullish(),
   "result": zod.union([zod.object({
   "totalExpectedPoints": zod.number(),
+  "totalBaseExpectedPoints": zod.number().nullish().describe('Total using unadjusted projections, when a differential factor was applied'),
   "gameweeks": zod.array(zod.object({
   "gameweek": zod.number(),
   "chip": zod.string().nullish().describe('Chip played this gameweek, if any'),
   "expectedPoints": zod.number(),
+  "baseExpectedPoints": zod.number().nullish().describe('Gameweek total using unadjusted projections, when a differential factor was applied'),
   "bank": zod.number().nullish(),
   "lineup": zod.array(zod.object({
   "name": zod.string(),
@@ -228,6 +231,7 @@ export const ListSolvesResponseItem = zod.object({
   "position": zod.string().describe('One of G, D, M, F'),
   "price": zod.number(),
   "expectedPoints": zod.number(),
+  "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
   "isCaptain": zod.boolean(),
   "isViceCaptain": zod.boolean(),
   "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
@@ -238,6 +242,7 @@ export const ListSolvesResponseItem = zod.object({
   "position": zod.string().describe('One of G, D, M, F'),
   "price": zod.number(),
   "expectedPoints": zod.number(),
+  "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
   "isCaptain": zod.boolean(),
   "isViceCaptain": zod.boolean(),
   "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
@@ -263,6 +268,7 @@ export const CreateSolveBody = zod.object({
   "firstGameweek": zod.boolean().describe('True when there is no existing team and a full squad is optimized from scratch'),
   "teamId": zod.number().nullish().describe('FPL team code, required when firstGameweek is false'),
   "horizon": zod.number().optional().describe('Number of gameweeks to optimize over (default 5)'),
+  "differentialFactor": zod.number().optional().describe('Differential factor k as a fraction (e.g. 0.2 for 20%). Each player\'s projected points are scaled by 1 + k \* (100 - ownership%) \/ 100 before optimization. Requires the projection to include an Ownership column.\n'),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()
@@ -296,6 +302,7 @@ export const CreateSolveResponse = zod.object({
   "firstGameweek": zod.boolean().describe('True when there is no existing team and a full squad is optimized from scratch'),
   "teamId": zod.number().nullish().describe('FPL team code, required when firstGameweek is false'),
   "horizon": zod.number().optional().describe('Number of gameweeks to optimize over (default 5)'),
+  "differentialFactor": zod.number().optional().describe('Differential factor k as a fraction (e.g. 0.2 for 20%). Each player\'s projected points are scaled by 1 + k \* (100 - ownership%) \/ 100 before optimization. Requires the projection to include an Ownership column.\n'),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()
@@ -321,10 +328,12 @@ export const CreateSolveResponse = zod.object({
   "totalExpectedPoints": zod.number().nullish(),
   "result": zod.union([zod.object({
   "totalExpectedPoints": zod.number(),
+  "totalBaseExpectedPoints": zod.number().nullish().describe('Total using unadjusted projections, when a differential factor was applied'),
   "gameweeks": zod.array(zod.object({
   "gameweek": zod.number(),
   "chip": zod.string().nullish().describe('Chip played this gameweek, if any'),
   "expectedPoints": zod.number(),
+  "baseExpectedPoints": zod.number().nullish().describe('Gameweek total using unadjusted projections, when a differential factor was applied'),
   "bank": zod.number().nullish(),
   "lineup": zod.array(zod.object({
   "name": zod.string(),
@@ -332,6 +341,7 @@ export const CreateSolveResponse = zod.object({
   "position": zod.string().describe('One of G, D, M, F'),
   "price": zod.number(),
   "expectedPoints": zod.number(),
+  "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
   "isCaptain": zod.boolean(),
   "isViceCaptain": zod.boolean(),
   "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
@@ -342,6 +352,7 @@ export const CreateSolveResponse = zod.object({
   "position": zod.string().describe('One of G, D, M, F'),
   "price": zod.number(),
   "expectedPoints": zod.number(),
+  "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
   "isCaptain": zod.boolean(),
   "isViceCaptain": zod.boolean(),
   "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
@@ -376,6 +387,7 @@ export const GetSolveResponse = zod.object({
   "firstGameweek": zod.boolean().describe('True when there is no existing team and a full squad is optimized from scratch'),
   "teamId": zod.number().nullish().describe('FPL team code, required when firstGameweek is false'),
   "horizon": zod.number().optional().describe('Number of gameweeks to optimize over (default 5)'),
+  "differentialFactor": zod.number().optional().describe('Differential factor k as a fraction (e.g. 0.2 for 20%). Each player\'s projected points are scaled by 1 + k \* (100 - ownership%) \/ 100 before optimization. Requires the projection to include an Ownership column.\n'),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()
@@ -401,10 +413,12 @@ export const GetSolveResponse = zod.object({
   "totalExpectedPoints": zod.number().nullish(),
   "result": zod.union([zod.object({
   "totalExpectedPoints": zod.number(),
+  "totalBaseExpectedPoints": zod.number().nullish().describe('Total using unadjusted projections, when a differential factor was applied'),
   "gameweeks": zod.array(zod.object({
   "gameweek": zod.number(),
   "chip": zod.string().nullish().describe('Chip played this gameweek, if any'),
   "expectedPoints": zod.number(),
+  "baseExpectedPoints": zod.number().nullish().describe('Gameweek total using unadjusted projections, when a differential factor was applied'),
   "bank": zod.number().nullish(),
   "lineup": zod.array(zod.object({
   "name": zod.string(),
@@ -412,6 +426,7 @@ export const GetSolveResponse = zod.object({
   "position": zod.string().describe('One of G, D, M, F'),
   "price": zod.number(),
   "expectedPoints": zod.number(),
+  "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
   "isCaptain": zod.boolean(),
   "isViceCaptain": zod.boolean(),
   "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
@@ -422,6 +437,7 @@ export const GetSolveResponse = zod.object({
   "position": zod.string().describe('One of G, D, M, F'),
   "price": zod.number(),
   "expectedPoints": zod.number(),
+  "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
   "isCaptain": zod.boolean(),
   "isViceCaptain": zod.boolean(),
   "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')

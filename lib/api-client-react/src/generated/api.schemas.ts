@@ -182,6 +182,8 @@ export interface SolveInput {
   teamId?: number | null;
   /** Number of gameweeks to optimize over (default 5) */
   horizon?: number;
+  /** Differential factor k as a fraction (e.g. 0.2 for 20%). Each player's projected points are scaled by 1 + k * (100 - ownership%) / 100 before optimization. Requires the projection to include an Ownership column. */
+  differentialFactor?: number;
   chips?: ChipAssignment[];
   options?: SolveOptions | null;
 }
@@ -210,6 +212,11 @@ export interface PickPlayer {
   position: string;
   price: number;
   expectedPoints: number;
+  /**
+     * Unadjusted projected points, when a differential factor was applied
+     * @nullable
+     */
+  basePoints?: number | null;
   isCaptain: boolean;
   isViceCaptain: boolean;
   /**
@@ -227,6 +234,11 @@ export interface GameweekPlan {
      */
   chip?: string | null;
   expectedPoints: number;
+  /**
+     * Gameweek total using unadjusted projections, when a differential factor was applied
+     * @nullable
+     */
+  baseExpectedPoints?: number | null;
   /** @nullable */
   bank?: number | null;
   lineup: PickPlayer[];
@@ -237,6 +249,11 @@ export interface GameweekPlan {
 
 export interface SolveResult {
   totalExpectedPoints: number;
+  /**
+     * Total using unadjusted projections, when a differential factor was applied
+     * @nullable
+     */
+  totalBaseExpectedPoints?: number | null;
   gameweeks: GameweekPlan[];
 }
 

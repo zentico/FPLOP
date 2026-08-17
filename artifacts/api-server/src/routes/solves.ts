@@ -7,7 +7,12 @@ import {
   GetSolveResponse,
   ListSolvesResponse,
 } from "@workspace/api-zod";
-import { getRunProgress, resolvePlayerRefs, startSolve } from "../lib/solver";
+import {
+  getRunProgress,
+  projectionHasOwnership,
+  resolvePlayerRefs,
+  startSolve,
+} from "../lib/solver";
 import {
   type SolveRunMeta,
   listProjectionMetas,
@@ -73,6 +78,21 @@ router.post("/solves", async (req, res): Promise<void> => {
         return;
       }
     }
+  }
+
+  const k = request.differentialFactor ?? 0;
+  if (k < 0 || k > 1) {
+    res.status(400).json({
+      error: "Differential factor must be between 0% and 100%",
+    });
+    return;
+  }
+  if (k > 0 && !projectionHasOwnership(request.projectionId)) {
+    res.status(400).json({
+      error:
+        "This projection has no Ownership column, so a differential factor can't be applied. Re-import predictions from Fantasy Football Hub to get ownership data.",
+    });
+    return;
   }
 
   const run: SolveRunMeta = {

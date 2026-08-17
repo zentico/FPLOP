@@ -9,5 +9,10 @@ import type { GameweekPlan } from './gameweekPlan';
 
 export interface SolveResult {
   totalExpectedPoints: number;
+  /**
+     * Total using unadjusted projections, when a differential factor was applied
+     * @nullable
+     */
+  totalBaseExpectedPoints?: number | null;
   gameweeks: GameweekPlan[];
 }

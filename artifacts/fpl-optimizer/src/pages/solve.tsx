@@ -63,8 +63,13 @@ export default function SolveDetail() {
         
         {isCompleted && solve.totalExpectedPoints && (
           <div className="text-right bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-sm">
-            <div className="text-xs uppercase tracking-wider font-semibold opacity-80">Total xPts</div>
+            <div className="text-xs uppercase tracking-wider font-semibold opacity-80">
+              {solve.result?.totalBaseExpectedPoints != null ? "Total xPts (adjusted)" : "Total xPts"}
+            </div>
             <div className="text-3xl font-black font-mono tracking-tighter">{solve.totalExpectedPoints.toFixed(2)}</div>
+            {solve.result?.totalBaseExpectedPoints != null && (
+              <div className="text-xs font-mono opacity-80">base {solve.result.totalBaseExpectedPoints.toFixed(2)}</div>
+            )}
           </div>
         )}
       </div>
@@ -325,6 +330,7 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
     () => new Set(plan.transfersIn),
     [plan.transfersIn],
   );
+  const hasBase = plan.baseExpectedPoints != null;
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
@@ -334,10 +340,17 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
           <CardContent className="pt-6">
             <div className="flex justify-between items-end mb-6">
               <div>
-                <div className="text-sm text-muted-foreground font-medium mb-1">Expected Points</div>
+                <div className="text-sm text-muted-foreground font-medium mb-1">
+                  {plan.baseExpectedPoints != null ? "Expected Points (adjusted)" : "Expected Points"}
+                </div>
                 <div className="text-4xl font-black font-mono tracking-tighter text-primary">
                   {plan.expectedPoints.toFixed(2)}
                 </div>
+                {plan.baseExpectedPoints != null && (
+                  <div className="text-sm font-mono text-muted-foreground mt-1">
+                    base {plan.baseExpectedPoints.toFixed(2)}
+                  </div>
+                )}
               </div>
               <div className="text-right">
                 <div className="text-sm text-muted-foreground font-medium mb-1">Bank</div>
@@ -414,7 +427,8 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                   <TableHead className="hidden md:table-cell">Team</TableHead>
                   <TableHead><FixtureColumnHead fixturesError={fixturesError} /></TableHead>
                   <TableHead className="text-right">Price</TableHead>
-                  <TableHead className="text-right pr-6">xPts</TableHead>
+                  {hasBase && <TableHead className="text-right">Base xPts</TableHead>}
+                  <TableHead className="text-right pr-6">{hasBase ? "Adj xPts" : "xPts"}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -439,6 +453,11 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                           <FixtureCell chips={opponents.get(player.team)} fixturesLoading={fixturesLoading} fixturesError={fixturesError} />
                         </TableCell>
                         <TableCell className="text-right font-mono text-sm">£{player.price.toFixed(1)}</TableCell>
+                        {hasBase && (
+                          <TableCell className="text-right font-mono text-sm text-muted-foreground">
+                            {((player.basePoints ?? 0) * (player.isCaptain ? (plan.chip === 'triple_captain' ? 3 : 2) : 1)).toFixed(2)}
+                          </TableCell>
+                        )}
                         <TableCell className="text-right pr-6 font-mono font-bold text-primary">
                           {(player.expectedPoints * (player.isCaptain ? (plan.chip === 'triple_captain' ? 3 : 2) : 1)).toFixed(2)}
                         </TableCell>
@@ -460,6 +479,18 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
           </CardHeader>
           <CardContent className="p-0">
             <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent border-b">
+                  <TableHead className="w-12 text-center">#</TableHead>
+                  <TableHead className="w-12 text-center">Pos</TableHead>
+                  <TableHead>Player</TableHead>
+                  <TableHead className="hidden md:table-cell">Team</TableHead>
+                  <TableHead><FixtureColumnHead fixturesError={fixturesError} /></TableHead>
+                  <TableHead className="text-right">Price</TableHead>
+                  {hasBase && <TableHead className="text-right">Base xPts</TableHead>}
+                  <TableHead className="text-right pr-6">{hasBase ? "Adj xPts" : "xPts"}</TableHead>
+                </TableRow>
+              </TableHeader>
               <TableBody>
                 {/* Sort bench by benchOrder 0-3 (0 is GK usually) */}
                 {[...plan.bench].sort((a, b) => (a.benchOrder ?? 99) - (b.benchOrder ?? 99)).map((player) => {
@@ -481,6 +512,11 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                         <FixtureCell chips={opponents.get(player.team)} fixturesLoading={fixturesLoading} fixturesError={fixturesError} />
                       </TableCell>
                       <TableCell className="text-right font-mono text-sm">£{player.price.toFixed(1)}</TableCell>
+                      {hasBase && (
+                        <TableCell className="text-right font-mono text-sm text-muted-foreground">
+                          {(player.basePoints ?? 0).toFixed(2)}
+                        </TableCell>
+                      )}
                       <TableCell className="text-right pr-6 font-mono font-bold">{player.expectedPoints.toFixed(2)}</TableCell>
                     </TableRow>
                   );

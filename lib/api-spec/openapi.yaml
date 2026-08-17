@@ -514,6 +514,12 @@ components:
         horizon:
           type: number
           description: Number of gameweeks to optimize over (default 5)
+        differentialFactor:
+          type: number
+          description: >
+            Differential factor k as a fraction (e.g. 0.2 for 20%). Each player's
+            projected points are scaled by 1 + k * (100 - ownership%) / 100 before
+            optimization. Requires the projection to include an Ownership column.
         chips:
           type: array
           items:
@@ -643,6 +649,9 @@ components:
       properties:
         totalExpectedPoints:
           type: number
+        totalBaseExpectedPoints:
+          type: ["number", "null"]
+          description: Total using unadjusted projections, when a differential factor was applied
         gameweeks:
           type: array
           items:
@@ -658,6 +667,9 @@ components:
           description: Chip played this gameweek, if any
         expectedPoints:
           type: number
+        baseExpectedPoints:
+          type: ["number", "null"]
+          description: Gameweek total using unadjusted projections, when a differential factor was applied
         bank:
           type: ["number", "null"]
         lineup:
@@ -691,6 +703,9 @@ components:
           type: number
         expectedPoints:
           type: number
+        basePoints:
+          type: ["number", "null"]
+          description: Unadjusted projected points, when a differential factor was applied
         isCaptain:
           type: boolean
         isViceCaptain:

@@ -17,4 +17,8 @@ export interface FixtureInfo {
   homeName: string;
   /** Away team full name */
   awayName: string;
+  /** FPL fixture difficulty rating (1-5) for the home team */
+  homeDifficulty: number;
+  /** FPL fixture difficulty rating (1-5) for the away team */
+  awayDifficulty: number;
 }

@@ -13,6 +13,11 @@ export interface PickPlayer {
   position: string;
   price: number;
   expectedPoints: number;
+  /**
+     * Unadjusted projected points, when a differential factor was applied
+     * @nullable
+     */
+  basePoints?: number | null;
   isCaptain: boolean;
   isViceCaptain: boolean;
   /**

@@ -59,6 +59,76 @@ function priceMap(projectionId: string): Map<string, number> {
   return map;
 }
 
+/** Clamp the differential factor k to a sane fraction range. */
+export function clampDifferentialFactor(k: number): number {
+  return Math.min(Math.max(k, 0), 1);
+}
+
+/** True when the projection CSV includes an Ownership column. */
+export function projectionHasOwnership(projectionId: string): boolean {
+  try {
+    const header = fs
+      .readFileSync(projectionCsvPath(projectionId), "utf-8")
+      .split(/\r?\n/, 1)[0]!;
+    return header.split(",").map((h) => h.trim()).includes("Ownership");
+  } catch {
+    return false;
+  }
+}
+
+const csvField = (v: string): string =>
+  /[",\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+
+/**
+ * Write a copy of the projection CSV with every per-GW points column scaled
+ * by 1 + k * (100 - ownership%) / 100. Returns the per-player factor map
+ * (keyed by normalized player id).
+ */
+function writeAdjustedProjection(
+  projectionId: string,
+  datasource: string,
+  k: number,
+): Map<string, number> {
+  const content = fs.readFileSync(projectionCsvPath(projectionId), "utf-8");
+  const rows = parseCsv(content);
+  const headers = content
+    .split(/\r?\n/, 1)[0]!
+    .split(",")
+    .map((h) => h.trim());
+  const idCol = headers.find((h) => ["ID", "Id", "id"].includes(h));
+  if (!idCol || !headers.includes("Ownership")) {
+    throw new Error("Projection is missing ID or Ownership columns");
+  }
+  const ptsCols = new Set(headers.filter((h) => /^\d+_Pts$/.test(h)));
+
+  const factors = new Map<string, number>();
+  const lines = [headers.map(csvField).join(",")];
+  for (const r of rows) {
+    const ownership = Number(r["Ownership"]);
+    const factor = Number.isFinite(ownership)
+      ? 1 + (k * (100 - Math.min(Math.max(ownership, 0), 100))) / 100
+      : 1;
+    factors.set(String(Number(r[idCol])), factor);
+    lines.push(
+      headers
+        .map((h) => {
+          const v = r[h] ?? "";
+          if (ptsCols.has(h)) {
+            const n = Number(v);
+            if (Number.isFinite(n)) return String(Math.round(n * factor * 1000) / 1000);
+          }
+          return csvField(v);
+        })
+        .join(","),
+    );
+  }
+  fs.writeFileSync(
+    path.join(SOLVER_DATA_DIR, `${datasource}.csv`),
+    lines.join("\n") + "\n",
+  );
+  return factors;
+}
+
 interface PickRow {
   id: string;
   week: string;
@@ -81,6 +151,7 @@ interface PickRow {
 function parseResultCsv(
   csvContent: string,
   prices: Map<string, number>,
+  factors: Map<string, number> | null = null,
 ): SolveResult {
   const rows = parseCsv(csvContent) as unknown as PickRow[];
   const firstIter = rows.length > 0 ? rows[0]!.iter : "0";
@@ -93,6 +164,9 @@ function parseResultCsv(
   const gameweeks: GameweekPlan[] = weeks.map((week) => {
     const wr = iterRows.filter((r) => Number(r.week) === week);
 
+    const factorOf = (r: PickRow): number =>
+      factors?.get(String(Number(r.id))) ?? 1;
+
     const toPlayer = (r: PickRow): PickPlayer => {
       const benchOrder = Number(r.bench);
       const buyPrice = Number(r.buy_price);
@@ -104,6 +178,9 @@ function parseResultCsv(
           prices.get(String(Number(r.id))) ??
           (Number.isFinite(buyPrice) && buyPrice > 0 ? buyPrice : 0),
         expectedPoints: Number(r.xP) || 0,
+        basePoints: factors
+          ? Math.round(((Number(r.xP) || 0) / factorOf(r)) * 100) / 100
+          : null,
         isCaptain: Number(r.captain) === 1,
         isViceCaptain: Number(r.vicecaptain) === 1,
         benchOrder: benchOrder >= 0 ? benchOrder : null,
@@ -120,16 +197,25 @@ function parseResultCsv(
       .sort((a, b) => (a.benchOrder ?? 0) - (b.benchOrder ?? 0));
 
     const chipCode = wr.find((r) => r.chip)?.chip ?? "";
+    const squadRows = wr.filter(
+      (r) => Number(r.lineup) === 1 || Number(r.bench) >= 0,
+    );
 
     return {
       gameweek: week,
       chip: chipCode ? (CHIP_CODE[chipCode] ?? chipCode) : null,
       expectedPoints:
         Math.round(
-          wr
-            .filter((r) => Number(r.lineup) === 1 || Number(r.bench) >= 0)
-            .reduce((s, r) => s + (Number(r.xp_cont) || 0), 0) * 100,
+          squadRows.reduce((s, r) => s + (Number(r.xp_cont) || 0), 0) * 100,
         ) / 100,
+      baseExpectedPoints: factors
+        ? Math.round(
+            squadRows.reduce(
+              (s, r) => s + (Number(r.xp_cont) || 0) / factorOf(r),
+              0,
+            ) * 100,
+          ) / 100
+        : null,
       bank: null,
       lineup,
       bench,
@@ -146,6 +232,11 @@ function parseResultCsv(
     totalExpectedPoints:
       Math.round(gameweeks.reduce((s, g) => s + g.expectedPoints, 0) * 100) /
       100,
+    totalBaseExpectedPoints: factors
+      ? Math.round(
+          gameweeks.reduce((s, g) => s + (g.baseExpectedPoints ?? 0), 0) * 100,
+        ) / 100
+      : null,
     gameweeks,
   };
 }
@@ -190,9 +281,12 @@ export function resolvePlayerRefs(
   return { ids, unknown };
 }
 
-function buildConfig(request: SolveRequest): Record<string, unknown> {
+function buildConfig(
+  request: SolveRequest,
+  datasource: string,
+): Record<string, unknown> {
   const config: Record<string, unknown> = {
-    datasource: request.projectionId,
+    datasource,
     horizon: request.horizon ?? 5,
     no_transfer_last_gws: 0,
     verbose: true,
@@ -275,8 +369,39 @@ export function solveTimeoutMs(request: SolveRequest): number {
 export function startSolve(runId: string, request: SolveRequest): void {
   const runDir = path.join(RUNS_DIR, runId);
   fs.mkdirSync(runDir, { recursive: true });
+
+  // With a differential factor, solve against an ownership-adjusted copy of
+  // the projection so the solver optimizes the adjusted scores.
+  const k = clampDifferentialFactor(request.differentialFactor ?? 0);
+  const useAdjusted = k > 0;
+  const datasource = useAdjusted ? `${request.projectionId}-k${runId}` : request.projectionId;
+  let factors: Map<string, number> | null = null;
+  if (useAdjusted) {
+    try {
+      factors = writeAdjustedProjection(request.projectionId, datasource, k);
+    } catch (err) {
+      updateRun(runId, {
+        status: "failed",
+        completedAt: new Date().toISOString(),
+        error: `Could not apply differential factor: ${(err as Error).message}`,
+      });
+      return;
+    }
+  }
+  const cleanupAdjusted = () => {
+    if (!useAdjusted) return;
+    try {
+      fs.unlinkSync(path.join(SOLVER_DATA_DIR, `${datasource}.csv`));
+    } catch {
+      // best-effort cleanup
+    }
+  };
+
   const configPath = path.join(runDir, "config.json");
-  fs.writeFileSync(configPath, JSON.stringify(buildConfig(request), null, 2));
+  fs.writeFileSync(
+    configPath,
+    JSON.stringify(buildConfig(request, datasource), null, 2),
+  );
   const logPath = path.join(runDir, "solver.log");
   const logStream = fs.createWriteStream(logPath);
 
@@ -299,6 +424,7 @@ export function startSolve(runId: string, request: SolveRequest): void {
 
   child.on("error", (err) => {
     clearTimeout(timeout);
+    cleanupAdjusted();
     logger.error({ err, runId }, "Failed to spawn solver");
     updateRun(runId, {
       status: "failed",
@@ -310,6 +436,7 @@ export function startSolve(runId: string, request: SolveRequest): void {
   child.on("close", (code) => {
     clearTimeout(timeout);
     logStream.end();
+    cleanupAdjusted();
     try {
       if (code !== 0) {
         const tail = readLogTail(logPath);
@@ -324,7 +451,7 @@ export function startSolve(runId: string, request: SolveRequest): void {
         return;
       }
 
-      const resultFile = findNewestResult(request.projectionId, startedAt);
+      const resultFile = findNewestResult(datasource, startedAt);
       if (!resultFile) {
         updateRun(runId, {
           status: "failed",
@@ -337,6 +464,7 @@ export function startSolve(runId: string, request: SolveRequest): void {
       const result = parseResultCsv(
         fs.readFileSync(resultFile, "utf-8"),
         priceMap(request.projectionId),
+        factors,
       );
       // In first-gameweek mode the initial squad build is not a set of transfers.
       if (request.firstGameweek && result.gameweeks.length > 0) {
@@ -439,13 +567,13 @@ function readLogTail(logPath: string): string {
 }
 
 function findNewestResult(
-  projectionId: string,
+  datasource: string,
   startedAt: number,
 ): string | null {
   try {
     const files = fs
       .readdirSync(SOLVER_RESULTS_DIR)
-      .filter((f) => f.startsWith(`${projectionId}_`) && f.endsWith(".csv"))
+      .filter((f) => f.startsWith(`${datasource}_`) && f.endsWith(".csv"))
       .map((f) => path.join(SOLVER_RESULTS_DIR, f))
       .filter((f) => fs.statSync(f).mtimeMs >= startedAt - 5000);
     if (files.length === 0) return null;

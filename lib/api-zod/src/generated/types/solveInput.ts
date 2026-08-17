@@ -19,6 +19,8 @@ export interface SolveInput {
   teamId?: number | null;
   /** Number of gameweeks to optimize over (default 5) */
   horizon?: number;
+  /** Differential factor k as a fraction (e.g. 0.2 for 20%). Each player's projected points are scaled by 1 + k * (100 - ownership%) / 100 before optimization. Requires the projection to include an Ownership column. */
+  differentialFactor?: number;
   chips?: ChipAssignment[];
   options?: SolveOptions | null;
 }

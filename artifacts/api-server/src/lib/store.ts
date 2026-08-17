@@ -37,6 +37,7 @@ export interface SolveRequest {
   firstGameweek: boolean;
   teamId?: number | null;
   horizon?: number;
+  differentialFactor?: number | null;
   chips?: ChipAssignment[];
   options?: SolveOptions | null;
 }
@@ -47,6 +48,7 @@ export interface PickPlayer {
   position: string;
   price: number;
   expectedPoints: number;
+  basePoints?: number | null;
   isCaptain: boolean;
   isViceCaptain: boolean;
   benchOrder?: number | null;
@@ -56,6 +58,7 @@ export interface GameweekPlan {
   gameweek: number;
   chip?: string | null;
   expectedPoints: number;
+  baseExpectedPoints?: number | null;
   bank?: number | null;
   lineup: PickPlayer[];
   bench: PickPlayer[];
@@ -65,6 +68,7 @@ export interface GameweekPlan {
 
 export interface SolveResult {
   totalExpectedPoints: number;
+  totalBaseExpectedPoints?: number | null;
   gameweeks: GameweekPlan[];
 }
 
