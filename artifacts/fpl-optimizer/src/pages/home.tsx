@@ -1,5 +1,5 @@
 import React from "react";
-import { useUploadProjection, useImportProjection, useListProjections, useDeleteProjection, useGetProjectionPlayers, useGetGameweekInfo, useGetFplTeam, useCreateSolve, getGetFplTeamQueryKey, getGetProjectionPlayersQueryKey } from "@workspace/api-client-react";
+import { useUploadProjection, useImportProjection, useGetFfhSessionStatus, useUpdateFfhSession, useListProjections, useDeleteProjection, useGetProjectionPlayers, useGetGameweekInfo, useGetFplTeam, useCreateSolve, getGetFplTeamQueryKey, getGetProjectionPlayersQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +46,10 @@ export default function Home() {
   // Mutations
   const uploadMutation = useUploadProjection();
   const importMutation = useImportProjection();
+  const updateSessionMutation = useUpdateFfhSession();
+  const { data: ffhSession, refetch: refetchFfhSession } = useGetFfhSessionStatus();
+  const [cookieInput, setCookieInput] = React.useState<string>("");
+  const [showCookieField, setShowCookieField] = React.useState<boolean>(false);
   const deleteMutation = useDeleteProjection();
   const createSolveMutation = useCreateSolve();
 
@@ -84,6 +88,24 @@ export default function Home() {
         toast({
           title: "Import failed",
           description: err?.data?.error || err?.error || "Could not import predictions",
+          variant: "destructive",
+        });
+      }
+    });
+  };
+
+  const handleSaveCookie = () => {
+    updateSessionMutation.mutate({ data: { cookie: cookieInput } }, {
+      onSuccess: () => {
+        setCookieInput("");
+        setShowCookieField(false);
+        refetchFfhSession();
+        toast({ title: "Session updated", description: "The cookie was validated and saved." });
+      },
+      onError: (err: any) => {
+        toast({
+          title: "Cookie rejected",
+          description: err?.data?.error || err?.error || "Could not validate the cookie",
           variant: "destructive",
         });
       }
@@ -226,6 +248,40 @@ export default function Home() {
                     </Button>
                     {importMutation.isPending && (
                       <p className="text-sm text-primary mt-4 font-medium animate-pulse">Downloading predictions… this can take up to a minute.</p>
+                    )}
+                  </div>
+                  <div className="mt-4 border rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">Hub session</p>
+                        <p className="text-xs text-muted-foreground">
+                          {ffhSession?.configured
+                            ? "A session cookie is saved. Update it here when it expires."
+                            : "No session cookie saved yet. Paste one to enable imports."}
+                        </p>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => setShowCookieField((v) => !v)}>
+                        {showCookieField ? "Cancel" : "Update session cookie"}
+                      </Button>
+                    </div>
+                    {showCookieField && (
+                      <div className="mt-4 space-y-2">
+                        <p className="text-xs text-muted-foreground">
+                          Log in at fantasyfootballhub.co.uk, open developer tools → Application/Storage → Cookies, and copy the <span className="font-mono">appSession</span> value. If it's split into <span className="font-mono">appSession.0</span> and <span className="font-mono">appSession.1</span>, paste both values joined together (no spaces).
+                        </p>
+                        <div className="flex gap-2">
+                          <Input
+                            type="password"
+                            placeholder="Paste appSession cookie value"
+                            value={cookieInput}
+                            onChange={(e) => setCookieInput(e.target.value)}
+                            autoComplete="off"
+                          />
+                          <Button onClick={handleSaveCookie} disabled={!cookieInput.trim() || updateSessionMutation.isPending}>
+                            {updateSessionMutation.isPending ? "Validating…" : "Save"}
+                          </Button>
+                        </div>
+                      </div>
                     )}
                   </div>
                 </TabsContent>

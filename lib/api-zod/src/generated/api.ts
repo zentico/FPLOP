@@ -69,6 +69,26 @@ export const ImportProjectionResponse = zod.object({
 
 
 /**
+ * @summary Whether a Fantasy Football Hub session cookie is configured
+ */
+export const GetFfhSessionStatusResponse = zod.object({
+  "configured": zod.boolean()
+})
+
+
+/**
+ * @summary Save a new Fantasy Football Hub session cookie after validating it
+ */
+export const UpdateFfhSessionBody = zod.object({
+  "cookie": zod.string().describe('Value of the appSession cookie (chunks concatenated if split)')
+})
+
+export const UpdateFfhSessionResponse = zod.object({
+  "configured": zod.boolean()
+})
+
+
+/**
  * @summary Delete a projection file
  */
 export const DeleteProjectionParams = zod.object({

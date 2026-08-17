@@ -2,8 +2,11 @@ import fs from "node:fs";
 import { Router, type IRouter } from "express";
 import {
   DeleteProjectionParams,
+  GetFfhSessionStatusResponse,
   GetProjectionPlayersParams,
   GetProjectionPlayersResponse,
+  UpdateFfhSessionBody,
+  UpdateFfhSessionResponse,
   ImportProjectionBody,
   ImportProjectionResponse,
   ListProjectionsResponse,
@@ -14,7 +17,11 @@ import { parseCsv } from "../lib/csv";
 import {
   FfhSessionError,
   FfhUpstreamError,
+  fetchAccessToken,
+  getStoredCookie,
   importFfhProjection,
+  normalizeCookie,
+  saveCookie,
 } from "../lib/ffh";
 import { getGameweekInfo } from "../lib/fpl";
 import { projectionCsvPath } from "../lib/solver";
@@ -91,6 +98,40 @@ router.post("/projections", async (req, res): Promise<void> => {
   saveProjectionMetas(metas);
 
   res.status(201).json(UploadProjectionResponse.parse(meta));
+});
+
+router.get("/settings/ffh-session", async (_req, res): Promise<void> => {
+  res.json(
+    GetFfhSessionStatusResponse.parse({ configured: getStoredCookie() != null }),
+  );
+});
+
+router.post("/settings/ffh-session", async (req, res): Promise<void> => {
+  const parsed = UpdateFfhSessionBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const cookie = normalizeCookie(parsed.data.cookie);
+  if (!cookie) {
+    res.status(400).json({ error: "The cookie value is empty." });
+    return;
+  }
+  try {
+    await fetchAccessToken(cookie);
+  } catch (err) {
+    if (err instanceof FfhSessionError) {
+      res.status(400).json({
+        error:
+          "Fantasy Football Hub rejected this cookie. Make sure you are logged in and copied the full appSession value (all parts).",
+      });
+    } else {
+      res.status(502).json({ error: "Fantasy Football Hub could not be reached. Try again shortly." });
+    }
+    return;
+  }
+  saveCookie(cookie);
+  res.json(UpdateFfhSessionResponse.parse({ configured: true }));
 });
 
 router.post("/projections/import", async (req, res): Promise<void> => {

@@ -28,6 +28,15 @@ export interface ProjectionInput {
   content: string;
 }
 
+export interface FfhSessionStatus {
+  configured: boolean;
+}
+
+export interface FfhSessionInput {
+  /** Value of the appSession cookie (chunks concatenated if split) */
+  cookie: string;
+}
+
 export interface ImportProjectionInput {
   /** External source id. Currently only "ffh" (Fantasy Football Hub). */
   source: string;

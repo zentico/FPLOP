@@ -8,6 +8,8 @@
 
 export * from './chipAssignment';
 export * from './errorMessage';
+export * from './ffhSessionInput';
+export * from './ffhSessionStatus';
 export * from './fplSquadPlayer';
 export * from './fplTeam';
 export * from './gameweekInfo';

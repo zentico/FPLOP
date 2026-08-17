@@ -1,4 +1,6 @@
 import fs from "node:fs";
+import path from "node:path";
+import { STORE_DIR } from "./paths";
 import { projectionCsvPath } from "./solver";
 import {
   listProjectionMetas,
@@ -38,13 +40,31 @@ interface FfhPlayer {
   fixtures: FfhFixture[];
 }
 
-async function getAccessToken(): Promise<string> {
-  const cookie = process.env.FFH_SESSION_COOKIE?.trim();
-  if (!cookie) {
-    throw new FfhSessionError(
-      "No Fantasy Football Hub session is configured. Add the FFH_SESSION_COOKIE secret.",
-    );
+const COOKIE_FILE = path.join(STORE_DIR, "ffh_session.txt");
+
+export function normalizeCookie(raw: string): string {
+  // strip whitespace/newlines and any pasted "appSession...=" prefixes
+  return raw
+    .replace(/appSession(\.\d+)?=/g, "")
+    .replace(/\s+/g, "");
+}
+
+export function getStoredCookie(): string | null {
+  try {
+    const fromFile = fs.readFileSync(COOKIE_FILE, "utf-8").trim();
+    if (fromFile) return fromFile;
+  } catch {
+    // fall through to env
   }
+  const fromEnv = process.env.FFH_SESSION_COOKIE?.trim();
+  return fromEnv ? normalizeCookie(fromEnv) : null;
+}
+
+export function saveCookie(raw: string): void {
+  fs.writeFileSync(COOKIE_FILE, normalizeCookie(raw), { mode: 0o600 });
+}
+
+export async function fetchAccessToken(cookie: string): Promise<string> {
   let res: Response;
   try {
     res = await fetch(`${WWW_BASE}/auth/access-token`, {
@@ -55,7 +75,7 @@ async function getAccessToken(): Promise<string> {
   }
   if (res.status === 401) {
     throw new FfhSessionError(
-      "The Fantasy Football Hub session has expired. Log in at fantasyfootballhub.co.uk and update the FFH_SESSION_COOKIE secret.",
+      "The Fantasy Football Hub session has expired. Log in at fantasyfootballhub.co.uk, copy the appSession cookie and paste it in the Import tab.",
     );
   }
   if (!res.ok) {
@@ -102,7 +122,7 @@ async function fetchAllPlayers(
     }
     if (res.status === 401 || res.status === 403) {
       throw new FfhSessionError(
-        "The Fantasy Football Hub session was rejected. Log in again and update the FFH_SESSION_COOKIE secret.",
+        "The Fantasy Football Hub session was rejected. Log in again and paste a fresh appSession cookie in the Import tab.",
       );
     }
     if (!res.ok) {
@@ -142,7 +162,13 @@ export async function importFfhProjection(
   minGameweek: number,
   maxGameweek: number,
 ): Promise<ProjectionMeta> {
-  const token = await getAccessToken();
+  const cookie = getStoredCookie();
+  if (!cookie) {
+    throw new FfhSessionError(
+      "No Fantasy Football Hub session is configured. Paste your appSession cookie in the Import tab.",
+    );
+  }
+  const token = await fetchAccessToken(cookie);
   const players = await fetchAllPlayers(token, minGameweek, maxGameweek);
 
   const gameweeks: number[] = [];

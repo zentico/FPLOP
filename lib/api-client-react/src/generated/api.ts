@@ -21,6 +21,8 @@ import type {
 
 import type {
   ErrorMessage,
+  FfhSessionInput,
+  FfhSessionStatus,
   FplTeam,
   GameweekInfo,
   HealthStatus,
@@ -354,6 +356,154 @@ export const useImportProjection = <TError = ErrorType<ErrorMessage>,
         TContext
       > => {
       return useMutation(getImportProjectionMutationOptions(options));
+    }
+
+export const getGetFfhSessionStatusUrl = () => {
+
+
+
+
+  return `/api/settings/ffh-session`
+}
+
+/**
+ * @summary Whether a Fantasy Football Hub session cookie is configured
+ */
+export const getFfhSessionStatus = async ( options?: Parameters<typeof customFetch>[1]): Promise<FfhSessionStatus> => {
+
+  return customFetch<FfhSessionStatus>(getGetFfhSessionStatusUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFfhSessionStatusQueryKey = () => {
+    return [
+    `/api/settings/ffh-session`
+    ] as const;
+    }
+
+
+export const getGetFfhSessionStatusQueryOptions = <TData = Awaited<ReturnType<typeof getFfhSessionStatus>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFfhSessionStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFfhSessionStatusQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFfhSessionStatus>>> = ({ signal }) => getFfhSessionStatus({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFfhSessionStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetFfhSessionStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getFfhSessionStatus>>>
+export type GetFfhSessionStatusQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Whether a Fantasy Football Hub session cookie is configured
+ */
+
+export function useGetFfhSessionStatus<TData = Awaited<ReturnType<typeof getFfhSessionStatus>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFfhSessionStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetFfhSessionStatusQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateFfhSessionUrl = () => {
+
+
+
+
+  return `/api/settings/ffh-session`
+}
+
+/**
+ * @summary Save a new Fantasy Football Hub session cookie after validating it
+ */
+export const updateFfhSession = async (ffhSessionInput: FfhSessionInput, options?: Parameters<typeof customFetch>[1]): Promise<FfhSessionStatus> => {
+
+  return customFetch<FfhSessionStatus>(getUpdateFfhSessionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(ffhSessionInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateFfhSessionMutationOptions = <TError = ErrorType<ErrorMessage>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFfhSession>>, TError,{data: BodyType<FfhSessionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateFfhSession>>, TError,{data: BodyType<FfhSessionInput>}, TContext> => {
+
+const mutationKey = ['updateFfhSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateFfhSession>>, {data: BodyType<FfhSessionInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateFfhSession(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateFfhSessionMutationResult = NonNullable<Awaited<ReturnType<typeof updateFfhSession>>>
+    export type UpdateFfhSessionMutationBody = BodyType<FfhSessionInput>
+    export type UpdateFfhSessionMutationError = ErrorType<ErrorMessage>
+
+    /**
+ * @summary Save a new Fantasy Football Hub session cookie after validating it
+ */
+export const useUpdateFfhSession = <TError = ErrorType<ErrorMessage>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFfhSession>>, TError,{data: BodyType<FfhSessionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateFfhSession>>,
+        TError,
+        {data: BodyType<FfhSessionInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateFfhSessionMutationOptions(options));
     }
 
 export const getDeleteProjectionUrl = (id: string,) => {

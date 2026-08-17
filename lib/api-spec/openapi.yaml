@@ -103,6 +103,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorMessage"
+  /settings/ffh-session:
+    get:
+      operationId: getFfhSessionStatus
+      tags: [projections]
+      summary: Whether a Fantasy Football Hub session cookie is configured
+      responses:
+        "200":
+          description: Session status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FfhSessionStatus"
+    post:
+      operationId: updateFfhSession
+      tags: [projections]
+      summary: Save a new Fantasy Football Hub session cookie after validating it
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FfhSessionInput"
+      responses:
+        "200":
+          description: Cookie validated and saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FfhSessionStatus"
+        "400":
+          description: Cookie invalid or rejected by Fantasy Football Hub
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+        "502":
+          description: Fantasy Football Hub could not be reached
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
   /projections/{id}:
     delete:
       operationId: deleteProjection
@@ -306,6 +347,19 @@ components:
         content:
           type: string
           description: Raw CSV file content
+    FfhSessionStatus:
+      type: object
+      required: [configured]
+      properties:
+        configured:
+          type: boolean
+    FfhSessionInput:
+      type: object
+      required: [cookie]
+      properties:
+        cookie:
+          type: string
+          description: Value of the appSession cookie (chunks concatenated if split)
     ImportProjectionInput:
       type: object
       required: [source]
