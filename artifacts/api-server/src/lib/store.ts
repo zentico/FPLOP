@@ -89,6 +89,7 @@ export interface SolveRunMeta {
   request: SolveRequest;
   projectionFilename?: string | null;
   totalExpectedPoints?: number | null;
+  totalBaseExpectedPoints?: number | null;
   poolKept?: number | null;
   poolTotal?: number | null;
   result?: SolveResult | null;

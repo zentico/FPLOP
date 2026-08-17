@@ -573,7 +573,8 @@
       ]
     },
     "poolKept": 115,
-    "poolTotal": 568
+    "poolTotal": 568,
+    "totalBaseExpectedPoints": 183.62
   },
   {
     "id": "msxbkcigde1nw0",
@@ -1146,7 +1147,8 @@
       ]
     },
     "poolKept": 115,
-    "poolTotal": 568
+    "poolTotal": 568,
+    "totalBaseExpectedPoints": 184.68
   },
   {
     "id": "msxbj6vlhmgwzp",
@@ -2283,7 +2285,8 @@
           ]
         }
       ]
-    }
+    },
+    "totalBaseExpectedPoints": 184.68
   },
   {
     "id": "msx1io8wfzd14g",

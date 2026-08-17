@@ -64,11 +64,13 @@ export default function SolveDetail() {
         {isCompleted && solve.totalExpectedPoints && (
           <div className="text-right bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-sm">
             <div className="text-xs uppercase tracking-wider font-semibold opacity-80">
-              {solve.result?.totalBaseExpectedPoints != null ? "Total xPts (adjusted)" : "Total xPts"}
+              {solve.result?.totalBaseExpectedPoints != null ? "Total xPts (base)" : "Total xPts"}
             </div>
-            <div className="text-3xl font-black font-mono tracking-tighter">{solve.totalExpectedPoints.toFixed(2)}</div>
+            <div className="text-3xl font-black font-mono tracking-tighter">
+              {(solve.result?.totalBaseExpectedPoints ?? solve.totalExpectedPoints).toFixed(2)}
+            </div>
             {solve.result?.totalBaseExpectedPoints != null && (
-              <div className="text-xs font-mono opacity-80">base {solve.result.totalBaseExpectedPoints.toFixed(2)}</div>
+              <div className="text-xs font-mono opacity-80">adjusted {solve.totalExpectedPoints.toFixed(2)}</div>
             )}
           </div>
         )}
@@ -388,14 +390,14 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
             <div className="flex justify-between items-end mb-6">
               <div>
                 <div className="text-sm text-muted-foreground font-medium mb-1">
-                  {plan.baseExpectedPoints != null ? "Expected Points (adjusted)" : "Expected Points"}
+                  {plan.baseExpectedPoints != null ? "Expected Points (base)" : "Expected Points"}
                 </div>
                 <div className="text-4xl font-black font-mono tracking-tighter text-primary">
-                  {plan.expectedPoints.toFixed(2)}
+                  {(plan.baseExpectedPoints ?? plan.expectedPoints).toFixed(2)}
                 </div>
                 {plan.baseExpectedPoints != null && (
                   <div className="text-sm font-mono text-muted-foreground mt-1">
-                    base {plan.baseExpectedPoints.toFixed(2)}
+                    adjusted {plan.expectedPoints.toFixed(2)}
                   </div>
                 )}
               </div>

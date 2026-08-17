@@ -689,6 +689,9 @@ components:
           type: ["string", "null"]
         totalExpectedPoints:
           type: ["number", "null"]
+        totalBaseExpectedPoints:
+          type: ["number", "null"]
+          description: Total expected points before differential adjustment (null when k = 0)
         poolKept:
           type: ["number", "null"]
           description: Players in the solver pool after filtering (null when unfiltered)

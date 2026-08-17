@@ -115,10 +115,17 @@ export default function HistoryPage() {
                     <div className="md:col-span-3 text-center sm:text-right">
                       {solve.status === 'completed' && solve.totalExpectedPoints && (
                         <div>
-                          <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Total xPts</div>
-                          <div className="text-2xl font-black font-mono text-primary">
-                            {solve.totalExpectedPoints.toFixed(2)}
+                          <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">
+                            {solve.totalBaseExpectedPoints != null ? "Total xPts (base)" : "Total xPts"}
                           </div>
+                          <div className="text-2xl font-black font-mono text-primary">
+                            {(solve.totalBaseExpectedPoints ?? solve.totalExpectedPoints).toFixed(2)}
+                          </div>
+                          {solve.totalBaseExpectedPoints != null && (
+                            <div className="text-xs font-mono text-muted-foreground">
+                              adj {solve.totalExpectedPoints.toFixed(2)}
+                            </div>
+                          )}
                         </div>
                       )}
                       {solve.status === 'failed' && (

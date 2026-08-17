@@ -595,6 +595,7 @@ export function startSolve(runId: string, request: SolveRequest): void {
         status: "completed",
         completedAt: new Date().toISOString(),
         totalExpectedPoints: result.totalExpectedPoints,
+        totalBaseExpectedPoints: result.totalBaseExpectedPoints ?? null,
         result,
       });
       logger.info({ runId, resultFile }, "Solve completed");

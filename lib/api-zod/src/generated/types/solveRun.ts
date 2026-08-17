@@ -24,6 +24,11 @@ export interface SolveRun {
   /** @nullable */
   totalExpectedPoints?: number | null;
   /**
+     * Total expected points before differential adjustment (null when k = 0)
+     * @nullable
+     */
+  totalBaseExpectedPoints?: number | null;
+  /**
      * Players in the solver pool after filtering (null when unfiltered)
      * @nullable
      */
