@@ -101,6 +101,76 @@ export interface ChipAssignment {
   gameweek: number;
 }
 
+/**
+ * Advanced solver settings, mirroring open-fpl-solver config keys
+ */
+export interface SolveOptions {
+  /** Player names (or FPL ids) the solver must never pick */
+  banned?: string[];
+  /** Player names (or FPL ids) the solver must keep in the squad */
+  locked?: string[];
+  /**
+     * Roll transfers in the last N gameweeks of the horizon
+     * @nullable
+     */
+  noTransferLastGws?: number | null;
+  /**
+     * Only plan transfers for the next gameweek
+     * @nullable
+     */
+  noFutureTransfer?: boolean | null;
+  /**
+     * Force an exact number of transfers next gameweek
+     * @nullable
+     */
+  numTransfers?: number | null;
+  /**
+     * Maximum total points hits over the horizon
+     * @nullable
+     */
+  hitLimit?: number | null;
+  /**
+     * Maximum hits in a single gameweek
+     * @nullable
+     */
+  weeklyHitLimit?: number | null;
+  /**
+     * Weight of future gameweeks (1 = no decay, lower = focus on near term)
+     * @nullable
+     */
+  decayBase?: number | null;
+  /**
+     * Value of carrying a free transfer, in points
+     * @nullable
+     */
+  ftValue?: number | null;
+  /**
+     * Value per 1.0 in the bank, in points
+     * @nullable
+     */
+  itbValue?: number | null;
+  /**
+     * Exclude players below this many total expected minutes
+     * @nullable
+     */
+  xminLb?: number | null;
+  /**
+     * Solver time limit in seconds
+     * @nullable
+     */
+  secs?: number | null;
+  /**
+     * Acceptable optimality gap (0 = prove optimal)
+     * @nullable
+     */
+  gap?: number | null;
+  /**
+     * Add noise to projections for alternative solutions
+     * @nullable
+     */
+  randomized?: boolean | null;
+}
+
 export interface SolveInput {
   projectionId: string;
   /** True when there is no existing team and a full squad is optimized from scratch */
@@ -113,6 +183,16 @@ export interface SolveInput {
   /** Number of gameweeks to optimize over (default 5) */
   horizon?: number;
   chips?: ChipAssignment[];
+  options?: SolveOptions | null;
+}
+
+export interface FixtureInfo {
+  /** @nullable */
+  gameweek: number | null;
+  /** Home team short name */
+  home: string;
+  /** Away team short name */
+  away: string;
 }
 
 export interface PickPlayer {

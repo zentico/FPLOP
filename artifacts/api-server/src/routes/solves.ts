@@ -7,7 +7,7 @@ import {
   GetSolveResponse,
   ListSolvesResponse,
 } from "@workspace/api-zod";
-import { getRunProgress, startSolve } from "../lib/solver";
+import { getRunProgress, resolvePlayerRefs, startSolve } from "../lib/solver";
 import {
   type SolveRunMeta,
   listProjectionMetas,
@@ -58,6 +58,21 @@ router.post("/solves", async (req, res): Promise<void> => {
       error: "Each chip can only be assigned to one gameweek",
     });
     return;
+  }
+
+  for (const [label, refs] of [
+    ["banned", request.options?.banned],
+    ["locked", request.options?.locked],
+  ] as const) {
+    if (refs?.length) {
+      const { unknown } = resolvePlayerRefs(request.projectionId, refs);
+      if (unknown.length > 0) {
+        res.status(400).json({
+          error: `Unknown ${label} player(s): ${unknown.join(", ")}. Use names exactly as they appear in the projection (e.g. "Haaland").`,
+        });
+        return;
+      }
+    }
   }
 
   const run: SolveRunMeta = {

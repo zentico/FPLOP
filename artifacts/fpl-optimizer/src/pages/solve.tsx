@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { useLocation, useParams } from "wouter";
-import { useGetSolve, useDeleteSolve } from "@workspace/api-client-react";
+import { useGetSolve, useDeleteSolve, useListFixtures } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -225,7 +225,22 @@ function StatusBadge({ status }: { status: string }) {
   }
 }
 
+/** Map team short name -> "OPP (H)" (joined with ", " for double gameweeks). */
+function useOpponents(gameweek: number): Map<string, string> {
+  const { data: fixtures } = useListFixtures();
+  return React.useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const f of fixtures ?? []) {
+      if (f.gameweek !== gameweek) continue;
+      map.set(f.home, [...(map.get(f.home) ?? []), `${f.away} (H)`]);
+      map.set(f.away, [...(map.get(f.away) ?? []), `${f.home} (A)`]);
+    }
+    return new Map([...map].map(([team, opps]) => [team, opps.join(", ")]));
+  }, [fixtures, gameweek]);
+}
+
 function GameweekView({ plan }: { plan: GameweekPlan }) {
+  const opponents = useOpponents(plan.gameweek);
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
@@ -313,6 +328,7 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                   <TableHead className="w-12 text-center">Pos</TableHead>
                   <TableHead>Player</TableHead>
                   <TableHead className="hidden md:table-cell">Team</TableHead>
+                  <TableHead>Fixture</TableHead>
                   <TableHead className="text-right">Price</TableHead>
                   <TableHead className="text-right pr-6">xPts</TableHead>
                 </TableRow>
@@ -332,6 +348,7 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                         </div>
                       </TableCell>
                       <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{player.team}</TableCell>
+                      <TableCell className="text-xs font-mono text-muted-foreground">{opponents.get(player.team) ?? "—"}</TableCell>
                       <TableCell className="text-right font-mono text-sm">£{player.price.toFixed(1)}</TableCell>
                       <TableCell className="text-right pr-6 font-mono font-bold text-primary">
                         {(player.expectedPoints * (player.isCaptain ? (plan.chip === 'triple_captain' ? 3 : 2) : 1)).toFixed(2)}
@@ -363,6 +380,7 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                     <TableCell className="w-12 text-center font-mono font-bold text-muted-foreground">{player.position}</TableCell>
                     <TableCell className="font-medium text-sm">{player.name}</TableCell>
                     <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{player.team}</TableCell>
+                    <TableCell className="text-xs font-mono text-muted-foreground">{opponents.get(player.team) ?? "—"}</TableCell>
                     <TableCell className="text-right font-mono text-sm">£{player.price.toFixed(1)}</TableCell>
                     <TableCell className="text-right pr-6 font-mono font-bold">{player.expectedPoints.toFixed(2)}</TableCell>
                   </TableRow>

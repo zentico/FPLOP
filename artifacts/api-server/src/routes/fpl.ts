@@ -3,10 +3,21 @@ import {
   GetFplTeamParams,
   GetFplTeamResponse,
   GetGameweekInfoResponse,
+  ListFixturesResponse,
 } from "@workspace/api-zod";
-import { getFplTeam, getGameweekInfo } from "../lib/fpl";
+import { getFixtures, getFplTeam, getGameweekInfo } from "../lib/fpl";
 
 const router: IRouter = Router();
+
+router.get("/fixtures", async (_req, res): Promise<void> => {
+  try {
+    res.json(ListFixturesResponse.parse(await getFixtures()));
+  } catch (err) {
+    res.status(502).json({
+      error: `Could not load fixtures from the FPL API: ${err instanceof Error ? err.message : String(err)}`,
+    });
+  }
+});
 
 router.get("/fpl/gameweek", async (_req, res): Promise<void> => {
   const info = await getGameweekInfo();

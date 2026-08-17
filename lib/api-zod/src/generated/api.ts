@@ -69,6 +69,17 @@ export const ImportProjectionResponse = zod.object({
 
 
 /**
+ * @summary All season fixtures with team short names
+ */
+export const ListFixturesResponseItem = zod.object({
+  "gameweek": zod.number().nullable(),
+  "home": zod.string().describe('Home team short name'),
+  "away": zod.string().describe('Away team short name')
+})
+export const ListFixturesResponse = zod.array(ListFixturesResponseItem)
+
+
+/**
  * @summary Download the raw projection CSV file
  */
 export const DownloadProjectionCsvParams = zod.object({
@@ -180,7 +191,23 @@ export const ListSolvesResponseItem = zod.object({
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()
-})).optional()
+})).optional(),
+  "options": zod.union([zod.object({
+  "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
+  "locked": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must keep in the squad'),
+  "noTransferLastGws": zod.number().nullish().describe('Roll transfers in the last N gameweeks of the horizon'),
+  "noFutureTransfer": zod.boolean().nullish().describe('Only plan transfers for the next gameweek'),
+  "numTransfers": zod.number().nullish().describe('Force an exact number of transfers next gameweek'),
+  "hitLimit": zod.number().nullish().describe('Maximum total points hits over the horizon'),
+  "weeklyHitLimit": zod.number().nullish().describe('Maximum hits in a single gameweek'),
+  "decayBase": zod.number().nullish().describe('Weight of future gameweeks (1 = no decay, lower = focus on near term)'),
+  "ftValue": zod.number().nullish().describe('Value of carrying a free transfer, in points'),
+  "itbValue": zod.number().nullish().describe('Value per 1.0 in the bank, in points'),
+  "xminLb": zod.number().nullish().describe('Exclude players below this many total expected minutes'),
+  "secs": zod.number().nullish().describe('Solver time limit in seconds'),
+  "gap": zod.number().nullish().describe('Acceptable optimality gap (0 = prove optimal)'),
+  "randomized": zod.boolean().nullish().describe('Add noise to projections for alternative solutions')
+}).describe('Advanced solver settings, mirroring open-fpl-solver config keys'),zod.null()]).optional()
 }),
   "projectionFilename": zod.string().nullish(),
   "totalExpectedPoints": zod.number().nullish(),
@@ -235,7 +262,23 @@ export const CreateSolveBody = zod.object({
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()
-})).optional()
+})).optional(),
+  "options": zod.union([zod.object({
+  "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
+  "locked": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must keep in the squad'),
+  "noTransferLastGws": zod.number().nullish().describe('Roll transfers in the last N gameweeks of the horizon'),
+  "noFutureTransfer": zod.boolean().nullish().describe('Only plan transfers for the next gameweek'),
+  "numTransfers": zod.number().nullish().describe('Force an exact number of transfers next gameweek'),
+  "hitLimit": zod.number().nullish().describe('Maximum total points hits over the horizon'),
+  "weeklyHitLimit": zod.number().nullish().describe('Maximum hits in a single gameweek'),
+  "decayBase": zod.number().nullish().describe('Weight of future gameweeks (1 = no decay, lower = focus on near term)'),
+  "ftValue": zod.number().nullish().describe('Value of carrying a free transfer, in points'),
+  "itbValue": zod.number().nullish().describe('Value per 1.0 in the bank, in points'),
+  "xminLb": zod.number().nullish().describe('Exclude players below this many total expected minutes'),
+  "secs": zod.number().nullish().describe('Solver time limit in seconds'),
+  "gap": zod.number().nullish().describe('Acceptable optimality gap (0 = prove optimal)'),
+  "randomized": zod.boolean().nullish().describe('Add noise to projections for alternative solutions')
+}).describe('Advanced solver settings, mirroring open-fpl-solver config keys'),zod.null()]).optional()
 })
 
 export const CreateSolveResponse = zod.object({
@@ -252,7 +295,23 @@ export const CreateSolveResponse = zod.object({
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()
-})).optional()
+})).optional(),
+  "options": zod.union([zod.object({
+  "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
+  "locked": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must keep in the squad'),
+  "noTransferLastGws": zod.number().nullish().describe('Roll transfers in the last N gameweeks of the horizon'),
+  "noFutureTransfer": zod.boolean().nullish().describe('Only plan transfers for the next gameweek'),
+  "numTransfers": zod.number().nullish().describe('Force an exact number of transfers next gameweek'),
+  "hitLimit": zod.number().nullish().describe('Maximum total points hits over the horizon'),
+  "weeklyHitLimit": zod.number().nullish().describe('Maximum hits in a single gameweek'),
+  "decayBase": zod.number().nullish().describe('Weight of future gameweeks (1 = no decay, lower = focus on near term)'),
+  "ftValue": zod.number().nullish().describe('Value of carrying a free transfer, in points'),
+  "itbValue": zod.number().nullish().describe('Value per 1.0 in the bank, in points'),
+  "xminLb": zod.number().nullish().describe('Exclude players below this many total expected minutes'),
+  "secs": zod.number().nullish().describe('Solver time limit in seconds'),
+  "gap": zod.number().nullish().describe('Acceptable optimality gap (0 = prove optimal)'),
+  "randomized": zod.boolean().nullish().describe('Add noise to projections for alternative solutions')
+}).describe('Advanced solver settings, mirroring open-fpl-solver config keys'),zod.null()]).optional()
 }),
   "projectionFilename": zod.string().nullish(),
   "totalExpectedPoints": zod.number().nullish(),
@@ -316,7 +375,23 @@ export const GetSolveResponse = zod.object({
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()
-})).optional()
+})).optional(),
+  "options": zod.union([zod.object({
+  "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
+  "locked": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must keep in the squad'),
+  "noTransferLastGws": zod.number().nullish().describe('Roll transfers in the last N gameweeks of the horizon'),
+  "noFutureTransfer": zod.boolean().nullish().describe('Only plan transfers for the next gameweek'),
+  "numTransfers": zod.number().nullish().describe('Force an exact number of transfers next gameweek'),
+  "hitLimit": zod.number().nullish().describe('Maximum total points hits over the horizon'),
+  "weeklyHitLimit": zod.number().nullish().describe('Maximum hits in a single gameweek'),
+  "decayBase": zod.number().nullish().describe('Weight of future gameweeks (1 = no decay, lower = focus on near term)'),
+  "ftValue": zod.number().nullish().describe('Value of carrying a free transfer, in points'),
+  "itbValue": zod.number().nullish().describe('Value per 1.0 in the bank, in points'),
+  "xminLb": zod.number().nullish().describe('Exclude players below this many total expected minutes'),
+  "secs": zod.number().nullish().describe('Solver time limit in seconds'),
+  "gap": zod.number().nullish().describe('Acceptable optimality gap (0 = prove optimal)'),
+  "randomized": zod.boolean().nullish().describe('Add noise to projections for alternative solutions')
+}).describe('Advanced solver settings, mirroring open-fpl-solver config keys'),zod.null()]).optional()
 }),
   "projectionFilename": zod.string().nullish(),
   "totalExpectedPoints": zod.number().nullish(),

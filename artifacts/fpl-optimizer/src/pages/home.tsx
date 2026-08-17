@@ -16,6 +16,22 @@ import { AlertCircle, UploadCloud, DownloadCloud, Download, Trash2, Database, Sh
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 
+function AdvField({ label, placeholder, hint, value, onChange }: {
+  label: string;
+  placeholder: string;
+  hint: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs">{label}</Label>
+      <Input inputMode="decimal" placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} />
+      <p className="text-[11px] text-muted-foreground">{hint}</p>
+    </div>
+  );
+}
+
 export default function Home() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -26,6 +42,10 @@ export default function Home() {
   const [teamIdStr, setTeamIdStr] = React.useState<string>("");
   const [horizon, setHorizon] = React.useState<number>(5);
   const [chips, setChips] = React.useState<Record<string, string>>({}); // chip type -> gameweek string
+  const [showAdvanced, setShowAdvanced] = React.useState<boolean>(false);
+  // Advanced solver settings — empty string means "solver default"
+  const [adv, setAdv] = React.useState<Record<string, string>>({});
+  const [advFlags, setAdvFlags] = React.useState<{ noFutureTransfer: boolean; randomized: boolean }>({ noFutureTransfer: false, randomized: false });
 
   // Queries
   const { data: projections, isLoading: isLoadingProjections } = useListProjections();
@@ -136,13 +156,44 @@ export default function Home() {
       gameweek: parseInt(gw, 10)
     }));
 
+    const num = (key: string) => {
+      const v = adv[key]?.trim();
+      if (!v) return undefined;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : undefined;
+    };
+    const list = (key: string) => {
+      const v = adv[key]?.trim();
+      if (!v) return undefined;
+      const items = v.split(",").map((s) => s.trim()).filter(Boolean);
+      return items.length > 0 ? items : undefined;
+    };
+    const options = {
+      banned: list("banned"),
+      locked: list("locked"),
+      noTransferLastGws: num("noTransferLastGws"),
+      numTransfers: num("numTransfers"),
+      hitLimit: num("hitLimit"),
+      weeklyHitLimit: num("weeklyHitLimit"),
+      decayBase: num("decayBase"),
+      ftValue: num("ftValue"),
+      itbValue: num("itbValue"),
+      xminLb: num("xminLb"),
+      secs: num("secs"),
+      gap: num("gap"),
+      noFutureTransfer: advFlags.noFutureTransfer || undefined,
+      randomized: advFlags.randomized || undefined,
+    };
+    const hasOptions = Object.values(options).some((v) => v !== undefined);
+
     createSolveMutation.mutate({
       data: {
         projectionId,
         firstGameweek,
         teamId: firstGameweek ? null : teamIdNum,
         horizon,
-        chips: chipsArray.length > 0 ? chipsArray : undefined
+        chips: chipsArray.length > 0 ? chipsArray : undefined,
+        options: hasOptions ? options : undefined
       }
     }, {
       onSuccess: (run) => {
@@ -151,7 +202,7 @@ export default function Home() {
       onError: (err: any) => {
         toast({
           title: "Failed to start solver",
-          description: err?.error || "Unknown error occurred.",
+          description: err?.data?.error || err?.error || "Unknown error occurred.",
           variant: "destructive"
         });
       }
@@ -160,6 +211,23 @@ export default function Home() {
 
   const currentGw = gameweekInfo?.nextGameweek || 1;
   const chipOptions = ["wildcard", "bench_boost", "free_hit", "triple_captain"];
+
+  // Allow optimizing over every gameweek covered by the selected projection,
+  // counting only the contiguous run starting at the next gameweek.
+  const selectedProjection = projections?.find((p) => p.id === projectionId);
+  const contiguousGws = React.useMemo(() => {
+    const gws = selectedProjection?.gameweeks;
+    if (!gws?.length) return 8;
+    const start = gws.includes(currentGw) ? currentGw : gws[0];
+    let n = 0;
+    while (gws.includes(start + n)) n++;
+    return n;
+  }, [selectedProjection, currentGw]);
+  const maxHorizon = Math.max(1, contiguousGws);
+  const minHorizon = Math.min(2, maxHorizon);
+  React.useEffect(() => {
+    if (horizon > maxHorizon) setHorizon(maxHorizon);
+  }, [maxHorizon, horizon]);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -354,12 +422,15 @@ export default function Home() {
                 <Slider 
                   value={[horizon]} 
                   onValueChange={(v) => setHorizon(v[0])} 
-                  max={8} 
-                  min={2} 
+                  max={maxHorizon} 
+                  min={minHorizon} 
                   step={1} 
                   className="py-4"
                 />
-                <p className="text-xs text-muted-foreground">Longer horizons are more accurate but take significantly more time to compute.</p>
+                <p className="text-xs text-muted-foreground">
+                  Longer horizons are more accurate but take significantly more time to compute.
+                  {selectedProjection ? ` The selected projection covers ${selectedProjection.gameweeks.length} gameweeks.` : ""}
+                </p>
               </div>
 
               <div className="space-y-4">
@@ -392,6 +463,59 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              <div className="space-y-4 pt-2 border-t">
+                <button type="button" className="flex items-center justify-between w-full text-left" onClick={() => setShowAdvanced((v) => !v)}>
+                  <Label className="cursor-pointer">Advanced Solver Settings</Label>
+                  <span className="text-xs text-muted-foreground">{showAdvanced ? "Hide" : "Show"}</span>
+                </button>
+                {showAdvanced && (
+                  <div className="space-y-5 animate-in fade-in">
+                    <p className="text-xs text-muted-foreground">Leave any field empty to use the solver's default. These map directly to the open-fpl-solver configuration.</p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5 sm:col-span-2">
+                        <Label className="text-xs">Banned players</Label>
+                        <Input placeholder="e.g. Haaland, Salah" value={adv.banned || ""} onChange={(e) => setAdv({ ...adv, banned: e.target.value })} />
+                        <p className="text-[11px] text-muted-foreground">Comma-separated names (as in the projection) the solver must never pick.</p>
+                      </div>
+                      <div className="space-y-1.5 sm:col-span-2">
+                        <Label className="text-xs">Locked players</Label>
+                        <Input placeholder="e.g. M.Salah, Watkins" value={adv.locked || ""} onChange={(e) => setAdv({ ...adv, locked: e.target.value })} />
+                        <p className="text-[11px] text-muted-foreground">Players that must stay in the squad for the whole horizon.</p>
+                      </div>
+
+                      <AdvField label="Roll transfers in last N GWs" placeholder="0" hint="Save transfers at the end of the horizon" value={adv.noTransferLastGws || ""} onChange={(v) => setAdv({ ...adv, noTransferLastGws: v })} />
+                      <AdvField label="Exact transfers next GW" placeholder="auto" hint="Force this many transfers next gameweek" value={adv.numTransfers || ""} onChange={(v) => setAdv({ ...adv, numTransfers: v })} />
+                      <AdvField label="Total hit limit" placeholder="unlimited" hint="Max points hits over the horizon" value={adv.hitLimit || ""} onChange={(v) => setAdv({ ...adv, hitLimit: v })} />
+                      <AdvField label="Weekly hit limit" placeholder="0" hint="Max hits in any single gameweek" value={adv.weeklyHitLimit || ""} onChange={(v) => setAdv({ ...adv, weeklyHitLimit: v })} />
+                      <AdvField label="Decay base" placeholder="1.0" hint="Weight of future GWs (0.85 = near-term focus)" value={adv.decayBase || ""} onChange={(v) => setAdv({ ...adv, decayBase: v })} />
+                      <AdvField label="Free transfer value" placeholder="1.5" hint="Points value of carrying a free transfer" value={adv.ftValue || ""} onChange={(v) => setAdv({ ...adv, ftValue: v })} />
+                      <AdvField label="In-the-bank value" placeholder="0.08" hint="Points value per £1.0 left in the bank" value={adv.itbValue || ""} onChange={(v) => setAdv({ ...adv, itbValue: v })} />
+                      <AdvField label="Min expected minutes" placeholder="300" hint="Exclude players below this xMins total" value={adv.xminLb || ""} onChange={(v) => setAdv({ ...adv, xminLb: v })} />
+                      <AdvField label="Time limit (seconds)" placeholder="600" hint="Stop the solver after this long" value={adv.secs || ""} onChange={(v) => setAdv({ ...adv, secs: v })} />
+                      <AdvField label="Optimality gap" placeholder="0" hint="e.g. 0.01 accepts within 1% of optimal, much faster" value={adv.gap || ""} onChange={(v) => setAdv({ ...adv, gap: v })} />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/20">
+                        <div>
+                          <Label className="text-xs">No future transfers</Label>
+                          <p className="text-[11px] text-muted-foreground">Only plan transfers for the next GW</p>
+                        </div>
+                        <Switch checked={advFlags.noFutureTransfer} onCheckedChange={(c) => setAdvFlags({ ...advFlags, noFutureTransfer: c })} />
+                      </div>
+                      <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/20">
+                        <div>
+                          <Label className="text-xs">Randomized</Label>
+                          <p className="text-[11px] text-muted-foreground">Add noise for alternative solutions</p>
+                        </div>
+                        <Switch checked={advFlags.randomized} onCheckedChange={(c) => setAdvFlags({ ...advFlags, randomized: c })} />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
             </CardContent>

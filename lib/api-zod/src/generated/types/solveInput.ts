@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ChipAssignment } from './chipAssignment';
+import type { SolveOptions } from './solveOptions';
 
 export interface SolveInput {
   projectionId: string;
@@ -19,4 +20,5 @@ export interface SolveInput {
   /** Number of gameweeks to optimize over (default 5) */
   horizon?: number;
   chips?: ChipAssignment[];
+  options?: SolveOptions | null;
 }

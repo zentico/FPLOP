@@ -23,6 +23,7 @@ import type {
   ErrorMessage,
   FfhSessionInput,
   FfhSessionStatus,
+  FixtureInfo,
   FplTeam,
   GameweekInfo,
   HealthStatus,
@@ -357,6 +358,83 @@ export const useImportProjection = <TError = ErrorType<ErrorMessage>,
       > => {
       return useMutation(getImportProjectionMutationOptions(options));
     }
+
+export const getListFixturesUrl = () => {
+
+
+
+
+  return `/api/fixtures`
+}
+
+/**
+ * @summary All season fixtures with team short names
+ */
+export const listFixtures = async ( options?: Parameters<typeof customFetch>[1]): Promise<FixtureInfo[]> => {
+
+  return customFetch<FixtureInfo[]>(getListFixturesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListFixturesQueryKey = () => {
+    return [
+    `/api/fixtures`
+    ] as const;
+    }
+
+
+export const getListFixturesQueryOptions = <TData = Awaited<ReturnType<typeof listFixtures>>, TError = ErrorType<ErrorMessage>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFixtures>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListFixturesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFixtures>>> = ({ signal }) => listFixtures({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listFixtures>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListFixturesQueryResult = NonNullable<Awaited<ReturnType<typeof listFixtures>>>
+export type ListFixturesQueryError = ErrorType<ErrorMessage>
+
+
+/**
+ * @summary All season fixtures with team short names
+ */
+
+export function useListFixtures<TData = Awaited<ReturnType<typeof listFixtures>>, TError = ErrorType<ErrorMessage>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFixtures>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListFixturesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getDownloadProjectionCsvUrl = (id: string,) => {
 

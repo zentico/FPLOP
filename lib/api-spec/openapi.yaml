@@ -103,6 +103,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorMessage"
+  /fixtures:
+    get:
+      operationId: listFixtures
+      tags: [projections]
+      summary: All season fixtures with team short names
+      responses:
+        "200":
+          description: Fixtures
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FixtureInfo"
+        "502":
+          description: FPL API unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
   /projections/{id}/csv:
     get:
       operationId: downloadProjectionCsv
@@ -498,6 +518,72 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ChipAssignment"
+        options:
+          oneOf:
+            - $ref: "#/components/schemas/SolveOptions"
+            - type: "null"
+    SolveOptions:
+      type: object
+      description: Advanced solver settings, mirroring open-fpl-solver config keys
+      properties:
+        banned:
+          type: array
+          items:
+            type: string
+          description: Player names (or FPL ids) the solver must never pick
+        locked:
+          type: array
+          items:
+            type: string
+          description: Player names (or FPL ids) the solver must keep in the squad
+        noTransferLastGws:
+          type: ["number", "null"]
+          description: Roll transfers in the last N gameweeks of the horizon
+        noFutureTransfer:
+          type: ["boolean", "null"]
+          description: Only plan transfers for the next gameweek
+        numTransfers:
+          type: ["number", "null"]
+          description: Force an exact number of transfers next gameweek
+        hitLimit:
+          type: ["number", "null"]
+          description: Maximum total points hits over the horizon
+        weeklyHitLimit:
+          type: ["number", "null"]
+          description: Maximum hits in a single gameweek
+        decayBase:
+          type: ["number", "null"]
+          description: Weight of future gameweeks (1 = no decay, lower = focus on near term)
+        ftValue:
+          type: ["number", "null"]
+          description: Value of carrying a free transfer, in points
+        itbValue:
+          type: ["number", "null"]
+          description: Value per 1.0 in the bank, in points
+        xminLb:
+          type: ["number", "null"]
+          description: Exclude players below this many total expected minutes
+        secs:
+          type: ["number", "null"]
+          description: Solver time limit in seconds
+        gap:
+          type: ["number", "null"]
+          description: Acceptable optimality gap (0 = prove optimal)
+        randomized:
+          type: ["boolean", "null"]
+          description: Add noise to projections for alternative solutions
+    FixtureInfo:
+      type: object
+      required: [gameweek, home, away]
+      properties:
+        gameweek:
+          type: ["number", "null"]
+        home:
+          type: string
+          description: Home team short name
+        away:
+          type: string
+          description: Away team short name
     SolveRun:
       type: object
       required: [id, status, createdAt, request]

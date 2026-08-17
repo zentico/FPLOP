@@ -15,12 +15,30 @@ export interface ChipAssignment {
   gameweek: number;
 }
 
+export interface SolveOptions {
+  banned?: string[];
+  locked?: string[];
+  noTransferLastGws?: number | null;
+  noFutureTransfer?: boolean | null;
+  numTransfers?: number | null;
+  hitLimit?: number | null;
+  weeklyHitLimit?: number | null;
+  decayBase?: number | null;
+  ftValue?: number | null;
+  itbValue?: number | null;
+  xminLb?: number | null;
+  secs?: number | null;
+  gap?: number | null;
+  randomized?: boolean | null;
+}
+
 export interface SolveRequest {
   projectionId: string;
   firstGameweek: boolean;
   teamId?: number | null;
   horizon?: number;
   chips?: ChipAssignment[];
+  options?: SolveOptions | null;
 }
 
 export interface PickPlayer {

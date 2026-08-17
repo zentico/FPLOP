@@ -19,8 +19,6 @@ import {
   updateRun,
 } from "./store";
 
-const SOLVE_TIMEOUT_MS = 15 * 60 * 1000;
-
 const CHIP_OPTION: Record<string, string> = {
   wildcard: "use_wc",
   bench_boost: "use_bb",
@@ -152,6 +150,46 @@ function parseResultCsv(
   };
 }
 
+/** Resolve player names (or numeric ids) against a projection CSV to FPL ids. */
+export function resolvePlayerRefs(
+  projectionId: string,
+  refs: string[],
+): { ids: number[]; unknown: string[] } {
+  const ids: number[] = [];
+  const unknown: string[] = [];
+  const byName = new Map<string, number>();
+  const idSet = new Set<number>();
+  try {
+    const rows = parseCsv(
+      fs.readFileSync(projectionCsvPath(projectionId), "utf-8"),
+    );
+    for (const r of rows) {
+      const id = Number(r["ID"] ?? r["Id"] ?? r["id"]);
+      const name = (r["Name"] ?? r["name"] ?? "").toLowerCase();
+      if (Number.isFinite(id)) {
+        idSet.add(id);
+        if (name) byName.set(name, id);
+      }
+    }
+  } catch {
+    // no readable projection — everything becomes unknown
+  }
+  for (const ref of refs) {
+    const trimmed = ref.trim();
+    if (!trimmed) continue;
+    if (/^\d+$/.test(trimmed)) {
+      const id = Number(trimmed);
+      if (idSet.has(id)) ids.push(id);
+      else unknown.push(trimmed);
+      continue;
+    }
+    const id = byName.get(trimmed.toLowerCase());
+    if (id != null) ids.push(id);
+    else unknown.push(trimmed);
+  }
+  return { ids, unknown };
+}
+
 function buildConfig(request: SolveRequest): Record<string, unknown> {
   const config: Record<string, unknown> = {
     datasource: request.projectionId,
@@ -185,7 +223,52 @@ function buildConfig(request: SolveRequest): Record<string, unknown> {
     }
   }
 
+  const clamp = (v: number, lo: number, hi: number) =>
+    Math.min(Math.max(v, lo), hi);
+  const intClamp = (v: number, lo: number, hi: number) =>
+    clamp(Math.round(v), lo, hi);
+
+  const opts = request.options;
+  if (opts) {
+    if (opts.banned?.length) {
+      config["banned"] = resolvePlayerRefs(request.projectionId, opts.banned).ids;
+    }
+    if (opts.locked?.length) {
+      config["locked"] = resolvePlayerRefs(request.projectionId, opts.locked).ids;
+    }
+    if (opts.noTransferLastGws != null)
+      config["no_transfer_last_gws"] = intClamp(opts.noTransferLastGws, 0, 37);
+    if (opts.noFutureTransfer != null)
+      config["no_future_transfer"] = opts.noFutureTransfer;
+    if (opts.numTransfers != null)
+      config["num_transfers"] = intClamp(opts.numTransfers, 0, 15);
+    if (opts.hitLimit != null)
+      config["hit_limit"] = intClamp(opts.hitLimit, 0, 20);
+    if (opts.weeklyHitLimit != null)
+      config["weekly_hit_limit"] = intClamp(opts.weeklyHitLimit, 0, 20);
+    if (opts.decayBase != null)
+      config["decay_base"] = clamp(opts.decayBase, 0.5, 1.2);
+    if (opts.ftValue != null) config["ft_value"] = clamp(opts.ftValue, 0, 10);
+    if (opts.itbValue != null) config["itb_value"] = clamp(opts.itbValue, 0, 5);
+    if (opts.xminLb != null) config["xmin_lb"] = intClamp(opts.xminLb, 0, 5000);
+    if (opts.secs != null) config["secs"] = intClamp(opts.secs, 10, MAX_SOLVE_SECS);
+    if (opts.gap != null) config["gap"] = clamp(opts.gap, 0, 1);
+    if (opts.randomized != null) config["randomized"] = opts.randomized;
+  }
+
   return config;
+}
+
+const MAX_SOLVE_SECS = 30 * 60;
+
+/** Child-process timeout: the solver's own (capped) time limit plus headroom. */
+export function solveTimeoutMs(request: SolveRequest): number {
+  const secs = request.options?.secs;
+  const solverLimit =
+    secs != null && secs > 0
+      ? Math.min(secs, MAX_SOLVE_SECS) * 1000
+      : 10 * 60 * 1000;
+  return solverLimit + 5 * 60 * 1000;
 }
 
 /** Run the open-fpl-solver as a child process and persist the outcome on the run. */
@@ -212,7 +295,7 @@ export function startSolve(runId: string, request: SolveRequest): void {
   const timeout = setTimeout(() => {
     logger.warn({ runId }, "Solve timed out, killing solver process");
     child.kill("SIGKILL");
-  }, SOLVE_TIMEOUT_MS);
+  }, solveTimeoutMs(request));
 
   child.on("error", (err) => {
     clearTimeout(timeout);

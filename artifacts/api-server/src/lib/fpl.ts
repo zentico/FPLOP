@@ -52,6 +52,38 @@ export async function getBootstrap(): Promise<Bootstrap> {
 
 const POSITIONS: Record<number, string> = { 1: "G", 2: "D", 3: "M", 4: "F" };
 
+interface RawFixture {
+  event: number | null;
+  team_h: number;
+  team_a: number;
+}
+
+export interface FixtureInfo {
+  gameweek: number | null;
+  home: string;
+  away: string;
+}
+
+let fixturesCache: { data: FixtureInfo[]; at: number } | null = null;
+
+export async function getFixtures(): Promise<FixtureInfo[]> {
+  if (fixturesCache && Date.now() - fixturesCache.at < 10 * 60 * 1000) {
+    return fixturesCache.data;
+  }
+  const [bootstrap, raw] = await Promise.all([
+    getBootstrap(),
+    fplFetch<RawFixture[]>("/fixtures/"),
+  ]);
+  const teamShort = new Map(bootstrap.teams.map((t) => [t.id, t.short_name]));
+  const data = raw.map((f) => ({
+    gameweek: f.event,
+    home: teamShort.get(f.team_h) ?? "?",
+    away: teamShort.get(f.team_a) ?? "?",
+  }));
+  fixturesCache = { data, at: Date.now() };
+  return data;
+}
+
 export async function getGameweekInfo(): Promise<{
   nextGameweek: number;
   isFirstGameweek: boolean;
