@@ -441,7 +441,7 @@ export const ListMegaSolvesResponseItem = zod.object({
   "horizon": zod.number(),
   "chipWindow": zod.array(zod.number()).describe('Gameweeks in which chips are allowed to be played'),
   "scenarios": zod.array(zod.object({
-  "key": zod.string().describe('One of none, free, no-wildcard, no-bench_boost, no-free_hit, no-triple_captain'),
+  "key": zod.string().describe('One of none, free, only-wildcard, only-bench_boost, only-free_hit, only-triple_captain'),
   "runId": zod.string(),
   "status": zod.string().describe('One of queued, running, completed, failed'),
   "totalExpectedPoints": zod.number().nullish(),
@@ -449,7 +449,12 @@ export const ListMegaSolvesResponseItem = zod.object({
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()
-})).describe('Chips the solver chose to play in this scenario')
+})).describe('Chips the solver chose to play in this scenario'),
+  "progress": zod.union([zod.object({
+  "stage": zod.string().describe('One of preparing, pool, solving, finalizing'),
+  "message": zod.string(),
+  "gapPercent": zod.number().nullish().describe('Current optimality gap while the MIP solver runs')
+}),zod.null()]).optional().describe('Live solver progress while this scenario is running')
 }))
 })
 export const ListMegaSolvesResponse = zod.array(ListMegaSolvesResponseItem)
@@ -508,7 +513,7 @@ export const CreateMegaSolveResponse = zod.object({
   "horizon": zod.number(),
   "chipWindow": zod.array(zod.number()).describe('Gameweeks in which chips are allowed to be played'),
   "scenarios": zod.array(zod.object({
-  "key": zod.string().describe('One of none, free, no-wildcard, no-bench_boost, no-free_hit, no-triple_captain'),
+  "key": zod.string().describe('One of none, free, only-wildcard, only-bench_boost, only-free_hit, only-triple_captain'),
   "runId": zod.string(),
   "status": zod.string().describe('One of queued, running, completed, failed'),
   "totalExpectedPoints": zod.number().nullish(),
@@ -516,7 +521,12 @@ export const CreateMegaSolveResponse = zod.object({
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()
-})).describe('Chips the solver chose to play in this scenario')
+})).describe('Chips the solver chose to play in this scenario'),
+  "progress": zod.union([zod.object({
+  "stage": zod.string().describe('One of preparing, pool, solving, finalizing'),
+  "message": zod.string(),
+  "gapPercent": zod.number().nullish().describe('Current optimality gap while the MIP solver runs')
+}),zod.null()]).optional().describe('Live solver progress while this scenario is running')
 }))
 })
 
@@ -539,7 +549,7 @@ export const GetMegaSolveResponse = zod.object({
   "horizon": zod.number(),
   "chipWindow": zod.array(zod.number()).describe('Gameweeks in which chips are allowed to be played'),
   "scenarios": zod.array(zod.object({
-  "key": zod.string().describe('One of none, free, no-wildcard, no-bench_boost, no-free_hit, no-triple_captain'),
+  "key": zod.string().describe('One of none, free, only-wildcard, only-bench_boost, only-free_hit, only-triple_captain'),
   "runId": zod.string(),
   "status": zod.string().describe('One of queued, running, completed, failed'),
   "totalExpectedPoints": zod.number().nullish(),
@@ -547,7 +557,12 @@ export const GetMegaSolveResponse = zod.object({
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()
-})).describe('Chips the solver chose to play in this scenario')
+})).describe('Chips the solver chose to play in this scenario'),
+  "progress": zod.union([zod.object({
+  "stage": zod.string().describe('One of preparing, pool, solving, finalizing'),
+  "message": zod.string(),
+  "gapPercent": zod.number().nullish().describe('Current optimality gap while the MIP solver runs')
+}),zod.null()]).optional().describe('Live solver progress while this scenario is running')
 }))
 })
 

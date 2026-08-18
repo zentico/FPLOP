@@ -82,11 +82,26 @@ export default function MegaDetail() {
       </div>
 
       {isActive && (
-        <div className="flex items-center gap-3 text-sm text-muted-foreground bg-muted/40 border rounded-lg p-4">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Running scenario {Math.min(done + 1, mega.scenarios.length)} of{" "}
-          {mega.scenarios.length} — each solve runs to
-          completion before the next starts, so this can take a while.
+        <div className="flex items-start gap-3 text-sm text-muted-foreground bg-muted/40 border rounded-lg p-4">
+          <Loader2 className="h-4 w-4 animate-spin mt-0.5 shrink-0" />
+          <div className="space-y-1">
+            <div>
+              Running scenario {Math.min(done + 1, mega.scenarios.length)} of{" "}
+              {mega.scenarios.length} — each solve runs to completion before
+              the next starts, so this can take a while.
+            </div>
+            {(() => {
+              const running = mega.scenarios.find((s) => s.status === "running");
+              const p = running?.progress;
+              if (!p) return null;
+              return (
+                <div className="font-mono text-xs text-foreground/80">
+                  {SCENARIO_LABEL[running!.key] ?? running!.key}: {p.message}
+                  {p.gapPercent != null && ` (gap ${p.gapPercent.toFixed(1)}%)`}
+                </div>
+              );
+            })()}
+          </div>
         </div>
       )}
 

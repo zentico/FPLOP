@@ -358,7 +358,7 @@ export interface SolveRun {
 }
 
 export interface MegaScenario {
-  /** One of none, free, no-wildcard, no-bench_boost, no-free_hit, no-triple_captain */
+  /** One of none, free, only-wildcard, only-bench_boost, only-free_hit, only-triple_captain */
   key: string;
   runId: string;
   /** One of queued, running, completed, failed */
@@ -372,6 +372,8 @@ export interface MegaScenario {
   deltaVsBaseline?: number | null;
   /** Chips the solver chose to play in this scenario */
   chips: ChipAssignment[];
+  /** Live solver progress while this scenario is running */
+  progress?: SolveProgress | null;
 }
 
 export interface MegaRun {

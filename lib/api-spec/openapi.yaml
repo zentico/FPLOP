@@ -840,6 +840,11 @@ components:
           items:
             $ref: "#/components/schemas/ChipAssignment"
           description: Chips the solver chose to play in this scenario
+        progress:
+          oneOf:
+            - $ref: "#/components/schemas/SolveProgress"
+            - type: "null"
+          description: Live solver progress while this scenario is running
     MegaRun:
       type: object
       required: [id, status, createdAt, projectionId, horizon, chipWindow, scenarios]
