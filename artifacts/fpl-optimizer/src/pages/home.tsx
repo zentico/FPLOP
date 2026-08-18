@@ -62,7 +62,7 @@ export default function Home() {
     gap: "0.05",
   });
   const [advFlags, setAdvFlags] = React.useState<{ noFutureTransfer: boolean; randomized: boolean }>({ noFutureTransfer: false, randomized: false });
-  const [opposingPlay, setOpposingPlay] = React.useState<"off" | "penalty" | "forbid">("off");
+  const [opposingPlay, setOpposingPlay] = React.useState<"off" | "penalty" | "forbid">("penalty");
 
   // Queries
   const { data: projections, isLoading: isLoadingProjections } = useListProjections();
@@ -206,6 +206,7 @@ export default function Home() {
       const content = event.target?.result as string;
       uploadMutation.mutate({ data: { filename: file.name, content } }, {
         onSuccess: (data) => {
+          queryClient.invalidateQueries({ queryKey: getListProjectionsQueryKey() });
           setProjectionId(data.id);
           toast({ title: "Projection uploaded successfully" });
         },
@@ -224,6 +225,7 @@ export default function Home() {
   const handleImportFfh = () => {
     importMutation.mutate({ data: { source: "ffh" } }, {
       onSuccess: (data) => {
+        queryClient.invalidateQueries({ queryKey: getListProjectionsQueryKey() });
         setProjectionId(data.id);
         toast({ title: "Predictions imported", description: `${data.playerCount} players, GW${data.gameweeks[0]}–${data.gameweeks[data.gameweeks.length - 1]}` });
       },

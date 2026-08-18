@@ -713,24 +713,53 @@ export function getRunProgress(runId: string): SolveProgress {
   // instead, leaving only one percentage on the row. Only trust rows that
   // end with an elapsed-time token, and take the most recent finite gap.
   let gap: number | null = null;
+  let bestPlan: string | null = null;
+  let bestBound: string | null = null;
+  let elapsed: string | null = null;
   for (const line of content.split("\n")) {
     if (!/\d+(?:\.\d+)?s\s*$/.test(line)) continue;
     const pcts = line.match(/\b\d+(?:\.\d+)?%/g);
     if (pcts && pcts.length >= 2) {
       const last = Number(pcts[pcts.length - 1]!.replace("%", ""));
-      if (Number.isFinite(last)) gap = last;
+      if (Number.isFinite(last)) {
+        gap = last;
+        // Row layout ends with: ... BestBound BestSol Gap% ... Time. Grab the
+        // two numeric tokens immediately before the gap percentage.
+        const tokens = line.trim().split(/\s+/);
+        const gapIdx = tokens.lastIndexOf(pcts[pcts.length - 1]!);
+        if (gapIdx >= 2) {
+          const boundTok = tokens[gapIdx - 2];
+          const solTok = tokens[gapIdx - 1];
+          if (boundTok && /^-?\d+(?:\.\d+)?$/.test(boundTok)) bestBound = boundTok;
+          if (solTok && /^-?\d+(?:\.\d+)?$/.test(solTok)) bestPlan = solTok;
+        }
+        const timeTok = tokens[tokens.length - 1];
+        if (timeTok && /^\d+(?:\.\d+)?s$/.test(timeTok)) elapsed = timeTok;
+      }
     } else if (pcts && pcts.length === 1 && /\b(Large|inf)\b/.test(line)) {
       gap = null; // gap column is Large/inf — genuinely unknown right now
+      bestPlan = null;
+      bestBound = null;
     }
   }
 
   if (content.includes("Solving MIP model") || content.includes("Presolving model")) {
+    let message: string;
+    if (gap != null) {
+      const parts = [`current solution within ${gap.toFixed(2)}% of the theoretical best`];
+      if (bestPlan != null) parts.push(`best plan so far scores ${Number(bestPlan).toFixed(2)} pts`);
+      if (bestBound != null) parts.push(`theoretical ceiling ${Number(bestBound).toFixed(2)} pts`);
+      if (elapsed != null) parts.push(`${elapsed} of solver time`);
+      message = `Exploring transfer plans — ${parts.join(" · ")}`;
+    } else if (content.includes("Solving MIP model")) {
+      message =
+        "Exploring transfer plans with the MIP solver — no feasible plan found yet, gap still unknown";
+    } else {
+      message = "Presolving the optimization model — simplifying constraints before the search starts";
+    }
     return {
       stage: "solving",
-      message:
-        gap != null
-          ? `Exploring transfer plans — current solution within ${gap.toFixed(2)}% of the theoretical best`
-          : "Exploring transfer plans with the MIP solver",
+      message,
       gapPercent: gap,
     };
   }
@@ -739,7 +768,15 @@ export function getRunProgress(runId: string): SolveProgress {
   if (pool) {
     return {
       stage: "pool",
-      message: `Building the optimization model from a pool of ${pool[2]} candidate players`,
+      message: `Building the optimization model — player pool filtered from ${pool[1]} down to ${pool[2]} candidates`,
+      gapPercent: null,
+    };
+  }
+
+  if (content.length > 0) {
+    return {
+      stage: "preparing",
+      message: "Solver started — fetching FPL data and loading the projection dataset",
       gapPercent: null,
     };
   }
