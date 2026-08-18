@@ -454,7 +454,8 @@ export const ListMegaSolvesResponseItem = zod.object({
   "stage": zod.string().describe('One of preparing, pool, solving, finalizing'),
   "message": zod.string(),
   "gapPercent": zod.number().nullish().describe('Current optimality gap while the MIP solver runs')
-}),zod.null()]).optional().describe('Live solver progress while this scenario is running')
+}),zod.null()]).optional().describe('Live solver progress while this scenario is running'),
+  "finalGapPercent": zod.number().nullish().describe('Final optimality gap (%) the solver achieved for this scenario')
 }))
 })
 export const ListMegaSolvesResponse = zod.array(ListMegaSolvesResponseItem)
@@ -526,7 +527,8 @@ export const CreateMegaSolveResponse = zod.object({
   "stage": zod.string().describe('One of preparing, pool, solving, finalizing'),
   "message": zod.string(),
   "gapPercent": zod.number().nullish().describe('Current optimality gap while the MIP solver runs')
-}),zod.null()]).optional().describe('Live solver progress while this scenario is running')
+}),zod.null()]).optional().describe('Live solver progress while this scenario is running'),
+  "finalGapPercent": zod.number().nullish().describe('Final optimality gap (%) the solver achieved for this scenario')
 }))
 })
 
@@ -562,7 +564,8 @@ export const GetMegaSolveResponse = zod.object({
   "stage": zod.string().describe('One of preparing, pool, solving, finalizing'),
   "message": zod.string(),
   "gapPercent": zod.number().nullish().describe('Current optimality gap while the MIP solver runs')
-}),zod.null()]).optional().describe('Live solver progress while this scenario is running')
+}),zod.null()]).optional().describe('Live solver progress while this scenario is running'),
+  "finalGapPercent": zod.number().nullish().describe('Final optimality gap (%) the solver achieved for this scenario')
 }))
 })
 

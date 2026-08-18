@@ -704,6 +704,7 @@ export async function startSolve(
         completedAt: new Date().toISOString(),
         totalExpectedPoints: result.totalExpectedPoints,
         totalBaseExpectedPoints: result.totalBaseExpectedPoints ?? null,
+        finalGapPercent: extractFinalGap(logPath),
         result,
       });
       logger.info({ runId, resultFile }, "Solve completed");
@@ -725,6 +726,21 @@ export interface SolveProgress {
 }
 
 /** Derive a human-readable progress snapshot from the solver's log file. */
+/**
+ * Final optimality gap from the HiGHS "Solving report" section, e.g.
+ * `  Gap               48.69% (tolerance: 10%)`. Null if not found.
+ */
+function extractFinalGap(logPath: string | null): number | null {
+  if (!logPath) return null;
+  try {
+    const content = fs.readFileSync(logPath, "utf-8");
+    const m = /^\s*Gap\s+(\d+(?:\.\d+)?)%/m.exec(content);
+    return m ? Number(m[1]) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function getRunProgress(runId: string): SolveProgress {
   let content = "";
   try {

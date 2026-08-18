@@ -126,6 +126,7 @@ export default function MegaDetail() {
                   <th className="py-2 pr-4">Chips played</th>
                   <th className="py-2 pr-4 text-right">Total xPts</th>
                   <th className="py-2 pr-4 text-right">Δ vs no chips</th>
+                  <th className="py-2 pr-4 text-right">Gap</th>
                   <th className="py-2"></th>
                 </tr>
               </thead>
@@ -173,6 +174,11 @@ export default function MegaDetail() {
                       ) : (
                         "—"
                       )}
+                    </td>
+                    <td className="py-3 pr-4 text-right font-mono text-muted-foreground">
+                      {s.finalGapPercent != null
+                        ? `${s.finalGapPercent.toFixed(2)}%`
+                        : "—"}
                     </td>
                     <td className="py-3 text-right">
                       <Link href={`/solves/${s.runId}`}>

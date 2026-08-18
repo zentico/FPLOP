@@ -845,6 +845,9 @@ components:
             - $ref: "#/components/schemas/SolveProgress"
             - type: "null"
           description: Live solver progress while this scenario is running
+        finalGapPercent:
+          type: ["number", "null"]
+          description: Final optimality gap (%) the solver achieved for this scenario
     MegaRun:
       type: object
       required: [id, status, createdAt, projectionId, horizon, chipWindow, scenarios]

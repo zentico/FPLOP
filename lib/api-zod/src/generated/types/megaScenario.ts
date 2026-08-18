@@ -25,4 +25,9 @@ export interface MegaScenario {
   chips: ChipAssignment[];
   /** Live solver progress while this scenario is running */
   progress?: SolveProgress | null;
+  /**
+     * Final optimality gap (%) the solver achieved for this scenario
+     * @nullable
+     */
+  finalGapPercent?: number | null;
 }

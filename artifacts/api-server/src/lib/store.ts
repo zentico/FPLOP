@@ -99,6 +99,8 @@ export interface SolveRunMeta {
   request: SolveRequest;
   projectionFilename?: string | null;
   totalExpectedPoints?: number | null;
+  /** Final optimality gap (%) reported by the solver at completion. */
+  finalGapPercent?: number | null;
   totalBaseExpectedPoints?: number | null;
   poolKept?: number | null;
   poolTotal?: number | null;

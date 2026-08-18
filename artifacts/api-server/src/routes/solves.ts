@@ -236,6 +236,8 @@ function megaView(mega: MegaRunMeta): Record<string, unknown> {
         deltaVsBaseline: pts != null && basePts != null ? pts - basePts : null,
         chips,
         progress: run?.status === "running" ? getRunProgress(run.id) : null,
+        finalGapPercent:
+          run?.status === "completed" ? (run.finalGapPercent ?? null) : null,
       };
     }),
   };
