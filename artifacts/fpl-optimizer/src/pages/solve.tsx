@@ -114,7 +114,7 @@ export default function SolveDetail() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="bg-card border rounded-lg p-4 shadow-sm">
               <div className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Projection</div>
-              <div className="font-mono mt-1 text-sm truncate">{solve.projectionFilename}</div>
+              <div className="font-mono mt-1 text-sm break-all">{solve.projectionFilename}</div>
             </div>
             <div className="bg-card border rounded-lg p-4 shadow-sm">
               <div className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Team ID</div>

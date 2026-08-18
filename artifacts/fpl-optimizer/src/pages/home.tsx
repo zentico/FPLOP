@@ -44,8 +44,8 @@ export default function Home() {
   const [teamIdStr, setTeamIdStr] = React.useState<string>("");
   const [horizon, setHorizon] = React.useState<number>(5);
   const [chips, setChips] = React.useState<Record<string, string>>({}); // chip type -> gameweek string
-  const [diffFactorStr, setDiffFactorStr] = React.useState<string>("0");
-  const [poolEnabled, setPoolEnabled] = React.useState(false);
+  const [diffFactorStr, setDiffFactorStr] = React.useState<string>("20");
+  const [poolEnabled, setPoolEnabled] = React.useState(true);
   const [poolCounts, setPoolCounts] = React.useState({
     gkMain: "12", gkBench: "4",
     defMain: "32", defBench: "8",
@@ -371,9 +371,11 @@ export default function Home() {
   }, [selectedProjection, currentGw]);
   const maxHorizon = Math.max(1, contiguousGws);
   const minHorizon = Math.min(2, maxHorizon);
+  // Default the horizon to everything the selected dataset covers; manual
+  // slider changes stick until the dataset (and thus its coverage) changes.
   React.useEffect(() => {
-    if (horizon > maxHorizon) setHorizon(maxHorizon);
-  }, [maxHorizon, horizon]);
+    setHorizon(maxHorizon);
+  }, [projectionId, maxHorizon]);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
