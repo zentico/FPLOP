@@ -7,15 +7,23 @@
  */
 
 /**
- * Restrict the solver's player pool to players matching ANY of the three criteria (OR). Locked players are always kept.
+ * Rank-based pool selection. Within each position players are ranked by impact (points per match), value (ppm per £m) and price (cheaper better). Per position the top `main` players by the average of impact and value ranks are kept, then from the remainder the top `bench` players by the average of price and value ranks. Locked players are always kept. All counts must be whole numbers between 0 and 500 (enforced server-side).
  */
 export interface PoolFilter {
-  /** High impact: points per match strictly greater than this */
-  impactPpm: number;
-  /** High value: (points per match / price) strictly greater than this */
-  valuePpmPerM: number;
-  /** Quality bench: price strictly below this (millions) */
-  benchMaxPrice: number;
-  /** Quality bench: points per match strictly greater than this */
-  benchMinPpm: number;
+  /** Goalkeepers kept by main-squad rank */
+  gkMain: number;
+  /** Additional goalkeepers kept by bench-squad rank */
+  gkBench: number;
+  /** Defenders kept by main-squad rank */
+  defMain: number;
+  /** Additional defenders kept by bench-squad rank */
+  defBench: number;
+  /** Midfielders kept by main-squad rank */
+  midMain: number;
+  /** Additional midfielders kept by bench-squad rank */
+  midBench: number;
+  /** Forwards kept by main-squad rank */
+  fwdMain: number;
+  /** Additional forwards kept by bench-squad rank */
+  fwdBench: number;
 }

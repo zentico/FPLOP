@@ -33,10 +33,14 @@ export interface SolveOptions {
 }
 
 export interface PoolFilter {
-  impactPpm: number;
-  valuePpmPerM: number;
-  benchMaxPrice: number;
-  benchMinPpm: number;
+  gkMain: number;
+  gkBench: number;
+  defMain: number;
+  defBench: number;
+  midMain: number;
+  midBench: number;
+  fwdMain: number;
+  fwdBench: number;
 }
 
 export interface SolveRequest {

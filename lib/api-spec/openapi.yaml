@@ -578,22 +578,39 @@ components:
     PoolFilter:
       type: object
       description: >
-        Restrict the solver's player pool to players matching ANY of the three
-        criteria (OR). Locked players are always kept.
-      required: [impactPpm, valuePpmPerM, benchMaxPrice, benchMinPpm]
+        Rank-based pool selection. Within each position players are ranked by
+        impact (points per match), value (ppm per £m) and price (cheaper
+        better). Per position the top `main` players by the average of impact
+        and value ranks are kept, then from the remainder the top `bench`
+        players by the average of price and value ranks. Locked players are
+        always kept. All counts must be whole numbers between 0 and 500
+        (enforced server-side).
+      required: [gkMain, gkBench, defMain, defBench, midMain, midBench, fwdMain, fwdBench]
       properties:
-        impactPpm:
+        gkMain:
           type: number
-          description: "High impact: points per match strictly greater than this"
-        valuePpmPerM:
+          description: Goalkeepers kept by main-squad rank
+        gkBench:
           type: number
-          description: "High value: (points per match / price) strictly greater than this"
-        benchMaxPrice:
+          description: Additional goalkeepers kept by bench-squad rank
+        defMain:
           type: number
-          description: "Quality bench: price strictly below this (millions)"
-        benchMinPpm:
+          description: Defenders kept by main-squad rank
+        defBench:
           type: number
-          description: "Quality bench: points per match strictly greater than this"
+          description: Additional defenders kept by bench-squad rank
+        midMain:
+          type: number
+          description: Midfielders kept by main-squad rank
+        midBench:
+          type: number
+          description: Additional midfielders kept by bench-squad rank
+        fwdMain:
+          type: number
+          description: Forwards kept by main-squad rank
+        fwdBench:
+          type: number
+          description: Additional forwards kept by bench-squad rank
     SolveOptions:
       type: object
       description: Advanced solver settings, mirroring open-fpl-solver config keys

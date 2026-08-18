@@ -211,11 +211,15 @@ export const ListSolvesResponseItem = zod.object({
   "horizon": zod.number().optional().describe('Number of gameweeks to optimize over (default 5)'),
   "differentialFactor": zod.number().optional().describe('Differential factor k as a fraction (e.g. 0.2 for 20%). Each player\'s projected points are scaled by 1 + k \* (100 - ownership%) \/ 100 before optimization. Requires the projection to include an Ownership column.\n'),
   "poolFilter": zod.union([zod.object({
-  "impactPpm": zod.number().describe('High impact: points per match strictly greater than this'),
-  "valuePpmPerM": zod.number().describe('High value: (points per match \/ price) strictly greater than this'),
-  "benchMaxPrice": zod.number().describe('Quality bench: price strictly below this (millions)'),
-  "benchMinPpm": zod.number().describe('Quality bench: points per match strictly greater than this')
-}).describe('Restrict the solver\'s player pool to players matching ANY of the three criteria (OR). Locked players are always kept.\n'),zod.null()]).optional(),
+  "gkMain": zod.number().describe('Goalkeepers kept by main-squad rank'),
+  "gkBench": zod.number().describe('Additional goalkeepers kept by bench-squad rank'),
+  "defMain": zod.number().describe('Defenders kept by main-squad rank'),
+  "defBench": zod.number().describe('Additional defenders kept by bench-squad rank'),
+  "midMain": zod.number().describe('Midfielders kept by main-squad rank'),
+  "midBench": zod.number().describe('Additional midfielders kept by bench-squad rank'),
+  "fwdMain": zod.number().describe('Forwards kept by main-squad rank'),
+  "fwdBench": zod.number().describe('Additional forwards kept by bench-squad rank')
+}).describe('Rank-based pool selection. Within each position players are ranked by impact (points per match), value (ppm per £m) and price (cheaper better). Per position the top `main` players by the average of impact and value ranks are kept, then from the remainder the top `bench` players by the average of price and value ranks. Locked players are always kept. All counts must be whole numbers between 0 and 500 (enforced server-side).\n'),zod.null()]).optional(),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()
@@ -296,11 +300,15 @@ export const CreateSolveBody = zod.object({
   "horizon": zod.number().optional().describe('Number of gameweeks to optimize over (default 5)'),
   "differentialFactor": zod.number().optional().describe('Differential factor k as a fraction (e.g. 0.2 for 20%). Each player\'s projected points are scaled by 1 + k \* (100 - ownership%) \/ 100 before optimization. Requires the projection to include an Ownership column.\n'),
   "poolFilter": zod.union([zod.object({
-  "impactPpm": zod.number().describe('High impact: points per match strictly greater than this'),
-  "valuePpmPerM": zod.number().describe('High value: (points per match \/ price) strictly greater than this'),
-  "benchMaxPrice": zod.number().describe('Quality bench: price strictly below this (millions)'),
-  "benchMinPpm": zod.number().describe('Quality bench: points per match strictly greater than this')
-}).describe('Restrict the solver\'s player pool to players matching ANY of the three criteria (OR). Locked players are always kept.\n'),zod.null()]).optional(),
+  "gkMain": zod.number().describe('Goalkeepers kept by main-squad rank'),
+  "gkBench": zod.number().describe('Additional goalkeepers kept by bench-squad rank'),
+  "defMain": zod.number().describe('Defenders kept by main-squad rank'),
+  "defBench": zod.number().describe('Additional defenders kept by bench-squad rank'),
+  "midMain": zod.number().describe('Midfielders kept by main-squad rank'),
+  "midBench": zod.number().describe('Additional midfielders kept by bench-squad rank'),
+  "fwdMain": zod.number().describe('Forwards kept by main-squad rank'),
+  "fwdBench": zod.number().describe('Additional forwards kept by bench-squad rank')
+}).describe('Rank-based pool selection. Within each position players are ranked by impact (points per match), value (ppm per £m) and price (cheaper better). Per position the top `main` players by the average of impact and value ranks are kept, then from the remainder the top `bench` players by the average of price and value ranks. Locked players are always kept. All counts must be whole numbers between 0 and 500 (enforced server-side).\n'),zod.null()]).optional(),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()
@@ -336,11 +344,15 @@ export const CreateSolveResponse = zod.object({
   "horizon": zod.number().optional().describe('Number of gameweeks to optimize over (default 5)'),
   "differentialFactor": zod.number().optional().describe('Differential factor k as a fraction (e.g. 0.2 for 20%). Each player\'s projected points are scaled by 1 + k \* (100 - ownership%) \/ 100 before optimization. Requires the projection to include an Ownership column.\n'),
   "poolFilter": zod.union([zod.object({
-  "impactPpm": zod.number().describe('High impact: points per match strictly greater than this'),
-  "valuePpmPerM": zod.number().describe('High value: (points per match \/ price) strictly greater than this'),
-  "benchMaxPrice": zod.number().describe('Quality bench: price strictly below this (millions)'),
-  "benchMinPpm": zod.number().describe('Quality bench: points per match strictly greater than this')
-}).describe('Restrict the solver\'s player pool to players matching ANY of the three criteria (OR). Locked players are always kept.\n'),zod.null()]).optional(),
+  "gkMain": zod.number().describe('Goalkeepers kept by main-squad rank'),
+  "gkBench": zod.number().describe('Additional goalkeepers kept by bench-squad rank'),
+  "defMain": zod.number().describe('Defenders kept by main-squad rank'),
+  "defBench": zod.number().describe('Additional defenders kept by bench-squad rank'),
+  "midMain": zod.number().describe('Midfielders kept by main-squad rank'),
+  "midBench": zod.number().describe('Additional midfielders kept by bench-squad rank'),
+  "fwdMain": zod.number().describe('Forwards kept by main-squad rank'),
+  "fwdBench": zod.number().describe('Additional forwards kept by bench-squad rank')
+}).describe('Rank-based pool selection. Within each position players are ranked by impact (points per match), value (ppm per £m) and price (cheaper better). Per position the top `main` players by the average of impact and value ranks are kept, then from the remainder the top `bench` players by the average of price and value ranks. Locked players are always kept. All counts must be whole numbers between 0 and 500 (enforced server-side).\n'),zod.null()]).optional(),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()
@@ -430,11 +442,15 @@ export const GetSolveResponse = zod.object({
   "horizon": zod.number().optional().describe('Number of gameweeks to optimize over (default 5)'),
   "differentialFactor": zod.number().optional().describe('Differential factor k as a fraction (e.g. 0.2 for 20%). Each player\'s projected points are scaled by 1 + k \* (100 - ownership%) \/ 100 before optimization. Requires the projection to include an Ownership column.\n'),
   "poolFilter": zod.union([zod.object({
-  "impactPpm": zod.number().describe('High impact: points per match strictly greater than this'),
-  "valuePpmPerM": zod.number().describe('High value: (points per match \/ price) strictly greater than this'),
-  "benchMaxPrice": zod.number().describe('Quality bench: price strictly below this (millions)'),
-  "benchMinPpm": zod.number().describe('Quality bench: points per match strictly greater than this')
-}).describe('Restrict the solver\'s player pool to players matching ANY of the three criteria (OR). Locked players are always kept.\n'),zod.null()]).optional(),
+  "gkMain": zod.number().describe('Goalkeepers kept by main-squad rank'),
+  "gkBench": zod.number().describe('Additional goalkeepers kept by bench-squad rank'),
+  "defMain": zod.number().describe('Defenders kept by main-squad rank'),
+  "defBench": zod.number().describe('Additional defenders kept by bench-squad rank'),
+  "midMain": zod.number().describe('Midfielders kept by main-squad rank'),
+  "midBench": zod.number().describe('Additional midfielders kept by bench-squad rank'),
+  "fwdMain": zod.number().describe('Forwards kept by main-squad rank'),
+  "fwdBench": zod.number().describe('Additional forwards kept by bench-squad rank')
+}).describe('Rank-based pool selection. Within each position players are ranked by impact (points per match), value (ppm per £m) and price (cheaper better). Per position the top `main` players by the average of impact and value ranks are kept, then from the remainder the top `bench` players by the average of price and value ranks. Locked players are always kept. All counts must be whole numbers between 0 and 500 (enforced server-side).\n'),zod.null()]).optional(),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
   "gameweek": zod.number()

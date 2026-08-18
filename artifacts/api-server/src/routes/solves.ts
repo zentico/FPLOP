@@ -10,7 +10,7 @@ import {
 import {
   computePoolStats,
   getRunProgress,
-  poolEligible,
+  selectPool,
   projectionHasOwnership,
   resolvePlayerRefs,
   startSolve,
@@ -113,15 +113,19 @@ router.post("/solves", async (req, res): Promise<void> => {
 
   const filter = request.poolFilter;
   if (filter) {
-    for (const [label, v, lo, hi] of [
-      ["High impact points/match", filter.impactPpm, 0, 20],
-      ["High value points/match per £m", filter.valuePpmPerM, 0, 5],
-      ["Quality bench max price", filter.benchMaxPrice, 0, 20],
-      ["Quality bench points/match", filter.benchMinPpm, 0, 20],
+    for (const [label, v] of [
+      ["Goalkeepers (main)", filter.gkMain],
+      ["Goalkeepers (bench)", filter.gkBench],
+      ["Defenders (main)", filter.defMain],
+      ["Defenders (bench)", filter.defBench],
+      ["Midfielders (main)", filter.midMain],
+      ["Midfielders (bench)", filter.midBench],
+      ["Forwards (main)", filter.fwdMain],
+      ["Forwards (bench)", filter.fwdBench],
     ] as const) {
-      if (!Number.isFinite(v) || v < lo || v > hi) {
+      if (!Number.isInteger(v) || v < 0 || v > 500) {
         res.status(400).json({
-          error: `${label} must be between ${lo} and ${hi}`,
+          error: `${label} must be a whole number between 0 and 500`,
         });
         return;
       }
@@ -132,11 +136,25 @@ router.post("/solves", async (req, res): Promise<void> => {
     // kept in the CSV, and banned players can never be picked.
     const lockedIds = new Set(resolved.locked);
     const stats = computePoolStats(request.projectionId);
+    // Rank selection is keyed by player id — duplicate or invalid ids
+    // would silently collapse selections, so reject them up front.
+    const seenIds = new Set<number>();
+    for (const p of stats) {
+      if (!Number.isFinite(p.id) || p.id <= 0 || seenIds.has(p.id)) {
+        res.status(400).json({
+          error:
+            "This projection has missing or duplicate player IDs, so the pool filter can't be applied. Re-import the projection or run without the filter.",
+        });
+        return;
+      }
+      seenIds.add(p.id);
+    }
+    const selected = selectPool(stats, filter);
     const byPos: Record<string, number> = { G: 0, D: 0, M: 0, F: 0 };
     for (const p of stats) {
       if (bannedIds.has(p.id)) continue;
       if (
-        (poolEligible(filter, p.price, p.ppm) || lockedIds.has(p.id)) &&
+        (selected.has(p.id) || lockedIds.has(p.id)) &&
         p.position in byPos
       ) {
         byPos[p.position]!++;
@@ -153,7 +171,7 @@ router.post("/solves", async (req, res): Promise<void> => {
       res.status(400).json({
         error: `The pool filter leaves too few players to build a legal squad (${short
           .map(([pos, label, need]) => `${byPos[pos]} of ${need} ${label}`)
-          .join(", ")}). Loosen the filter thresholds.`,
+          .join(", ")}). Increase the per-position counts.`,
       });
       return;
     }

@@ -44,11 +44,11 @@ export default function Home() {
   const [chips, setChips] = React.useState<Record<string, string>>({}); // chip type -> gameweek string
   const [diffFactorStr, setDiffFactorStr] = React.useState<string>("0");
   const [poolEnabled, setPoolEnabled] = React.useState(false);
-  const [poolThresholds, setPoolThresholds] = React.useState({
-    impactPpm: "3.5",
-    valuePpmPerM: "0.6",
-    benchMaxPrice: "5.0",
-    benchMinPpm: "2.0",
+  const [poolCounts, setPoolCounts] = React.useState({
+    gkMain: "12", gkBench: "4",
+    defMain: "32", defBench: "8",
+    midMain: "32", midBench: "8",
+    fwdMain: "20", fwdBench: "4",
   });
   const [showAdvanced, setShowAdvanced] = React.useState<boolean>(false);
   // Advanced solver settings — empty string means "solver default"
@@ -80,28 +80,38 @@ export default function Home() {
     query: { enabled: !!projectionId && poolEnabled, queryKey: getGetProjectionPoolStatsQueryKey(projectionId) }
   });
 
-  // Parsed pool thresholds; NaN when the field is not a valid number.
+  // Parsed pool counts; NaN when a field is not a valid number.
   const poolNums = {
-    impactPpm: Number(poolThresholds.impactPpm),
-    valuePpmPerM: Number(poolThresholds.valuePpmPerM),
-    benchMaxPrice: Number(poolThresholds.benchMaxPrice),
-    benchMinPpm: Number(poolThresholds.benchMinPpm),
+    gkMain: Number(poolCounts.gkMain), gkBench: Number(poolCounts.gkBench),
+    defMain: Number(poolCounts.defMain), defBench: Number(poolCounts.defBench),
+    midMain: Number(poolCounts.midMain), midBench: Number(poolCounts.midBench),
+    fwdMain: Number(poolCounts.fwdMain), fwdBench: Number(poolCounts.fwdBench),
   };
-  const poolValid = Object.values(poolNums).every((n) => Number.isFinite(n) && n >= 0);
+  const poolValid = Object.values(poolNums).every(
+    (n) => Number.isInteger(n) && n >= 0 && n <= 500,
+  );
 
-  // Live count of players passing the OR of the three criteria (mirrors the server rule).
+  // Live count of selected players. The rank-based selection always keeps
+  // exactly min(main + bench, available) players per position, so only the
+  // per-position availability matters for the count.
   const poolCount = React.useMemo(() => {
     if (!poolStats || !poolValid) return null;
-    let eligible = 0;
+    const counts: Record<string, number> = {
+      G: poolNums.gkMain + poolNums.gkBench,
+      D: poolNums.defMain + poolNums.defBench,
+      M: poolNums.midMain + poolNums.midBench,
+      F: poolNums.fwdMain + poolNums.fwdBench,
+    };
+    const avail: Record<string, number> = { G: 0, D: 0, M: 0, F: 0 };
     for (const p of poolStats) {
-      if (
-        p.ppm > poolNums.impactPpm ||
-        (p.price > 0 && p.ppm / p.price > poolNums.valuePpmPerM) ||
-        (p.price < poolNums.benchMaxPrice && p.ppm > poolNums.benchMinPpm)
-      ) eligible++;
+      if (p.position in avail) avail[p.position]!++;
     }
+    const eligible = Object.keys(counts).reduce(
+      (sum, pos) => sum + Math.min(counts[pos]!, avail[pos]!),
+      0,
+    );
     return { eligible, total: poolStats.length };
-  }, [poolStats, poolValid, poolNums.impactPpm, poolNums.valuePpmPerM, poolNums.benchMaxPrice, poolNums.benchMinPpm]);
+  }, [poolStats, poolValid, poolCounts]);
 
   // Mutations
   const uploadMutation = useUploadProjection();
@@ -204,7 +214,7 @@ export default function Home() {
     if (poolEnabled && !poolValid) {
       toast({
         title: "Invalid pool filter",
-        description: "All pool filter thresholds must be non-negative numbers.",
+        description: "All pool counts must be whole numbers between 0 and 500.",
         variant: "destructive"
       });
       return;
@@ -526,58 +536,43 @@ export default function Home() {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Shrink the player pool to speed up the solve. A player is kept when they match
-                  <span className="font-semibold"> any</span> of the three criteria below. Locked players are always kept.
+                  Keep the top-ranked players in each position. <span className="font-semibold">Main</span> picks rank
+                  on 50% impact (points per match) + 50% value (pts/match per £m); <span className="font-semibold">Bench</span> picks
+                  are then added from the rest, ranked on 50% price (cheaper is better) + 50% value. Locked players are always kept.
                 </p>
                 {poolEnabled && (
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between gap-3 p-3 border rounded-lg bg-muted/20">
-                      <div className="text-sm">
-                        <span className="font-semibold">High impact</span>
-                        <span className="text-muted-foreground"> — points per match &gt;</span>
-                      </div>
-                      <Input
-                        inputMode="decimal"
-                        className="w-24 h-8 font-mono text-right"
-                        value={poolThresholds.impactPpm}
-                        onChange={(e) => setPoolThresholds((t) => ({ ...t, impactPpm: e.target.value }))}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between gap-3 p-3 border rounded-lg bg-muted/20">
-                      <div className="text-sm">
-                        <span className="font-semibold">High value</span>
-                        <span className="text-muted-foreground"> — points per match per £m &gt;</span>
-                      </div>
-                      <Input
-                        inputMode="decimal"
-                        className="w-24 h-8 font-mono text-right"
-                        value={poolThresholds.valuePpmPerM}
-                        onChange={(e) => setPoolThresholds((t) => ({ ...t, valuePpmPerM: e.target.value }))}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between gap-3 p-3 border rounded-lg bg-muted/20 flex-wrap">
-                      <div className="text-sm">
-                        <span className="font-semibold">Quality bench</span>
-                        <span className="text-muted-foreground"> — price &lt; £m</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          inputMode="decimal"
-                          className="w-20 h-8 font-mono text-right"
-                          value={poolThresholds.benchMaxPrice}
-                          onChange={(e) => setPoolThresholds((t) => ({ ...t, benchMaxPrice: e.target.value }))}
-                        />
-                        <span className="text-sm text-muted-foreground">and pts/match &gt;</span>
-                        <Input
-                          inputMode="decimal"
-                          className="w-20 h-8 font-mono text-right"
-                          value={poolThresholds.benchMinPpm}
-                          onChange={(e) => setPoolThresholds((t) => ({ ...t, benchMinPpm: e.target.value }))}
-                        />
-                      </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {([
+                        ["Goalkeepers", "gkMain", "gkBench"],
+                        ["Defenders", "defMain", "defBench"],
+                        ["Midfielders", "midMain", "midBench"],
+                        ["Forwards", "fwdMain", "fwdBench"],
+                      ] as const).map(([label, mainKey, benchKey]) => (
+                        <div key={label} className="flex items-center justify-between gap-2 p-3 border rounded-lg bg-muted/20">
+                          <span className="text-sm font-semibold">{label}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">Main</span>
+                            <Input
+                              inputMode="numeric"
+                              className="w-14 h-8 font-mono text-right"
+                              value={poolCounts[mainKey]}
+                              onChange={(e) => setPoolCounts((t) => ({ ...t, [mainKey]: e.target.value }))}
+                            />
+                            <span className="text-xs text-muted-foreground">+ Bench</span>
+                            <Input
+                              inputMode="numeric"
+                              className="w-14 h-8 font-mono text-right"
+                              value={poolCounts[benchKey]}
+                              onChange={(e) => setPoolCounts((t) => ({ ...t, [benchKey]: e.target.value }))}
+                            />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Points per match = total projected points ÷ gameweeks covered by the projection.
+                      Ranks are computed within each position.
                     </p>
                   </div>
                 )}

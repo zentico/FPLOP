@@ -77,10 +77,14 @@ export function projectionHasOwnership(projectionId: string): boolean {
 }
 
 export interface PoolFilter {
-  impactPpm: number;
-  valuePpmPerM: number;
-  benchMaxPrice: number;
-  benchMinPpm: number;
+  gkMain: number;
+  gkBench: number;
+  defMain: number;
+  defBench: number;
+  midMain: number;
+  midBench: number;
+  fwdMain: number;
+  fwdBench: number;
 }
 
 export interface PoolPlayerStat {
@@ -112,16 +116,65 @@ function rowPpm(row: Record<string, string>, headers: string[]): number {
   return pts / gws;
 }
 
-/** True when a player passes the OR of the three pool-filter criteria. */
-export function poolEligible(
+/**
+ * Rank-based pool selection. Within each position players get three ranks:
+ * impact (points per match, higher better), value (ppm per £m, higher
+ * better) and price (cheaper better). The "main squad" score averages
+ * impact and value ranks; the "bench squad" score averages price and value
+ * ranks. Per position the top `main` players by main score are selected,
+ * then from the remainder the top `bench` players by bench score.
+ */
+export function selectPool(
+  stats: PoolPlayerStat[],
   filter: PoolFilter,
-  price: number,
-  ppm: number,
-): boolean {
-  if (ppm > filter.impactPpm) return true;
-  if (price > 0 && ppm / price > filter.valuePpmPerM) return true;
-  if (price < filter.benchMaxPrice && ppm > filter.benchMinPpm) return true;
-  return false;
+): Set<number> {
+  const counts: Record<string, [number, number]> = {
+    G: [filter.gkMain, filter.gkBench],
+    D: [filter.defMain, filter.defBench],
+    M: [filter.midMain, filter.midBench],
+    F: [filter.fwdMain, filter.fwdBench],
+  };
+  const selected = new Set<number>();
+  for (const pos of Object.keys(counts)) {
+    const players = stats.filter((p) => p.position === pos);
+    const rankOf = (sorted: PoolPlayerStat[]) => {
+      const m = new Map<number, number>();
+      sorted.forEach((p, i) => m.set(p.id, i + 1));
+      return m;
+    };
+    // Ties are broken by player id so selection is independent of CSV
+    // row order. Zero-price players get zero value (can't divide) but
+    // still rank cheapest on price.
+    const value = (p: PoolPlayerStat) => (p.price > 0 ? p.ppm / p.price : 0);
+    const impactRank = rankOf(
+      [...players].sort((a, b) => b.ppm - a.ppm || a.id - b.id),
+    );
+    const valueRank = rankOf(
+      [...players].sort((a, b) => value(b) - value(a) || a.id - b.id),
+    );
+    const priceRank = rankOf(
+      [...players].sort((a, b) => a.price - b.price || a.id - b.id),
+    );
+    const mainScore = (p: PoolPlayerStat) =>
+      (impactRank.get(p.id)! + valueRank.get(p.id)!) / 2;
+    const benchScore = (p: PoolPlayerStat) =>
+      (priceRank.get(p.id)! + valueRank.get(p.id)!) / 2;
+
+    const [mainN, benchN] = counts[pos]!;
+    const byMain = [...players].sort(
+      (a, b) => mainScore(a) - mainScore(b) || b.ppm - a.ppm || a.id - b.id,
+    );
+    const main = byMain.slice(0, Math.max(0, mainN));
+    for (const p of main) selected.add(p.id);
+    const rest = byMain
+      .slice(Math.max(0, mainN))
+      .sort(
+        (a, b) =>
+          benchScore(a) - benchScore(b) || value(b) - value(a) || a.id - b.id,
+      );
+    for (const p of rest.slice(0, Math.max(0, benchN))) selected.add(p.id);
+  }
+  return selected;
 }
 
 /** Per-player stats used for pool filtering (price and points per match). */
@@ -153,8 +206,8 @@ const csvField = (v: string): string =>
 
 /**
  * Write the per-run copy of the projection CSV the solver reads:
- * - when `filter` is set, drop players failing all three pool criteria
- *   (locked players in `keepIds` are always kept);
+ * - when `keepIds` is set, drop players not in it (the caller builds it
+ *   from the rank-based pool selection plus locked players);
  * - when k > 0, scale every per-GW points column by
  *   1 + k * (100 - ownership%) / 100.
  * Returns the per-player factor map (null when k = 0) and pool counts.
@@ -163,8 +216,7 @@ function writeRunProjection(
   projectionId: string,
   datasource: string,
   k: number,
-  filter: PoolFilter | null,
-  keepIds: Set<number>,
+  keepIds: Set<number> | null,
 ): { factors: Map<string, number> | null; kept: number; total: number } {
   const content = fs.readFileSync(projectionCsvPath(projectionId), "utf-8");
   const rows = parseCsv(content);
@@ -178,24 +230,12 @@ function writeRunProjection(
     throw new Error("Projection is missing the Ownership column");
   }
   const ptsCols = new Set(headers.filter((h) => /^\d+_Pts$/.test(h)));
-  const priceCol = ["Value", "Price", "BV", "SV", "Cost"].find((c) =>
-    headers.includes(c),
-  );
 
   const factors = k > 0 ? new Map<string, number>() : null;
   const lines = [headers.map(csvField).join(",")];
   let kept = 0;
   for (const r of rows) {
-    if (filter) {
-      const price = priceCol ? Number(r[priceCol]) || 0 : 0;
-      const ppm = rowPpm(r, headers);
-      if (
-        !poolEligible(filter, price, ppm) &&
-        !keepIds.has(Number(r[idCol]))
-      ) {
-        continue;
-      }
-    }
+    if (keepIds && !keepIds.has(Number(r[idCol]))) continue;
     kept++;
     let factor = 1;
     if (factors) {
@@ -490,16 +530,23 @@ export function startSolve(runId: string, request: SolveRequest): void {
   let startedAt: number;
   try {
     if (useAdjusted) {
-      const keepIds = new Set<number>(
-        request.options?.locked?.length
-          ? resolvePlayerRefs(request.projectionId, request.options.locked).ids
-          : [],
-      );
+      let keepIds: Set<number> | null = null;
+      if (filter) {
+        keepIds = selectPool(computePoolStats(request.projectionId), filter);
+        // Locked players are always kept regardless of rank.
+        if (request.options?.locked?.length) {
+          for (const id of resolvePlayerRefs(
+            request.projectionId,
+            request.options.locked,
+          ).ids) {
+            keepIds.add(id);
+          }
+        }
+      }
       const written = writeRunProjection(
         request.projectionId,
         datasource,
         k,
-        filter,
         keepIds,
       );
       factors = written.factors;
