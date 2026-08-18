@@ -247,6 +247,7 @@ export const ListSolvesResponseItem = zod.object({
   "projectionFilename": zod.string().nullish(),
   "totalExpectedPoints": zod.number().nullish(),
   "totalBaseExpectedPoints": zod.number().nullish().describe('Total expected points before differential adjustment (null when k = 0)'),
+  "finalGapPercent": zod.number().nullish().describe('Final optimality gap (%) the solver achieved at completion'),
   "poolKept": zod.number().nullish().describe('Players in the solver pool after filtering (null when unfiltered)'),
   "poolTotal": zod.number().nullish().describe('Total players in the projection when a pool filter was used'),
   "result": zod.union([zod.object({
@@ -382,6 +383,7 @@ export const CreateSolveResponse = zod.object({
   "projectionFilename": zod.string().nullish(),
   "totalExpectedPoints": zod.number().nullish(),
   "totalBaseExpectedPoints": zod.number().nullish().describe('Total expected points before differential adjustment (null when k = 0)'),
+  "finalGapPercent": zod.number().nullish().describe('Final optimality gap (%) the solver achieved at completion'),
   "poolKept": zod.number().nullish().describe('Players in the solver pool after filtering (null when unfiltered)'),
   "poolTotal": zod.number().nullish().describe('Total players in the projection when a pool filter was used'),
   "result": zod.union([zod.object({
@@ -634,6 +636,7 @@ export const GetSolveResponse = zod.object({
   "projectionFilename": zod.string().nullish(),
   "totalExpectedPoints": zod.number().nullish(),
   "totalBaseExpectedPoints": zod.number().nullish().describe('Total expected points before differential adjustment (null when k = 0)'),
+  "finalGapPercent": zod.number().nullish().describe('Final optimality gap (%) the solver achieved at completion'),
   "poolKept": zod.number().nullish().describe('Players in the solver pool after filtering (null when unfiltered)'),
   "poolTotal": zod.number().nullish().describe('Total players in the projection when a pool filter was used'),
   "result": zod.union([zod.object({

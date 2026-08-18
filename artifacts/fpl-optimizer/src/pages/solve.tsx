@@ -72,6 +72,9 @@ export default function SolveDetail() {
             {solve.result?.totalBaseExpectedPoints != null && (
               <div className="text-xs font-mono opacity-80">adjusted {solve.totalExpectedPoints.toFixed(2)}</div>
             )}
+            {solve.finalGapPercent != null && (
+              <div className="text-xs font-mono opacity-80">gap {solve.finalGapPercent.toFixed(2)}%</div>
+            )}
           </div>
         )}
       </div>

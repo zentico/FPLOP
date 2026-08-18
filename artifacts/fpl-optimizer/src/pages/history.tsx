@@ -194,6 +194,11 @@ export default function HistoryPage() {
                               adj {solve.totalExpectedPoints.toFixed(2)}
                             </div>
                           )}
+                          {solve.finalGapPercent != null && (
+                            <div className="text-xs font-mono text-muted-foreground">
+                              gap {solve.finalGapPercent.toFixed(2)}%
+                            </div>
+                          )}
                         </div>
                       )}
                       {solve.status === 'failed' && (

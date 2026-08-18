@@ -344,6 +344,11 @@ export interface SolveRun {
      */
   totalBaseExpectedPoints?: number | null;
   /**
+     * Final optimality gap (%) the solver achieved at completion
+     * @nullable
+     */
+  finalGapPercent?: number | null;
+  /**
      * Players in the solver pool after filtering (null when unfiltered)
      * @nullable
      */

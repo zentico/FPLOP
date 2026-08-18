@@ -804,6 +804,9 @@ components:
         totalBaseExpectedPoints:
           type: ["number", "null"]
           description: Total expected points before differential adjustment (null when k = 0)
+        finalGapPercent:
+          type: ["number", "null"]
+          description: Final optimality gap (%) the solver achieved at completion
         poolKept:
           type: ["number", "null"]
           description: Players in the solver pool after filtering (null when unfiltered)
