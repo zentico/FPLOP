@@ -14,6 +14,7 @@ jobs:
           host: ${{ secrets.VPS_IP }}
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 4922 # <--- Explicitly set your custom SSH port
           script: |
             cd /opt/fplop
             git pull origin main
