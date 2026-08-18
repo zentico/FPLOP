@@ -122,8 +122,23 @@ export function saveProjectionMetas(metas: ProjectionMeta[]): void {
   writeJson(PROJECTIONS_FILE, metas);
 }
 
+/** All 8 count fields of the current PoolFilter shape. */
+const POOL_FILTER_FIELDS = [
+  "gkMain", "gkBench", "defMain", "defBench",
+  "midMain", "midBench", "fwdMain", "fwdBench",
+] as const;
+
 export function listRunMetas(): SolveRunMeta[] {
-  return readJson<SolveRunMeta[]>(RUNS_FILE, []);
+  const runs = readJson<SolveRunMeta[]>(RUNS_FILE, []);
+  // Legacy runs may carry a pool filter in an older shape; drop it rather
+  // than letting response validation fail and blank the whole history.
+  for (const r of runs) {
+    const f = r.request?.poolFilter as Record<string, unknown> | null | undefined;
+    if (f && !POOL_FILTER_FIELDS.every((k) => typeof f[k] === "number")) {
+      r.request.poolFilter = null;
+    }
+  }
+  return runs;
 }
 
 export function saveRunMetas(runs: SolveRunMeta[]): void {
