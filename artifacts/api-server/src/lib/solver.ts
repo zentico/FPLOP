@@ -92,8 +92,11 @@ export interface PoolPlayerStat {
   id: number;
   name: string;
   position: string;
+  team: string;
   price: number;
   ppm: number;
+  /** Per-gameweek projected points, in ascending gameweek order. */
+  gwPoints: number[];
 }
 
 const POS_LETTER: Record<string, string> = {
@@ -189,6 +192,10 @@ export function computePoolStats(projectionId: string): PoolPlayerStat[] {
   const nameCol = ["Name", "name", "Player"].find((c) => c in first) ?? "Name";
   const posCol = ["Pos", "Position", "pos"].find((c) => c in first) ?? "Pos";
   const idCol = ["ID", "Id", "id"].find((c) => c in first);
+  const teamCol = ["Team", "team", "Club"].find((c) => c in first);
+  const gwCols = headers
+    .filter((h) => /^\d+_Pts$/.test(h))
+    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
   // ppm is intentionally unrounded so eligibility decisions here, in the
   // frontend live count, and in the per-run CSV filter agree at boundaries.
   return rows
@@ -196,8 +203,10 @@ export function computePoolStats(projectionId: string): PoolPlayerStat[] {
       id: idCol ? Number(r[idCol]) || 0 : 0,
       name: r[nameCol] ?? "",
       position: POS_LETTER[(r[posCol] ?? "").toUpperCase()] ?? "?",
+      team: teamCol ? (r[teamCol] ?? "") : "",
       price: priceCol ? Number(r[priceCol]) || 0 : 0,
       ppm: rowPpm(r, headers),
+      gwPoints: gwCols.map((c) => Number(r[c]) || 0),
     }))
     .filter((p) => p.name);
 }

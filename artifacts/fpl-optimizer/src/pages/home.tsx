@@ -15,6 +15,7 @@ import { useLocation } from "wouter";
 import { AlertCircle, UploadCloud, DownloadCloud, Download, Trash2, Database, ShieldAlert, Cpu, Trophy, Banknote, Users, LineChart } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 function AdvField({ label, placeholder, hint, value, onChange }: {
   label: string;
@@ -112,6 +113,75 @@ export default function Home() {
     );
     return { eligible, total: poolStats.length };
   }, [poolStats, poolValid, poolCounts]);
+
+  // Full pool selection, mirroring the server's rank-based rule exactly
+  // (same tie-breaks by player id). Locked players and, when optimizing an
+  // existing team, the current squad are added on top.
+  const poolSelection = React.useMemo(() => {
+    if (!poolStats || !poolValid) return null;
+    type P = NonNullable<typeof poolStats>[number];
+    const counts: Record<string, [number, number]> = {
+      G: [poolNums.gkMain, poolNums.gkBench],
+      D: [poolNums.defMain, poolNums.defBench],
+      M: [poolNums.midMain, poolNums.midBench],
+      F: [poolNums.fwdMain, poolNums.fwdBench],
+    };
+    const lockedNames = new Set(
+      (adv.locked ?? "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean),
+    );
+    const squadIds = new Set(
+      !firstGameweek && teamData ? teamData.squad.map((p) => p.playerId) : [],
+    );
+    const byPos: Record<string, { player: P; extra: boolean }[]> = { G: [], D: [], M: [], F: [] };
+    for (const pos of Object.keys(counts)) {
+      const players = poolStats.filter((p) => p.position === pos);
+      const value = (p: P) => (p.price > 0 ? p.ppm / p.price : 0);
+      const rankOf = (sorted: P[]) => {
+        const m = new Map<number, number>();
+        sorted.forEach((p, i) => m.set(p.id, i + 1));
+        return m;
+      };
+      const impactRank = rankOf([...players].sort((a, b) => b.ppm - a.ppm || a.id - b.id));
+      const valueRank = rankOf([...players].sort((a, b) => value(b) - value(a) || a.id - b.id));
+      const priceRank = rankOf([...players].sort((a, b) => a.price - b.price || a.id - b.id));
+      const mainScore = (p: P) => (impactRank.get(p.id)! + valueRank.get(p.id)!) / 2;
+      const benchScore = (p: P) => (priceRank.get(p.id)! + valueRank.get(p.id)!) / 2;
+      const [mainN, benchN] = counts[pos]!;
+      const byMain = [...players].sort(
+        (a, b) => mainScore(a) - mainScore(b) || b.ppm - a.ppm || a.id - b.id,
+      );
+      const selected = new Set<number>();
+      for (const p of byMain.slice(0, Math.max(0, mainN))) selected.add(p.id);
+      const rest = byMain
+        .slice(Math.max(0, mainN))
+        .sort((a, b) => benchScore(a) - benchScore(b) || value(b) - value(a) || a.id - b.id);
+      for (const p of rest.slice(0, Math.max(0, benchN))) selected.add(p.id);
+
+      const list: { player: P; extra: boolean }[] = [];
+      for (const p of players) {
+        const isExtra = !selected.has(p.id) &&
+          (squadIds.has(p.id) || lockedNames.has(p.name.toLowerCase()));
+        if (selected.has(p.id) || isExtra) list.push({ player: p, extra: isExtra });
+      }
+      // Display order: horizon average points, best first.
+      const horizonAvg = (p: P) => {
+        const gws = p.gwPoints.slice(0, Math.max(1, horizon));
+        return gws.length ? gws.reduce((a, b) => a + b, 0) / gws.length : 0;
+      };
+      list.sort((a, b) => horizonAvg(b.player) - horizonAvg(a.player) || a.player.id - b.player.id);
+      byPos[pos] = list;
+    }
+    return byPos;
+  }, [poolStats, poolValid, poolCounts, adv.locked, firstGameweek, teamData, horizon]);
+
+  /** Average projected points over the planning horizon. */
+  const horizonAvgPts = React.useCallback(
+    (gwPoints: number[]) => {
+      const gws = gwPoints.slice(0, Math.max(1, horizon));
+      return gws.length ? gws.reduce((a, b) => a + b, 0) / gws.length : 0;
+    },
+    [horizon],
+  );
 
   // Mutations
   const uploadMutation = useUploadProjection();
@@ -530,9 +600,56 @@ export default function Home() {
                     <Label htmlFor="pool-filter" className="cursor-pointer">Filter Player Pool</Label>
                   </div>
                   {poolEnabled && (
-                    <span className="font-mono font-bold bg-primary/10 text-primary px-2 py-1 rounded-md text-sm">
-                      {poolCount ? `${poolCount.eligible} of ${poolCount.total} players` : "…"}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {poolSelection && (
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-7 text-xs">View pool</Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-6xl max-h-[85vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle>Selected Player Pool</DialogTitle>
+                            </DialogHeader>
+                            <p className="text-xs text-muted-foreground -mt-2">
+                              Sorted by average projected points over the {horizon}-GW planning horizon.
+                              <span className="bg-primary/15 rounded px-1 mx-1">Shaded</span> players are locked or in
+                              your current squad and are always kept, even outside the ranked selection.
+                            </p>
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                              {([["G", "Goalkeepers"], ["D", "Defenders"], ["M", "Midfielders"], ["F", "Forwards"]] as const).map(([pos, label]) => (
+                                <div key={pos}>
+                                  <div className="font-bold text-sm mb-2 sticky top-0 bg-background py-1">
+                                    {label} <span className="text-muted-foreground font-normal">({poolSelection[pos]!.length})</span>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <div className="grid grid-cols-[auto_1fr_auto_auto] gap-x-2 text-[11px] text-muted-foreground font-semibold uppercase tracking-wide">
+                                      <span>#</span><span>Player</span><span className="text-right">£m</span><span className="text-right">Pts</span>
+                                    </div>
+                                    {poolSelection[pos]!.map(({ player, extra }, i) => (
+                                      <div
+                                        key={player.id}
+                                        className={`grid grid-cols-[auto_1fr_auto_auto] gap-x-2 text-xs items-baseline ${extra ? "bg-primary/15 rounded px-1 -mx-1" : ""}`}
+                                      >
+                                        <span className="font-mono text-muted-foreground w-6">{i + 1}</span>
+                                        <span className="truncate">
+                                          {player.name}
+                                          <span className="text-muted-foreground"> {player.team}</span>
+                                        </span>
+                                        <span className="font-mono text-right">{player.price.toFixed(1)}</span>
+                                        <span className="font-mono text-right">{horizonAvgPts(player.gwPoints).toFixed(2)}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      )}
+                      <span className="font-mono font-bold bg-primary/10 text-primary px-2 py-1 rounded-md text-sm">
+                        {poolCount ? `${poolCount.eligible} of ${poolCount.total} players` : "…"}
+                      </span>
+                    </div>
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">

@@ -217,9 +217,13 @@ export interface PoolPlayerStat {
   name: string;
   /** One of G, D, M, F */
   position: string;
+  /** Short team name from the projection */
+  team: string;
   price: number;
   /** Points per match (total projected points / gameweeks in the projection) */
   ppm: number;
+  /** Per-gameweek projected points, in ascending gameweek order */
+  gwPoints: number[];
 }
 
 export interface FixtureInfo {

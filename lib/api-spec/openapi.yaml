@@ -560,7 +560,7 @@ components:
             - type: "null"
     PoolPlayerStat:
       type: object
-      required: [id, name, position, price, ppm]
+      required: [id, name, position, team, price, ppm, gwPoints]
       properties:
         id:
           type: number
@@ -570,11 +570,19 @@ components:
         position:
           type: string
           description: One of G, D, M, F
+        team:
+          type: string
+          description: Short team name from the projection
         price:
           type: number
         ppm:
           type: number
           description: Points per match (total projected points / gameweeks in the projection)
+        gwPoints:
+          type: array
+          items:
+            type: number
+          description: Per-gameweek projected points, in ascending gameweek order
     PoolFilter:
       type: object
       description: >

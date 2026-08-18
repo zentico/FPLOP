@@ -155,8 +155,10 @@ export const GetProjectionPoolStatsResponseItem = zod.object({
   "id": zod.number().describe('FPL player id'),
   "name": zod.string(),
   "position": zod.string().describe('One of G, D, M, F'),
+  "team": zod.string().describe('Short team name from the projection'),
   "price": zod.number(),
-  "ppm": zod.number().describe('Points per match (total projected points \/ gameweeks in the projection)')
+  "ppm": zod.number().describe('Points per match (total projected points \/ gameweeks in the projection)'),
+  "gwPoints": zod.array(zod.number()).describe('Per-gameweek projected points, in ascending gameweek order')
 })
 export const GetProjectionPoolStatsResponse = zod.array(GetProjectionPoolStatsResponseItem)
 
