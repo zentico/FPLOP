@@ -37,22 +37,21 @@ export function megaScenarios(
 }
 
 /**
- * Chips still available: classic FPL rules — each chip once per season,
- * except a wildcard played before GW20 comes back for the second half.
+ * Chips still available: current FPL rules — every chip is issued twice,
+ * once per half-season (GW1–19 and GW20–38). A chip is only spent for the
+ * upcoming gameweek if it was played in the same half.
  */
 export function availableChipsFrom(
   played: { chip: string; gameweek: number }[],
   nextGw: number,
 ): string[] {
-  return ALL_CHIPS.filter((chip) => {
-    const uses = played.filter((p) => p.chip === chip);
-    if (uses.length === 0) return true;
-    if (chip === "wildcard" && nextGw >= 20) {
-      // Second-half wildcard: only spent if used in GW20+.
-      return !uses.some((p) => p.gameweek >= 20);
-    }
-    return false;
-  });
+  const secondHalf = nextGw >= 20;
+  return ALL_CHIPS.filter(
+    (chip) =>
+      !played.some(
+        (p) => p.chip === chip && (p.gameweek >= 20) === secondHalf,
+      ),
+  );
 }
 
 const CHIP_WINDOW_GWS = 6;
