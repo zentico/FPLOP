@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { logger } from "../lib/logger";
 import {
   CreateSolveBody,
   CreateSolveResponse,
@@ -192,7 +193,11 @@ router.post("/solves", async (req, res): Promise<void> => {
   runs.unshift(run);
   saveRunMetas(runs);
 
-  startSolve(run.id, request);
+  // Fire and forget; startSolve records failures on the run itself, and
+  // this catch guards the pre-try synchronous window.
+  startSolve(run.id, request).catch((err) => {
+    logger.error({ err, runId: run.id }, "startSolve crashed");
+  });
 
   res.status(201).json(CreateSolveResponse.parse(run));
 });

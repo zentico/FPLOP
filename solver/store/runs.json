@@ -1,5 +1,37 @@
 [
   {
+    "id": "msydfz26nvgall",
+    "status": "failed",
+    "createdAt": "2026-08-18T07:59:05.790Z",
+    "completedAt": "2026-08-18T07:59:11.000Z",
+    "error": "Solver exited with code 1.   File \"/home/runner/workspace/solver/open-fpl-solver/run/solve.py\", line 123, in solve_regular |     my_data = generate_team_json(team_id, options) |   File \"/home/runner/workspace/solver/open-fpl-solver/dev/solver.py\", line 49, in generate_team_json |     first_gw = history[\"current\"][0][\"event\"] |                ~~~~~~~~~~~~~~~~~~^^^ | IndexError: list index out of range",
+    "request": {
+      "projectionId": "mswzx23ifbjjsp",
+      "firstGameweek": false,
+      "teamId": 1,
+      "horizon": 2,
+      "poolFilter": {
+        "gkMain": 12,
+        "gkBench": 4,
+        "defMain": 32,
+        "defBench": 8,
+        "midMain": 32,
+        "midBench": 8,
+        "fwdMain": 20,
+        "fwdBench": 4
+      },
+      "options": {
+        "secs": 90,
+        "gap": 0.05
+      }
+    },
+    "projectionFilename": "FFH predictions 2026-08-17 (GW1-5)",
+    "totalExpectedPoints": null,
+    "result": null,
+    "poolKept": 120,
+    "poolTotal": 568
+  },
+  {
     "id": "msydajdfvdzdbt",
     "status": "completed",
     "createdAt": "2026-08-18T07:54:52.179Z",

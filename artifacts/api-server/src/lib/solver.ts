@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { logger } from "./logger";
 import { parseCsv } from "./csv";
+import { getFplTeam } from "./fpl";
 import {
   RUNS_DIR,
   SOLVER_DATA_DIR,
@@ -502,7 +503,10 @@ export function solveTimeoutMs(request: SolveRequest): number {
 }
 
 /** Run the open-fpl-solver as a child process and persist the outcome on the run. */
-export function startSolve(runId: string, request: SolveRequest): void {
+export async function startSolve(
+  runId: string,
+  request: SolveRequest,
+): Promise<void> {
   const runDir = path.join(RUNS_DIR, runId);
   fs.mkdirSync(runDir, { recursive: true });
 
@@ -541,6 +545,12 @@ export function startSolve(runId: string, request: SolveRequest): void {
           ).ids) {
             keepIds.add(id);
           }
+        }
+        // When optimizing an existing team, the current squad must stay in
+        // the pool — the solver can't sell players it can't see.
+        if (!request.firstGameweek && request.teamId) {
+          const team = await getFplTeam(request.teamId);
+          for (const p of team.squad) keepIds.add(p.playerId);
         }
       }
       const written = writeRunProjection(
