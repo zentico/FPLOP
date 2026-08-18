@@ -1,6 +1,7 @@
 import React from "react";
-import { useListSolves, useDeleteSolve, getListSolvesQueryKey } from "@workspace/api-client-react";
+import { useListSolves, useDeleteSolve, useListMegaSolves, useDeleteMegaSolve, getListSolvesQueryKey, getListMegaSolvesQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { FlaskConical } from "lucide-react";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,8 +14,21 @@ import { formatChipStrategy, formatDifferentialFactor, formatPool } from "./solv
 export default function HistoryPage() {
   const { data: solves, isLoading } = useListSolves();
   const deleteMutation = useDeleteSolve();
+  const { data: megas } = useListMegaSolves();
+  const deleteMegaMutation = useDeleteMegaSolve();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  const handleDeleteMega = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    deleteMegaMutation.mutate({ id }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListMegaSolvesQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getListSolvesQueryKey() });
+        toast({ title: "Chip analysis deleted" });
+      }
+    });
+  };
 
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.preventDefault(); // Prevent navigating
@@ -30,7 +44,7 @@ export default function HistoryPage() {
     return <div className="text-center py-20 text-muted-foreground font-mono animate-pulse">Loading history...</div>;
   }
 
-  if (!solves || solves.length === 0) {
+  if ((!solves || solves.length === 0) && (!megas || megas.length === 0)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 animate-in fade-in">
         <div className="bg-muted p-6 rounded-full">
@@ -56,8 +70,57 @@ export default function HistoryPage() {
         <p className="text-muted-foreground mt-2">Past optimization runs and their outcomes.</p>
       </div>
 
+      {megas && megas.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
+            <FlaskConical className="h-4 w-4 text-primary" />
+            Chip Strategy Analyses
+          </h2>
+          <div className="grid gap-3">
+            {megas.map((mega) => (
+              <Link key={mega.id} href={`/mega/${mega.id}`}>
+                <Card className="cursor-pointer group hover:border-primary/50 transition-colors bg-card hover-elevate">
+                  <CardContent className="p-4 flex items-center gap-4 flex-wrap">
+                    <div className={`w-2 h-10 rounded shrink-0 ${
+                      mega.status === 'completed' ? 'bg-green-500' :
+                      mega.status === 'failed' ? 'bg-destructive' :
+                      'bg-blue-500 animate-pulse'
+                    }`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-sm text-muted-foreground">
+                          {format(new Date(mega.createdAt), "MMM d, HH:mm")}
+                        </span>
+                        <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-wider">{mega.status}</Badge>
+                      </div>
+                      <div className="font-bold truncate" title={mega.projectionFilename || undefined}>
+                        {mega.projectionFilename || "Chip analysis"}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {mega.horizon} GW horizon · {mega.scenarios.filter((s) => s.status === "completed").length}/6 scenarios complete
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => handleDeleteMega(mega.id, e)}
+                      disabled={deleteMegaMutation.isPending}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                    <ChevronRight className="h-5 w-5 text-primary" />
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+          <h2 className="text-lg font-bold tracking-tight pt-2">Individual Runs</h2>
+        </div>
+      )}
+
       <div className="grid gap-4">
-        {solves.map((solve) => (
+        {(solves ?? []).map((solve) => (
           <Link key={solve.id} href={`/solves/${solve.id}`}>
             <Card className="cursor-pointer group hover:border-primary/50 transition-colors bg-card hover-elevate">
               <CardContent className="p-0">

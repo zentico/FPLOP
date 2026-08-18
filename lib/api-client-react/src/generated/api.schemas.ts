@@ -357,3 +357,38 @@ export interface SolveRun {
   progress?: SolveProgress | null;
 }
 
+export interface MegaScenario {
+  /** One of none, free, no-wildcard, no-bench_boost, no-free_hit, no-triple_captain */
+  key: string;
+  runId: string;
+  /** One of queued, running, completed, failed */
+  status: string;
+  /** @nullable */
+  totalExpectedPoints?: number | null;
+  /**
+     * Points gained vs the no-chips baseline (null until both completed)
+     * @nullable
+     */
+  deltaVsBaseline?: number | null;
+  /** Chips the solver chose to play in this scenario */
+  chips: ChipAssignment[];
+}
+
+export interface MegaRun {
+  id: string;
+  /** One of queued, running, completed, failed */
+  status: string;
+  createdAt: string;
+  /** @nullable */
+  completedAt?: string | null;
+  /** @nullable */
+  error?: string | null;
+  projectionId: string;
+  /** @nullable */
+  projectionFilename?: string | null;
+  horizon: number;
+  /** Gameweeks in which chips are allowed to be played */
+  chipWindow: number[];
+  scenarios: MegaScenario[];
+}
+

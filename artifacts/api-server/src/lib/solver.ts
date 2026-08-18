@@ -494,16 +494,40 @@ function buildConfig(
     if (opts.secs != null) config["secs"] = intClamp(opts.secs, 10, MAX_SOLVE_SECS);
     if (opts.gap != null) config["gap"] = clamp(opts.gap, 0, 1);
     if (opts.randomized != null) config["randomized"] = opts.randomized;
-    if (opts.opposingPlay === "penalty" || opts.opposingPlay === "forbid") {
-      // Only defensive-vs-attacking matchups (GK/DEF facing MID/FWD) are
-      // targeted — attacker-vs-attacker matchups are not zero-sum.
-      config["no_opposing_play"] =
-        opts.opposingPlay === "forbid" ? true : "penalty";
-      config["opposing_play_group"] = "position";
+    if (opts.opposingPlay != null) applyOpposingPlay(config, opts.opposingPlay);
+  }
+
+  // Mega-run scenarios: solver chooses chip timing within the allowed window.
+  const chipMode = request.chipMode;
+  if (chipMode && chipMode.available.length > 0 && chipMode.allowedGws.length > 0) {
+    const allowed: Record<string, number[]> = {};
+    for (const chip of chipMode.available) {
+      const code = CHIP_CODE_SHORT[chip];
+      if (code) allowed[code] = chipMode.allowedGws;
     }
+    config["allowed_chip_gws"] = allowed;
   }
 
   return config;
+}
+
+const CHIP_CODE_SHORT: Record<string, string> = {
+  wildcard: "wc",
+  bench_boost: "bb",
+  free_hit: "fh",
+  triple_captain: "tc",
+};
+
+function applyOpposingPlay(
+  config: Record<string, unknown>,
+  opposingPlay: string,
+): void {
+  if (opposingPlay === "penalty" || opposingPlay === "forbid") {
+    // Only defensive-vs-attacking matchups (GK/DEF facing MID/FWD) are
+    // targeted — attacker-vs-attacker matchups are not zero-sum.
+    config["no_opposing_play"] = opposingPlay === "forbid" ? true : "penalty";
+    config["opposing_play_group"] = "position";
+  }
 }
 
 const MAX_SOLVE_SECS = 30 * 60;
@@ -531,9 +555,10 @@ export async function startSolve(
   const k = clampDifferentialFactor(request.differentialFactor ?? 0);
   const filter = request.poolFilter ?? null;
   const useAdjusted = k > 0 || filter != null;
-  const datasource = useAdjusted ? `${request.projectionId}-r${runId}` : request.projectionId;
+  // Always solve against a per-run datasource so concurrent runs can never
+  // pick up each other's result files (they are matched by datasource prefix).
+  const datasource = `${request.projectionId}-r${runId}`;
   const cleanupAdjusted = () => {
-    if (!useAdjusted) return;
     try {
       fs.unlinkSync(path.join(SOLVER_DATA_DIR, `${datasource}.csv`));
     } catch {
@@ -579,6 +604,11 @@ export async function startSolve(
       if (filter) {
         updateRun(runId, { poolKept: written.kept, poolTotal: written.total });
       }
+    } else {
+      fs.copyFileSync(
+        projectionCsvPath(request.projectionId),
+        path.join(SOLVER_DATA_DIR, `${datasource}.csv`),
+      );
     }
 
     const configPath = path.join(runDir, "config.json");

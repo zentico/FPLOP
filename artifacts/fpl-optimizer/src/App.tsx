@@ -10,6 +10,7 @@ import { Layout } from '@/components/layout';
 import Home from '@/pages/home';
 import SolveDetail from '@/pages/solve';
 import HistoryPage from '@/pages/history';
+import MegaDetail from '@/pages/mega';
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,7 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/history" component={HistoryPage} />
           <Route path="/solves/:id" component={SolveDetail} />
+          <Route path="/mega/:id" component={MegaDetail} />
           <Route component={NotFound} />
         </Switch>
       </RoutedErrorBoundary>

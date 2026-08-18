@@ -333,6 +333,86 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorMessage"
+  /solves/mega:
+    get:
+      operationId: listMegaSolves
+      tags: [solves]
+      summary: List chip-strategy analysis runs, most recent first
+      responses:
+        "200":
+          description: List of mega runs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MegaRun"
+    post:
+      operationId: createMegaSolve
+      tags: [solves]
+      summary: Start a chip-strategy analysis (6 sequential solves)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolveInput"
+      responses:
+        "201":
+          description: Mega run started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MegaRun"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+  /solves/mega/{id}:
+    get:
+      operationId: getMegaSolve
+      tags: [solves]
+      summary: Get a chip-strategy analysis with per-scenario results
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Mega run
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MegaRun"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+    delete:
+      operationId: deleteMegaSolve
+      tags: [solves]
+      summary: Delete a chip-strategy analysis and its scenario runs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
   /solves/{id}:
     get:
       operationId: getSolve
@@ -738,6 +818,58 @@ components:
           oneOf:
             - $ref: "#/components/schemas/SolveProgress"
             - type: "null"
+    MegaScenario:
+      type: object
+      required: [key, runId, status, chips]
+      properties:
+        key:
+          type: string
+          description: One of none, free, only-wildcard, only-bench_boost, only-free_hit, only-triple_captain
+        runId:
+          type: string
+        status:
+          type: string
+          description: One of queued, running, completed, failed
+        totalExpectedPoints:
+          type: ["number", "null"]
+        deltaVsBaseline:
+          type: ["number", "null"]
+          description: Points gained vs the no-chips baseline (null until both completed)
+        chips:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChipAssignment"
+          description: Chips the solver chose to play in this scenario
+    MegaRun:
+      type: object
+      required: [id, status, createdAt, projectionId, horizon, chipWindow, scenarios]
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          description: One of queued, running, completed, failed
+        createdAt:
+          type: string
+        completedAt:
+          type: ["string", "null"]
+        error:
+          type: ["string", "null"]
+        projectionId:
+          type: string
+        projectionFilename:
+          type: ["string", "null"]
+        horizon:
+          type: number
+        chipWindow:
+          type: array
+          items:
+            type: number
+          description: Gameweeks in which chips are allowed to be played
+        scenarios:
+          type: array
+          items:
+            $ref: "#/components/schemas/MegaScenario"
     SolveProgress:
       type: object
       required: [stage, message]

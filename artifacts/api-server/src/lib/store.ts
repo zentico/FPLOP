@@ -53,6 +53,11 @@ export interface SolveRequest {
   poolFilter?: PoolFilter | null;
   chips?: ChipAssignment[];
   options?: SolveOptions | null;
+  /**
+   * Internal (mega-run scenarios only): let the solver choose chip timing.
+   * Each listed chip may be played at most once, restricted to allowedGws.
+   */
+  chipMode?: { available: string[]; allowedGws: number[] } | null;
 }
 
 export interface PickPlayer {
@@ -100,8 +105,27 @@ export interface SolveRunMeta {
   result?: SolveResult | null;
 }
 
+export interface MegaScenarioMeta {
+  key: string;
+  runId: string;
+}
+
+export interface MegaRunMeta {
+  id: string;
+  status: "queued" | "running" | "completed" | "failed";
+  createdAt: string;
+  completedAt?: string | null;
+  error?: string | null;
+  projectionId: string;
+  projectionFilename?: string | null;
+  horizon: number;
+  chipWindow: number[];
+  scenarios: MegaScenarioMeta[];
+}
+
 const PROJECTIONS_FILE = path.join(STORE_DIR, "projections.json");
 const RUNS_FILE = path.join(STORE_DIR, "runs.json");
+const MEGA_FILE = path.join(STORE_DIR, "mega.json");
 
 function readJson<T>(file: string, fallback: T): T {
   try {
@@ -156,6 +180,26 @@ export function updateRun(
   Object.assign(run, update);
   saveRunMetas(runs);
   return run;
+}
+
+export function listMegaMetas(): MegaRunMeta[] {
+  return readJson<MegaRunMeta[]>(MEGA_FILE, []);
+}
+
+export function saveMegaMetas(megas: MegaRunMeta[]): void {
+  writeJson(MEGA_FILE, megas);
+}
+
+export function updateMega(
+  id: string,
+  update: Partial<MegaRunMeta>,
+): MegaRunMeta | undefined {
+  const megas = listMegaMetas();
+  const mega = megas.find((m) => m.id === id);
+  if (!mega) return undefined;
+  Object.assign(mega, update);
+  saveMegaMetas(megas);
+  return mega;
 }
 
 export function newId(): string {

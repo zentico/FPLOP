@@ -4,8 +4,10 @@ import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
 import { failStaleRuns } from "./lib/solver";
+import { failStaleMegas } from "./lib/mega";
 
 failStaleRuns();
+failStaleMegas();
 
 const app: Express = express();
 

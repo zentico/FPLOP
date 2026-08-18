@@ -17,12 +17,17 @@ import {
   startSolve,
 } from "../lib/solver";
 import {
+  type MegaRunMeta,
   type SolveRunMeta,
+  listMegaMetas,
   listProjectionMetas,
   listRunMetas,
   newId,
+  saveMegaMetas,
   saveRunMetas,
 } from "../lib/store";
+import { createMegaRun } from "../lib/mega";
+import { getGameweekInfo } from "../lib/fpl";
 
 const router: IRouter = Router();
 
@@ -38,34 +43,30 @@ router.get("/solves", async (_req, res): Promise<void> => {
   res.json(ListSolvesResponse.parse(runs.map(summary)));
 });
 
-router.post("/solves", async (req, res): Promise<void> => {
-  const parsed = CreateSolveBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
-  const request = parsed.data;
+type SolveRequestInput = ReturnType<typeof CreateSolveBody.parse>;
 
+/**
+ * Full semantic validation shared by the solve and mega-solve endpoints.
+ * Returns the projection meta on success, or an error message to send as 400.
+ */
+function validateSolveRequest(
+  request: SolveRequestInput,
+): { projection: ReturnType<typeof listProjectionMetas>[number] } | { error: string } {
   const projection = listProjectionMetas().find(
     (m) => m.id === request.projectionId,
   );
   if (!projection) {
-    res.status(400).json({ error: "Projection not found" });
-    return;
+    return { error: "Projection not found" };
   }
   if (!request.firstGameweek && !request.teamId) {
-    res.status(400).json({
+    return {
       error: "A team ID is required unless optimizing for the first gameweek",
-    });
-    return;
+    };
   }
   const chips = request.chips ?? [];
   const chipNames = chips.map((c) => c.chip);
   if (new Set(chipNames).size !== chipNames.length) {
-    res.status(400).json({
-      error: "Each chip can only be assigned to one gameweek",
-    });
-    return;
+    return { error: "Each chip can only be assigned to one gameweek" };
   }
 
   const resolved: Record<"banned" | "locked", number[]> = {
@@ -79,10 +80,9 @@ router.post("/solves", async (req, res): Promise<void> => {
     if (refs?.length) {
       const { ids, unknown } = resolvePlayerRefs(request.projectionId, refs);
       if (unknown.length > 0) {
-        res.status(400).json({
+        return {
           error: `Unknown ${label} player(s): ${unknown.join(", ")}. Use names exactly as they appear in the projection (e.g. "Haaland").`,
-        });
-        return;
+        };
       }
       resolved[label] = ids;
     }
@@ -90,26 +90,21 @@ router.post("/solves", async (req, res): Promise<void> => {
   const bannedIds = new Set(resolved.banned);
   const overlap = resolved.locked.filter((id) => bannedIds.has(id));
   if (overlap.length > 0) {
-    res.status(400).json({
+    return {
       error:
         "A player can't be both locked and banned. Remove the conflict and try again.",
-    });
-    return;
+    };
   }
 
   const k = request.differentialFactor ?? 0;
   if (k < 0 || k > 1) {
-    res.status(400).json({
-      error: "Differential factor must be between 0% and 100%",
-    });
-    return;
+    return { error: "Differential factor must be between 0% and 100%" };
   }
   if (k > 0 && !projectionHasOwnership(request.projectionId)) {
-    res.status(400).json({
+    return {
       error:
         "This projection has no Ownership column, so a differential factor can't be applied. Re-import predictions from Fantasy Football Hub to get ownership data.",
-    });
-    return;
+    };
   }
 
   const filter = request.poolFilter;
@@ -125,10 +120,7 @@ router.post("/solves", async (req, res): Promise<void> => {
       ["Forwards (bench)", filter.fwdBench],
     ] as const) {
       if (!Number.isInteger(v) || v < 0 || v > 500) {
-        res.status(400).json({
-          error: `${label} must be a whole number between 0 and 500`,
-        });
-        return;
+        return { error: `${label} must be a whole number between 0 and 500` };
       }
     }
     // A legal squad needs 2 GK, 5 DEF, 5 MID, 3 FWD — reject filters that
@@ -142,11 +134,10 @@ router.post("/solves", async (req, res): Promise<void> => {
     const seenIds = new Set<number>();
     for (const p of stats) {
       if (!Number.isFinite(p.id) || p.id <= 0 || seenIds.has(p.id)) {
-        res.status(400).json({
+        return {
           error:
             "This projection has missing or duplicate player IDs, so the pool filter can't be applied. Re-import the projection or run without the filter.",
-        });
-        return;
+        };
       }
       seenIds.add(p.id);
     }
@@ -169,14 +160,30 @@ router.post("/solves", async (req, res): Promise<void> => {
     ];
     const short = quotas.filter(([pos, , need]) => byPos[pos]! < need);
     if (short.length > 0) {
-      res.status(400).json({
+      return {
         error: `The pool filter leaves too few players to build a legal squad (${short
           .map(([pos, label, need]) => `${byPos[pos]} of ${need} ${label}`)
           .join(", ")}). Increase the per-position counts.`,
-      });
-      return;
+      };
     }
   }
+
+  return { projection };
+}
+
+router.post("/solves", async (req, res): Promise<void> => {
+  const parsed = CreateSolveBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const request = parsed.data;
+  const validated = validateSolveRequest(request);
+  if ("error" in validated) {
+    res.status(400).json({ error: validated.error });
+    return;
+  }
+  const { projection } = validated;
 
   const run: SolveRunMeta = {
     id: newId(),
@@ -200,6 +207,91 @@ router.post("/solves", async (req, res): Promise<void> => {
   });
 
   res.status(201).json(CreateSolveResponse.parse(run));
+});
+
+/** Assemble a MegaRun response with fresh per-scenario data from child runs. */
+function megaView(mega: MegaRunMeta): Record<string, unknown> {
+  const runs = listRunMetas();
+  const byId = new Map(runs.map((r) => [r.id, r]));
+  const baseline = byId.get(
+    mega.scenarios.find((s) => s.key === "none")?.runId ?? "",
+  );
+  const basePts =
+    baseline?.status === "completed" ? (baseline.totalExpectedPoints ?? null) : null;
+  return {
+    ...mega,
+    scenarios: mega.scenarios.map((s) => {
+      const run = byId.get(s.runId);
+      const pts =
+        run?.status === "completed" ? (run.totalExpectedPoints ?? null) : null;
+      const chips =
+        run?.result?.gameweeks
+          ?.filter((g) => g.chip)
+          .map((g) => ({ chip: g.chip as string, gameweek: g.gameweek })) ?? [];
+      return {
+        key: s.key,
+        runId: s.runId,
+        status: run?.status ?? "failed",
+        totalExpectedPoints: pts,
+        deltaVsBaseline: pts != null && basePts != null ? pts - basePts : null,
+        chips,
+      };
+    }),
+  };
+}
+
+router.get("/solves/mega", async (_req, res): Promise<void> => {
+  const megas = [...listMegaMetas()].sort((a, b) =>
+    b.createdAt.localeCompare(a.createdAt),
+  );
+  res.json(megas.map(megaView));
+});
+
+router.post("/solves/mega", async (req, res): Promise<void> => {
+  const parsed = CreateSolveBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const request = parsed.data;
+  const validated = validateSolveRequest(request);
+  if ("error" in validated) {
+    res.status(400).json({ error: validated.error });
+    return;
+  }
+  const { projection } = validated;
+  let firstGw: number;
+  try {
+    firstGw = (await getGameweekInfo()).nextGameweek;
+  } catch {
+    // Fall back to the earliest gameweek the projection covers.
+    firstGw = projection.gameweeks[0] ?? 1;
+  }
+  const mega = createMegaRun(request, projection.filename, firstGw);
+  res.status(201).json(megaView(mega));
+});
+
+router.get("/solves/mega/:id", async (req, res): Promise<void> => {
+  const mega = listMegaMetas().find((m) => m.id === req.params.id);
+  if (!mega) {
+    res.status(404).json({ error: "Analysis not found" });
+    return;
+  }
+  res.json(megaView(mega));
+});
+
+router.delete("/solves/mega/:id", async (req, res): Promise<void> => {
+  const megas = listMegaMetas();
+  const idx = megas.findIndex((m) => m.id === req.params.id);
+  if (idx === -1) {
+    res.status(404).json({ error: "Analysis not found" });
+    return;
+  }
+  const childIds = new Set(megas[idx]!.scenarios.map((s) => s.runId));
+  megas.splice(idx, 1);
+  saveMegaMetas(megas);
+  saveRunMetas(listRunMetas().filter((r) => !childIds.has(r.id)));
+  res.sendStatus(204);
 });
 
 router.get("/solves/:id", async (req, res): Promise<void> => {

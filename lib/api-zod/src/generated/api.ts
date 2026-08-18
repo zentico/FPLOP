@@ -428,6 +428,141 @@ export const CreateSolveResponse = zod.object({
 
 
 /**
+ * @summary List chip-strategy analysis runs, most recent first
+ */
+export const ListMegaSolvesResponseItem = zod.object({
+  "id": zod.string(),
+  "status": zod.string().describe('One of queued, running, completed, failed'),
+  "createdAt": zod.string(),
+  "completedAt": zod.string().nullish(),
+  "error": zod.string().nullish(),
+  "projectionId": zod.string(),
+  "projectionFilename": zod.string().nullish(),
+  "horizon": zod.number(),
+  "chipWindow": zod.array(zod.number()).describe('Gameweeks in which chips are allowed to be played'),
+  "scenarios": zod.array(zod.object({
+  "key": zod.string().describe('One of none, free, no-wildcard, no-bench_boost, no-free_hit, no-triple_captain'),
+  "runId": zod.string(),
+  "status": zod.string().describe('One of queued, running, completed, failed'),
+  "totalExpectedPoints": zod.number().nullish(),
+  "deltaVsBaseline": zod.number().nullish().describe('Points gained vs the no-chips baseline (null until both completed)'),
+  "chips": zod.array(zod.object({
+  "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
+  "gameweek": zod.number()
+})).describe('Chips the solver chose to play in this scenario')
+}))
+})
+export const ListMegaSolvesResponse = zod.array(ListMegaSolvesResponseItem)
+
+
+/**
+ * @summary Start a chip-strategy analysis (6 sequential solves)
+ */
+export const CreateMegaSolveBody = zod.object({
+  "projectionId": zod.string(),
+  "firstGameweek": zod.boolean().describe('True when there is no existing team and a full squad is optimized from scratch'),
+  "teamId": zod.number().nullish().describe('FPL team code, required when firstGameweek is false'),
+  "horizon": zod.number().optional().describe('Number of gameweeks to optimize over (default 5)'),
+  "differentialFactor": zod.number().optional().describe('Differential factor k as a fraction (e.g. 0.2 for 20%). Each player\'s projected points are scaled by 1 + k \* (100 - ownership%) \/ 100 before optimization. Requires the projection to include an Ownership column.\n'),
+  "poolFilter": zod.union([zod.object({
+  "gkMain": zod.number().describe('Goalkeepers kept by main-squad rank'),
+  "gkBench": zod.number().describe('Additional goalkeepers kept by bench-squad rank'),
+  "defMain": zod.number().describe('Defenders kept by main-squad rank'),
+  "defBench": zod.number().describe('Additional defenders kept by bench-squad rank'),
+  "midMain": zod.number().describe('Midfielders kept by main-squad rank'),
+  "midBench": zod.number().describe('Additional midfielders kept by bench-squad rank'),
+  "fwdMain": zod.number().describe('Forwards kept by main-squad rank'),
+  "fwdBench": zod.number().describe('Additional forwards kept by bench-squad rank')
+}).describe('Rank-based pool selection. Within each position players are ranked by impact (points per match), value (ppm per £m) and price (cheaper better). Per position the top `main` players by the average of impact and value ranks are kept, then from the remainder the top `bench` players by the average of price and value ranks. Locked players are always kept. All counts must be whole numbers between 0 and 500 (enforced server-side).\n'),zod.null()]).optional(),
+  "chips": zod.array(zod.object({
+  "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
+  "gameweek": zod.number()
+})).optional(),
+  "options": zod.union([zod.object({
+  "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
+  "locked": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must keep in the squad'),
+  "noTransferLastGws": zod.number().nullish().describe('Roll transfers in the last N gameweeks of the horizon'),
+  "noFutureTransfer": zod.boolean().nullish().describe('Only plan transfers for the next gameweek'),
+  "numTransfers": zod.number().nullish().describe('Force an exact number of transfers next gameweek'),
+  "hitLimit": zod.number().nullish().describe('Maximum total points hits over the horizon'),
+  "weeklyHitLimit": zod.number().nullish().describe('Maximum hits in a single gameweek'),
+  "decayBase": zod.number().nullish().describe('Weight of future gameweeks (1 = no decay, lower = focus on near term)'),
+  "ftValue": zod.number().nullish().describe('Value of carrying a free transfer, in points'),
+  "itbValue": zod.number().nullish().describe('Value per 1.0 in the bank, in points'),
+  "xminLb": zod.number().nullish().describe('Exclude players below this many total expected minutes'),
+  "secs": zod.number().nullish().describe('Solver time limit in seconds'),
+  "gap": zod.number().nullish().describe('Acceptable optimality gap (0 = prove optimal)'),
+  "randomized": zod.boolean().nullish().describe('Add noise to projections for alternative solutions'),
+  "opposingPlay": zod.union([zod.literal('off'),zod.literal('penalty'),zod.literal('forbid'),zod.literal(null)]).nullish().describe('Handling of zero-sum starting XI matchups (your GK\/DEF facing your own MID\/FWD in the same gameweek). \"penalty\" discourages them softly, \"forbid\" bans them outright, \"off\"\/null leaves them allowed.')
+}).describe('Advanced solver settings, mirroring open-fpl-solver config keys'),zod.null()]).optional()
+})
+
+export const CreateMegaSolveResponse = zod.object({
+  "id": zod.string(),
+  "status": zod.string().describe('One of queued, running, completed, failed'),
+  "createdAt": zod.string(),
+  "completedAt": zod.string().nullish(),
+  "error": zod.string().nullish(),
+  "projectionId": zod.string(),
+  "projectionFilename": zod.string().nullish(),
+  "horizon": zod.number(),
+  "chipWindow": zod.array(zod.number()).describe('Gameweeks in which chips are allowed to be played'),
+  "scenarios": zod.array(zod.object({
+  "key": zod.string().describe('One of none, free, no-wildcard, no-bench_boost, no-free_hit, no-triple_captain'),
+  "runId": zod.string(),
+  "status": zod.string().describe('One of queued, running, completed, failed'),
+  "totalExpectedPoints": zod.number().nullish(),
+  "deltaVsBaseline": zod.number().nullish().describe('Points gained vs the no-chips baseline (null until both completed)'),
+  "chips": zod.array(zod.object({
+  "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
+  "gameweek": zod.number()
+})).describe('Chips the solver chose to play in this scenario')
+}))
+})
+
+
+/**
+ * @summary Get a chip-strategy analysis with per-scenario results
+ */
+export const GetMegaSolveParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const GetMegaSolveResponse = zod.object({
+  "id": zod.string(),
+  "status": zod.string().describe('One of queued, running, completed, failed'),
+  "createdAt": zod.string(),
+  "completedAt": zod.string().nullish(),
+  "error": zod.string().nullish(),
+  "projectionId": zod.string(),
+  "projectionFilename": zod.string().nullish(),
+  "horizon": zod.number(),
+  "chipWindow": zod.array(zod.number()).describe('Gameweeks in which chips are allowed to be played'),
+  "scenarios": zod.array(zod.object({
+  "key": zod.string().describe('One of none, free, no-wildcard, no-bench_boost, no-free_hit, no-triple_captain'),
+  "runId": zod.string(),
+  "status": zod.string().describe('One of queued, running, completed, failed'),
+  "totalExpectedPoints": zod.number().nullish(),
+  "deltaVsBaseline": zod.number().nullish().describe('Points gained vs the no-chips baseline (null until both completed)'),
+  "chips": zod.array(zod.object({
+  "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
+  "gameweek": zod.number()
+})).describe('Chips the solver chose to play in this scenario')
+}))
+})
+
+
+/**
+ * @summary Delete a chip-strategy analysis and its scenario runs
+ */
+export const DeleteMegaSolveParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteMegaSolveResponse = zod.void()
+
+
+/**
  * @summary Get a solve run with its result when completed
  */
 export const GetSolveParams = zod.object({

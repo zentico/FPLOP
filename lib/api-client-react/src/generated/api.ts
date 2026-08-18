@@ -28,6 +28,7 @@ import type {
   GameweekInfo,
   HealthStatus,
   ImportProjectionInput,
+  MegaRun,
   PoolPlayerStat,
   ProjectedPlayer,
   Projection,
@@ -1187,6 +1188,302 @@ export const useCreateSolve = <TError = ErrorType<ErrorMessage>,
         TContext
       > => {
       return useMutation(getCreateSolveMutationOptions(options));
+    }
+
+export const getListMegaSolvesUrl = () => {
+
+
+
+
+  return `/api/solves/mega`
+}
+
+/**
+ * @summary List chip-strategy analysis runs, most recent first
+ */
+export const listMegaSolves = async ( options?: Parameters<typeof customFetch>[1]): Promise<MegaRun[]> => {
+
+  return customFetch<MegaRun[]>(getListMegaSolvesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMegaSolvesQueryKey = () => {
+    return [
+    `/api/solves/mega`
+    ] as const;
+    }
+
+
+export const getListMegaSolvesQueryOptions = <TData = Awaited<ReturnType<typeof listMegaSolves>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMegaSolves>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMegaSolvesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMegaSolves>>> = ({ signal }) => listMegaSolves({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMegaSolves>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListMegaSolvesQueryResult = NonNullable<Awaited<ReturnType<typeof listMegaSolves>>>
+export type ListMegaSolvesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List chip-strategy analysis runs, most recent first
+ */
+
+export function useListMegaSolves<TData = Awaited<ReturnType<typeof listMegaSolves>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMegaSolves>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListMegaSolvesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateMegaSolveUrl = () => {
+
+
+
+
+  return `/api/solves/mega`
+}
+
+/**
+ * @summary Start a chip-strategy analysis (6 sequential solves)
+ */
+export const createMegaSolve = async (solveInput: SolveInput, options?: Parameters<typeof customFetch>[1]): Promise<MegaRun> => {
+
+  return customFetch<MegaRun>(getCreateMegaSolveUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(solveInput)
+  }
+);}
+
+
+
+
+
+export const getCreateMegaSolveMutationOptions = <TError = ErrorType<ErrorMessage>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMegaSolve>>, TError,{data: BodyType<SolveInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createMegaSolve>>, TError,{data: BodyType<SolveInput>}, TContext> => {
+
+const mutationKey = ['createMegaSolve'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createMegaSolve>>, {data: BodyType<SolveInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createMegaSolve(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateMegaSolveMutationResult = NonNullable<Awaited<ReturnType<typeof createMegaSolve>>>
+    export type CreateMegaSolveMutationBody = BodyType<SolveInput>
+    export type CreateMegaSolveMutationError = ErrorType<ErrorMessage>
+
+    /**
+ * @summary Start a chip-strategy analysis (6 sequential solves)
+ */
+export const useCreateMegaSolve = <TError = ErrorType<ErrorMessage>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMegaSolve>>, TError,{data: BodyType<SolveInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createMegaSolve>>,
+        TError,
+        {data: BodyType<SolveInput>},
+        TContext
+      > => {
+      return useMutation(getCreateMegaSolveMutationOptions(options));
+    }
+
+export const getGetMegaSolveUrl = (id: string,) => {
+
+
+
+
+  return `/api/solves/mega/${id}`
+}
+
+/**
+ * @summary Get a chip-strategy analysis with per-scenario results
+ */
+export const getMegaSolve = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<MegaRun> => {
+
+  return customFetch<MegaRun>(getGetMegaSolveUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMegaSolveQueryKey = (id: string,) => {
+    return [
+    `/api/solves/mega/${id}`
+    ] as const;
+    }
+
+
+export const getGetMegaSolveQueryOptions = <TData = Awaited<ReturnType<typeof getMegaSolve>>, TError = ErrorType<ErrorMessage>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMegaSolve>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMegaSolveQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMegaSolve>>> = ({ signal }) => getMegaSolve(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMegaSolve>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMegaSolveQueryResult = NonNullable<Awaited<ReturnType<typeof getMegaSolve>>>
+export type GetMegaSolveQueryError = ErrorType<ErrorMessage>
+
+
+/**
+ * @summary Get a chip-strategy analysis with per-scenario results
+ */
+
+export function useGetMegaSolve<TData = Awaited<ReturnType<typeof getMegaSolve>>, TError = ErrorType<ErrorMessage>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMegaSolve>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMegaSolveQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDeleteMegaSolveUrl = (id: string,) => {
+
+
+
+
+  return `/api/solves/mega/${id}`
+}
+
+/**
+ * @summary Delete a chip-strategy analysis and its scenario runs
+ */
+export const deleteMegaSolve = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteMegaSolveUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteMegaSolveMutationOptions = <TError = ErrorType<ErrorMessage>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMegaSolve>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteMegaSolve>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteMegaSolve'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteMegaSolve>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteMegaSolve(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteMegaSolveMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMegaSolve>>>
+
+    export type DeleteMegaSolveMutationError = ErrorType<ErrorMessage>
+
+    /**
+ * @summary Delete a chip-strategy analysis and its scenario runs
+ */
+export const useDeleteMegaSolve = <TError = ErrorType<ErrorMessage>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMegaSolve>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteMegaSolve>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteMegaSolveMutationOptions(options));
     }
 
 export const getGetSolveUrl = (id: string,) => {

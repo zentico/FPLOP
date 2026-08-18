@@ -18,6 +18,8 @@ export * from './gameweekPlan';
 export * from './gameweekPoints';
 export * from './healthStatus';
 export * from './importProjectionInput';
+export * from './megaRun';
+export * from './megaScenario';
 export * from './pickPlayer';
 export * from './poolFilter';
 export * from './poolPlayerStat';

@@ -1,5 +1,5 @@
 import React from "react";
-import { useUploadProjection, useImportProjection, useGetFfhSessionStatus, useUpdateFfhSession, useListProjections, useDeleteProjection, useGetProjectionPlayers, useGetProjectionPoolStats, useGetGameweekInfo, useGetFplTeam, useCreateSolve, getGetFplTeamQueryKey, getGetProjectionPlayersQueryKey, getGetProjectionPoolStatsQueryKey, getListProjectionsQueryKey } from "@workspace/api-client-react";
+import { useUploadProjection, useImportProjection, useGetFfhSessionStatus, useUpdateFfhSession, useListProjections, useDeleteProjection, useGetProjectionPlayers, useGetProjectionPoolStats, useGetGameweekInfo, useGetFplTeam, useCreateSolve, useCreateMegaSolve, getGetFplTeamQueryKey, getGetProjectionPlayersQueryKey, getGetProjectionPoolStatsQueryKey, getListProjectionsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -196,6 +196,7 @@ export default function Home() {
   const deleteMutation = useDeleteProjection();
   const queryClient = useQueryClient();
   const createSolveMutation = useCreateSolve();
+  const createMegaMutation = useCreateMegaSolve();
 
   // Handlers
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -268,14 +269,14 @@ export default function Home() {
     });
   };
 
-  const handleStartSolve = () => {
+  const buildSolveRequest = () => {
     if (!projectionId) {
       toast({ title: "Missing projection", description: "Please select or upload a projection.", variant: "destructive" });
-      return;
+      return null;
     }
     if (!firstGameweek && !isTeamIdValid) {
       toast({ title: "Missing team ID", description: "Please enter a valid FPL team ID.", variant: "destructive" });
-      return;
+      return null;
     }
     
     const diffPct = Number(diffFactorStr);
@@ -285,7 +286,7 @@ export default function Home() {
         description: "Enter a percentage between 0 and 100 (0 = no adjustment).",
         variant: "destructive"
       });
-      return;
+      return null;
     }
 
     if (poolEnabled && !poolValid) {
@@ -294,7 +295,7 @@ export default function Home() {
         description: "All pool counts must be whole numbers between 0 and 500.",
         variant: "destructive"
       });
-      return;
+      return null;
     }
 
     const chipsArray = Object.entries(chips).map(([chip, gw]) => ({
@@ -333,24 +334,45 @@ export default function Home() {
     };
     const hasOptions = Object.values(options).some((v) => v !== undefined);
 
-    createSolveMutation.mutate({
-      data: {
-        projectionId,
-        firstGameweek,
-        teamId: firstGameweek ? null : teamIdNum,
-        horizon,
-        differentialFactor: diffPct > 0 ? diffPct / 100 : undefined,
-        poolFilter: poolEnabled ? poolNums : undefined,
-        chips: chipsArray.length > 0 ? chipsArray : undefined,
-        options: hasOptions ? options : undefined
-      }
-    }, {
+    return {
+      projectionId,
+      firstGameweek,
+      teamId: firstGameweek ? null : teamIdNum,
+      horizon,
+      differentialFactor: diffPct > 0 ? diffPct / 100 : undefined,
+      poolFilter: poolEnabled ? poolNums : undefined,
+      chips: chipsArray.length > 0 ? chipsArray : undefined,
+      options: hasOptions ? options : undefined
+    };
+  };
+
+  const handleStartSolve = () => {
+    const data = buildSolveRequest();
+    if (!data) return;
+    createSolveMutation.mutate({ data }, {
       onSuccess: (run) => {
         setLocation(`/solves/${run.id}`);
       },
       onError: (err: any) => {
         toast({
           title: "Failed to start solver",
+          description: err?.data?.error || err?.error || "Unknown error occurred.",
+          variant: "destructive"
+        });
+      }
+    });
+  };
+
+  const handleStartMega = () => {
+    const data = buildSolveRequest();
+    if (!data) return;
+    createMegaMutation.mutate({ data }, {
+      onSuccess: (mega) => {
+        setLocation(`/mega/${mega.id}`);
+      },
+      onError: (err: any) => {
+        toast({
+          title: "Failed to start chip analysis",
           description: err?.data?.error || err?.error || "Unknown error occurred.",
           variant: "destructive"
         });
@@ -808,15 +830,27 @@ export default function Home() {
               </div>
 
             </CardContent>
-            <CardFooter className="bg-muted/30 pt-6">
+            <CardFooter className="bg-muted/30 pt-6 flex-col gap-3">
               <Button 
                 onClick={handleStartSolve} 
-                disabled={createSolveMutation.isPending || !projectionId || (!firstGameweek && (!isTeamIdValid || !teamData))}
+                disabled={createSolveMutation.isPending || createMegaMutation.isPending || !projectionId || (!firstGameweek && (!isTeamIdValid || !teamData))}
                 size="lg" 
                 className="w-full font-bold text-lg h-14"
               >
                 {createSolveMutation.isPending ? "Initializing..." : "Start Solver"}
               </Button>
+              <Button
+                onClick={handleStartMega}
+                variant="outline"
+                disabled={createSolveMutation.isPending || createMegaMutation.isPending || !projectionId || (!firstGameweek && (!isTeamIdValid || !teamData))}
+                size="lg"
+                className="w-full font-bold h-12"
+              >
+                {createMegaMutation.isPending ? "Initializing..." : "Chip Strategy Analysis (6 solves)"}
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                Runs 6 sequential solves — no chips, free chip choice, and each chip excluded — then compares the points impact. Chips are only allowed in the first 6 weeks of the horizon. Manual chip assignments above are ignored.
+              </p>
             </CardFooter>
           </Card>
 
