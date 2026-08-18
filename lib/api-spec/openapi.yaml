@@ -922,6 +922,9 @@ components:
           description: Gameweek total using unadjusted projections, when a differential factor was applied
         bank:
           type: ["number", "null"]
+        freeTransfers:
+          type: ["number", "null"]
+          description: Free transfers available going into this gameweek
         lineup:
           type: array
           items:

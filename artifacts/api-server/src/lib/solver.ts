@@ -292,6 +292,7 @@ interface PickRow {
   chip: string;
   buy_price: string;
   iter: string;
+  ft: string;
 }
 
 function parseResultCsv(
@@ -363,6 +364,9 @@ function parseResultCsv(
           ) / 100
         : null,
       bank: null,
+      freeTransfers: Number.isFinite(Number(wr[0]?.ft))
+        ? Math.round(Number(wr[0]!.ft))
+        : null,
       lineup,
       bench,
       transfersIn: wr

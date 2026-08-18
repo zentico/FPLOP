@@ -78,6 +78,8 @@ export interface GameweekPlan {
   expectedPoints: number;
   baseExpectedPoints?: number | null;
   bank?: number | null;
+  /** Free transfers available going into this gameweek (from the solver's ft column). */
+  freeTransfers?: number | null;
   lineup: PickPlayer[];
   bench: PickPlayer[];
   transfersIn: string[];

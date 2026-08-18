@@ -297,6 +297,11 @@ export interface GameweekPlan {
   baseExpectedPoints?: number | null;
   /** @nullable */
   bank?: number | null;
+  /**
+     * Free transfers available going into this gameweek
+     * @nullable
+     */
+  freeTransfers?: number | null;
   lineup: PickPlayer[];
   bench: PickPlayer[];
   transfersIn: string[];

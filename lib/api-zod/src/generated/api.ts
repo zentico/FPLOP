@@ -259,6 +259,7 @@ export const ListSolvesResponseItem = zod.object({
   "expectedPoints": zod.number(),
   "baseExpectedPoints": zod.number().nullish().describe('Gameweek total using unadjusted projections, when a differential factor was applied'),
   "bank": zod.number().nullish(),
+  "freeTransfers": zod.number().nullish().describe('Free transfers available going into this gameweek'),
   "lineup": zod.array(zod.object({
   "name": zod.string(),
   "team": zod.string(),
@@ -395,6 +396,7 @@ export const CreateSolveResponse = zod.object({
   "expectedPoints": zod.number(),
   "baseExpectedPoints": zod.number().nullish().describe('Gameweek total using unadjusted projections, when a differential factor was applied'),
   "bank": zod.number().nullish(),
+  "freeTransfers": zod.number().nullish().describe('Free transfers available going into this gameweek'),
   "lineup": zod.array(zod.object({
   "name": zod.string(),
   "team": zod.string(),
@@ -648,6 +650,7 @@ export const GetSolveResponse = zod.object({
   "expectedPoints": zod.number(),
   "baseExpectedPoints": zod.number().nullish().describe('Gameweek total using unadjusted projections, when a differential factor was applied'),
   "bank": zod.number().nullish(),
+  "freeTransfers": zod.number().nullish().describe('Free transfers available going into this gameweek'),
   "lineup": zod.array(zod.object({
   "name": zod.string(),
   "team": zod.string(),
