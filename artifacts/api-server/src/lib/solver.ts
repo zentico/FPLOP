@@ -494,6 +494,13 @@ function buildConfig(
     if (opts.secs != null) config["secs"] = intClamp(opts.secs, 10, MAX_SOLVE_SECS);
     if (opts.gap != null) config["gap"] = clamp(opts.gap, 0, 1);
     if (opts.randomized != null) config["randomized"] = opts.randomized;
+    if (opts.opposingPlay === "penalty" || opts.opposingPlay === "forbid") {
+      // Only defensive-vs-attacking matchups (GK/DEF facing MID/FWD) are
+      // targeted — attacker-vs-attacker matchups are not zero-sum.
+      config["no_opposing_play"] =
+        opts.opposingPlay === "forbid" ? true : "penalty";
+      config["opposing_play_group"] = "position";
+    }
   }
 
   return config;

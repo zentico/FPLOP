@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { SolveOptionsOpposingPlay } from './solveOptionsOpposingPlay';
 
 /**
  * Advanced solver settings, mirroring open-fpl-solver config keys
@@ -74,4 +75,9 @@ export interface SolveOptions {
      * @nullable
      */
   randomized?: boolean | null;
+  /**
+     * Handling of zero-sum starting XI matchups (your GK/DEF facing your own MID/FWD in the same gameweek). "penalty" discourages them softly, "forbid" bans them outright, "off"/null leaves them allowed.
+     * @nullable
+     */
+  opposingPlay?: SolveOptionsOpposingPlay;
 }

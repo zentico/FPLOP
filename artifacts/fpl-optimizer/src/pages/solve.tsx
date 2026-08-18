@@ -300,6 +300,42 @@ function useOpponents(gameweek: number): { opponents: Map<string, FixtureChip[]>
   return { opponents, fixturesLoading, fixturesError };
 }
 
+/**
+ * Names of starting-XI players caught in a "zero-sum" matchup this gameweek:
+ * a GK/DEF whose team faces the team of one of your own starting MID/FWD.
+ * Points one side earns (goals) directly cost the other side (clean sheet).
+ */
+function useZeroSumClashes(gameweek: number, lineup: PickPlayer[]): Set<string> {
+  const { data: fixtures } = useListFixtures();
+  return React.useMemo(() => {
+    const canon = new Map<string, string>();
+    const pairs = new Set<string>();
+    for (const f of fixtures ?? []) {
+      if (f.gameweek !== gameweek) continue;
+      canon.set(f.home, f.home);
+      canon.set(f.away, f.away);
+      if (f.homeName) canon.set(f.homeName, f.home);
+      if (f.awayName) canon.set(f.awayName, f.away);
+      pairs.add(`${f.home}|${f.away}`);
+      pairs.add(`${f.away}|${f.home}`);
+    }
+    const clashes = new Set<string>();
+    const defenders = lineup.filter((p) => p.position === "G" || p.position === "D");
+    const attackers = lineup.filter((p) => p.position === "M" || p.position === "F");
+    for (const d of defenders) {
+      for (const a of attackers) {
+        const dt = canon.get(d.team);
+        const at = canon.get(a.team);
+        if (dt && at && pairs.has(`${dt}|${at}`)) {
+          clashes.add(d.name);
+          clashes.add(a.name);
+        }
+      }
+    }
+    return clashes;
+  }, [fixtures, gameweek, lineup]);
+}
+
 function FixtureCell({ chips, fixturesLoading, fixturesError }: {
   chips: FixtureChip[] | undefined;
   fixturesLoading: boolean;
@@ -375,6 +411,7 @@ export function formatDifferentialFactor(
 
 function GameweekView({ plan }: { plan: GameweekPlan }) {
   const { opponents, fixturesLoading, fixturesError } = useOpponents(plan.gameweek);
+  const zeroSumClashes = useZeroSumClashes(plan.gameweek, plan.lineup);
   const transfersInSet = React.useMemo(
     () => new Set(plan.transfersIn),
     [plan.transfersIn],
@@ -486,8 +523,9 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                   const players = plan.lineup.filter(p => p.position === pos);
                   return players.map((player, idx) => {
                     const isTransferIn = transfersInSet.has(player.name);
+                    const isClash = zeroSumClashes.has(player.name);
                     return (
-                      <TableRow key={`${pos}-${idx}`} className={`group hover:bg-muted/30 ${isTransferIn ? "bg-primary/8 dark:bg-primary/12" : ""}`}>
+                      <TableRow key={`${pos}-${idx}`} className={`group hover:bg-muted/30 ${isClash ? "bg-amber-100/60 dark:bg-amber-900/25" : isTransferIn ? "bg-primary/8 dark:bg-primary/12" : ""}`}>
                         <TableCell className="text-center font-mono font-bold text-muted-foreground border-r bg-muted/10">{pos}</TableCell>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
@@ -495,6 +533,11 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                             {isTransferIn && <Badge className="px-1.5 py-0 h-5 text-[10px] bg-primary/20 text-primary border border-primary/30" variant="outline">IN</Badge>}
                             {player.isCaptain && <Badge className="px-1.5 py-0 h-5 text-[10px] bg-primary">C</Badge>}
                             {player.isViceCaptain && <Badge variant="outline" className="px-1.5 py-0 h-5 text-[10px]">V</Badge>}
+                            {isClash && (
+                              <Badge variant="outline" className="px-1.5 py-0 h-5 text-[10px] border-amber-500 text-amber-700 dark:text-amber-400">
+                                zero-sum
+                              </Badge>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{player.team}</TableCell>

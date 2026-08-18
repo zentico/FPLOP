@@ -30,6 +30,7 @@ export interface SolveOptions {
   secs?: number | null;
   gap?: number | null;
   randomized?: boolean | null;
+  opposingPlay?: "off" | "penalty" | "forbid" | null;
 }
 
 export interface PoolFilter {

@@ -240,7 +240,8 @@ export const ListSolvesResponseItem = zod.object({
   "xminLb": zod.number().nullish().describe('Exclude players below this many total expected minutes'),
   "secs": zod.number().nullish().describe('Solver time limit in seconds'),
   "gap": zod.number().nullish().describe('Acceptable optimality gap (0 = prove optimal)'),
-  "randomized": zod.boolean().nullish().describe('Add noise to projections for alternative solutions')
+  "randomized": zod.boolean().nullish().describe('Add noise to projections for alternative solutions'),
+  "opposingPlay": zod.union([zod.literal('off'),zod.literal('penalty'),zod.literal('forbid'),zod.literal(null)]).nullish().describe('Handling of zero-sum starting XI matchups (your GK\/DEF facing your own MID\/FWD in the same gameweek). \"penalty\" discourages them softly, \"forbid\" bans them outright, \"off\"\/null leaves them allowed.')
 }).describe('Advanced solver settings, mirroring open-fpl-solver config keys'),zod.null()]).optional()
 }),
   "projectionFilename": zod.string().nullish(),
@@ -329,7 +330,8 @@ export const CreateSolveBody = zod.object({
   "xminLb": zod.number().nullish().describe('Exclude players below this many total expected minutes'),
   "secs": zod.number().nullish().describe('Solver time limit in seconds'),
   "gap": zod.number().nullish().describe('Acceptable optimality gap (0 = prove optimal)'),
-  "randomized": zod.boolean().nullish().describe('Add noise to projections for alternative solutions')
+  "randomized": zod.boolean().nullish().describe('Add noise to projections for alternative solutions'),
+  "opposingPlay": zod.union([zod.literal('off'),zod.literal('penalty'),zod.literal('forbid'),zod.literal(null)]).nullish().describe('Handling of zero-sum starting XI matchups (your GK\/DEF facing your own MID\/FWD in the same gameweek). \"penalty\" discourages them softly, \"forbid\" bans them outright, \"off\"\/null leaves them allowed.')
 }).describe('Advanced solver settings, mirroring open-fpl-solver config keys'),zod.null()]).optional()
 })
 
@@ -373,7 +375,8 @@ export const CreateSolveResponse = zod.object({
   "xminLb": zod.number().nullish().describe('Exclude players below this many total expected minutes'),
   "secs": zod.number().nullish().describe('Solver time limit in seconds'),
   "gap": zod.number().nullish().describe('Acceptable optimality gap (0 = prove optimal)'),
-  "randomized": zod.boolean().nullish().describe('Add noise to projections for alternative solutions')
+  "randomized": zod.boolean().nullish().describe('Add noise to projections for alternative solutions'),
+  "opposingPlay": zod.union([zod.literal('off'),zod.literal('penalty'),zod.literal('forbid'),zod.literal(null)]).nullish().describe('Handling of zero-sum starting XI matchups (your GK\/DEF facing your own MID\/FWD in the same gameweek). \"penalty\" discourages them softly, \"forbid\" bans them outright, \"off\"\/null leaves them allowed.')
 }).describe('Advanced solver settings, mirroring open-fpl-solver config keys'),zod.null()]).optional()
 }),
   "projectionFilename": zod.string().nullish(),
@@ -471,7 +474,8 @@ export const GetSolveResponse = zod.object({
   "xminLb": zod.number().nullish().describe('Exclude players below this many total expected minutes'),
   "secs": zod.number().nullish().describe('Solver time limit in seconds'),
   "gap": zod.number().nullish().describe('Acceptable optimality gap (0 = prove optimal)'),
-  "randomized": zod.boolean().nullish().describe('Add noise to projections for alternative solutions')
+  "randomized": zod.boolean().nullish().describe('Add noise to projections for alternative solutions'),
+  "opposingPlay": zod.union([zod.literal('off'),zod.literal('penalty'),zod.literal('forbid'),zod.literal(null)]).nullish().describe('Handling of zero-sum starting XI matchups (your GK\/DEF facing your own MID\/FWD in the same gameweek). \"penalty\" discourages them softly, \"forbid\" bans them outright, \"off\"\/null leaves them allowed.')
 }).describe('Advanced solver settings, mirroring open-fpl-solver config keys'),zod.null()]).optional()
 }),
   "projectionFilename": zod.string().nullish(),

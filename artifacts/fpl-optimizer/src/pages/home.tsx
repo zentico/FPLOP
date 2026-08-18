@@ -61,6 +61,7 @@ export default function Home() {
     gap: "0.05",
   });
   const [advFlags, setAdvFlags] = React.useState<{ noFutureTransfer: boolean; randomized: boolean }>({ noFutureTransfer: false, randomized: false });
+  const [opposingPlay, setOpposingPlay] = React.useState<"off" | "penalty" | "forbid">("off");
 
   // Queries
   const { data: projections, isLoading: isLoadingProjections } = useListProjections();
@@ -322,6 +323,7 @@ export default function Home() {
       gap: num("gap"),
       noFutureTransfer: advFlags.noFutureTransfer || undefined,
       randomized: advFlags.randomized || undefined,
+      opposingPlay: opposingPlay !== "off" ? opposingPlay : undefined,
     };
     const hasOptions = Object.values(options).some((v) => v !== undefined);
 
@@ -775,6 +777,23 @@ export default function Home() {
                         </div>
                         <Switch checked={advFlags.randomized} onCheckedChange={(c) => setAdvFlags({ ...advFlags, randomized: c })} />
                       </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Zero-sum matchups (GK/DEF vs your own MID/FWD)</Label>
+                      <Select value={opposingPlay} onValueChange={(v) => setOpposingPlay(v as "off" | "penalty" | "forbid")}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="off">Allow (default)</SelectItem>
+                          <SelectItem value="penalty">Discourage — small points penalty per clash</SelectItem>
+                          <SelectItem value="forbid">Forbid — never start both sides of a clash</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-[11px] text-muted-foreground">
+                        Avoids starting a goalkeeper or defender against your own attackers in the same gameweek.
+                      </p>
                     </div>
                   </div>
                 )}

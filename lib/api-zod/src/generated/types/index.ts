@@ -26,6 +26,7 @@ export * from './projection';
 export * from './projectionInput';
 export * from './solveInput';
 export * from './solveOptions';
+export * from './solveOptionsOpposingPlay';
 export * from './solveProgress';
 export * from './solveResult';
 export * from './solveRun';

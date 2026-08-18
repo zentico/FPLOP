@@ -124,6 +124,19 @@ export interface PoolFilter {
 }
 
 /**
+ * Handling of zero-sum starting XI matchups (your GK/DEF facing your own MID/FWD in the same gameweek). "penalty" discourages them softly, "forbid" bans them outright, "off"/null leaves them allowed.
+ * @nullable
+ */
+export type SolveOptionsOpposingPlay = typeof SolveOptionsOpposingPlay[keyof typeof SolveOptionsOpposingPlay] | null;
+
+
+export const SolveOptionsOpposingPlay = {
+  off: 'off',
+  penalty: 'penalty',
+  forbid: 'forbid',
+} as const;
+
+/**
  * Advanced solver settings, mirroring open-fpl-solver config keys
  */
 export interface SolveOptions {
@@ -191,6 +204,11 @@ export interface SolveOptions {
      * @nullable
      */
   randomized?: boolean | null;
+  /**
+     * Handling of zero-sum starting XI matchups (your GK/DEF facing your own MID/FWD in the same gameweek). "penalty" discourages them softly, "forbid" bans them outright, "off"/null leaves them allowed.
+     * @nullable
+     */
+  opposingPlay?: SolveOptionsOpposingPlay;
 }
 
 export interface SolveInput {

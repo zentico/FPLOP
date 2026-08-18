@@ -669,6 +669,13 @@ components:
         randomized:
           type: ["boolean", "null"]
           description: Add noise to projections for alternative solutions
+        opposingPlay:
+          type: ["string", "null"]
+          enum: [off, penalty, forbid, null]
+          description: >-
+            Handling of zero-sum starting XI matchups (your GK/DEF facing your own
+            MID/FWD in the same gameweek). "penalty" discourages them softly,
+            "forbid" bans them outright, "off"/null leaves them allowed.
     FixtureInfo:
       type: object
       required: [gameweek, home, away, homeName, awayName, homeDifficulty, awayDifficulty]
