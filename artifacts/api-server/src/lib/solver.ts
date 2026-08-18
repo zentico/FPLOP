@@ -664,13 +664,18 @@ export async function startSolve(
     try {
       if (code !== 0) {
         const tail = readLogTail(logPath);
+        // The vendored solver crashes with KeyError: 'week' when the time
+        // limit expires before ANY feasible plan is found (empty picks table).
+        const noIncumbent = tail.includes("KeyError: 'week'");
         updateRun(runId, {
           status: "failed",
           completedAt: new Date().toISOString(),
           error:
             code === null
               ? "Solver timed out"
-              : `Solver exited with code ${code}. ${tail}`,
+              : noIncumbent
+                ? "The solver ran out of time before finding any valid plan. This scenario's search space is too large for the current time limit — increase the solve time (secs), shorten the horizon, or tighten the player pool, then try again."
+                : `Solver exited with code ${code}. ${tail}`,
         });
         return;
       }
