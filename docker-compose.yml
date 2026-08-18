@@ -1,0 +1,18 @@
+services:
+  fplop:
+    build: .
+    container_name: fplop
+    ports:
+      # host:container — change 8080 if that port is taken on your VPS
+      - "8080:3000"
+    environment:
+      # Optional: enables Fantasy Football Hub imports. Put the value in a
+      # .env file next to this compose file (FFH_SESSION_COOKIE=...).
+      - FFH_SESSION_COOKIE=${FFH_SESSION_COOKIE:-}
+    volumes:
+      # Persistent store: projections, run history, solver logs & results.
+      - fplop-data:/data
+    restart: unless-stopped
+
+volumes:
+  fplop-data:

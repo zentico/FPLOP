@@ -36,4 +36,16 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
 
+// Production/Docker mode: serve the built web app from the same server.
+// Set SERVE_WEB_DIR to the fpl-optimizer dist directory.
+const webDir = process.env["SERVE_WEB_DIR"];
+if (webDir) {
+  const express_static = express.static(webDir, { index: "index.html" });
+  app.use(express_static);
+  // SPA fallback: any non-API GET that didn't match a file gets index.html.
+  app.get(/^\/(?!api\/).*/, (_req, res) => {
+    res.sendFile("index.html", { root: webDir });
+  });
+}
+
 export default app;

@@ -25,7 +25,10 @@ export const SOLVER_REPO = path.join(
 );
 export const SOLVER_DATA_DIR = path.join(SOLVER_REPO, "data");
 export const SOLVER_RESULTS_DIR = path.join(SOLVER_DATA_DIR, "results");
-export const STORE_DIR = path.join(WORKSPACE_ROOT, "solver", "store");
+// FPLOP_STORE_DIR lets deployments (e.g. Docker) put the persistent store on
+// a mounted volume; defaults to solver/store inside the workspace.
+export const STORE_DIR =
+  process.env["FPLOP_STORE_DIR"] || path.join(WORKSPACE_ROOT, "solver", "store");
 export const RUNS_DIR = path.join(STORE_DIR, "runs");
 
 for (const d of [STORE_DIR, RUNS_DIR]) {
