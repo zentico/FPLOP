@@ -26,8 +26,8 @@ import {
   saveMegaMetas,
   saveRunMetas,
 } from "../lib/store";
-import { createMegaRun } from "../lib/mega";
-import { getGameweekInfo } from "../lib/fpl";
+import { ALL_CHIPS, availableChipsFrom, createMegaRun } from "../lib/mega";
+import { getGameweekInfo, getTeamChipsPlayed } from "../lib/fpl";
 
 const router: IRouter = Router();
 
@@ -267,7 +267,26 @@ router.post("/solves/mega", async (req, res): Promise<void> => {
     // Fall back to the earliest gameweek the projection covers.
     firstGw = projection.gameweeks[0] ?? 1;
   }
-  const mega = createMegaRun(request, projection.filename, firstGw);
+  // After the first gameweek, only analyze chips the team can still play.
+  let availableChips: string[] = [...ALL_CHIPS];
+  if (!request.firstGameweek && request.teamId) {
+    try {
+      availableChips = availableChipsFrom(
+        await getTeamChipsPlayed(request.teamId),
+        firstGw,
+      );
+    } catch {
+      // FPL history unavailable — assume all chips are still in hand.
+    }
+  }
+  if (availableChips.length === 0) {
+    res.status(400).json({
+      error:
+        "This team has already played all of its chips, so there is nothing to compare.",
+    });
+    return;
+  }
+  const mega = createMegaRun(request, projection.filename, firstGw, availableChips);
   res.status(201).json(megaView(mega));
 });
 

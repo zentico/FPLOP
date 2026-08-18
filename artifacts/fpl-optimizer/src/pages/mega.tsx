@@ -69,8 +69,9 @@ export default function MegaDetail() {
             Chip Strategy Analysis
           </h1>
           <p className="text-muted-foreground mt-2 max-w-2xl">
-            Six sequential solves compare chip availability scenarios over a{" "}
-            {mega.horizon}-gameweek horizon. Chips may only be played in GW
+            {mega.scenarios.length} sequential solves compare chip availability
+            scenarios over a {mega.horizon}-gameweek horizon, covering only the
+            chips this team can still play. Chips may only be played in GW
             {mega.chipWindow[0]}–{mega.chipWindow[mega.chipWindow.length - 1]}.
           </p>
           <p className="text-sm font-mono text-muted-foreground mt-1 break-all">
@@ -83,7 +84,8 @@ export default function MegaDetail() {
       {isActive && (
         <div className="flex items-center gap-3 text-sm text-muted-foreground bg-muted/40 border rounded-lg p-4">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Running scenario {Math.min(done + 1, 6)} of 6 — each solve runs to
+          Running scenario {Math.min(done + 1, mega.scenarios.length)} of{" "}
+          {mega.scenarios.length} — each solve runs to
           completion before the next starts, so this can take a while.
         </div>
       )}

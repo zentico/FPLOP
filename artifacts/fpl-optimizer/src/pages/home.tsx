@@ -846,10 +846,10 @@ export default function Home() {
                 size="lg"
                 className="w-full font-bold h-12"
               >
-                {createMegaMutation.isPending ? "Initializing..." : "Chip Strategy Analysis (6 solves)"}
+                {createMegaMutation.isPending ? "Initializing..." : "Chip Strategy Analysis"}
               </Button>
               <p className="text-xs text-muted-foreground text-center">
-                Runs 6 sequential solves — no chips, free chip choice, and each chip excluded — then compares the points impact. Chips are only allowed in the first 6 weeks of the horizon. Manual chip assignments above are ignored.
+                Runs sequential solves — no chips, free chip choice, and each chip on its own — then compares the points impact. Only chips your team can still play are analyzed (loaded from FPL), and chips are only allowed in the first 6 weeks of the horizon. Manual chip assignments above are ignored.
               </p>
             </CardFooter>
           </Card>

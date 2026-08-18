@@ -123,6 +123,25 @@ interface Entry {
   current_event: number | null;
 }
 
+const FPL_CHIP_NAME: Record<string, string> = {
+  wildcard: "wildcard",
+  freehit: "free_hit",
+  bboost: "bench_boost",
+  "3xc": "triple_captain",
+};
+
+/** Chips the team has already played this season, from FPL entry history. */
+export async function getTeamChipsPlayed(
+  teamId: number,
+): Promise<{ chip: string; gameweek: number }[]> {
+  const history = await fplFetch<{
+    chips?: { name: string; event: number }[];
+  }>(`/entry/${teamId}/history/`);
+  return (history.chips ?? [])
+    .map((c) => ({ chip: FPL_CHIP_NAME[c.name] ?? c.name, gameweek: c.event }))
+    .filter((c) => c.gameweek > 0);
+}
+
 interface EventPicks {
   picks: { element: number }[];
   entry_history?: { bank: number };

@@ -97,7 +97,7 @@ export default function HistoryPage() {
                         {mega.projectionFilename || "Chip analysis"}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {mega.horizon} GW horizon · {mega.scenarios.filter((s) => s.status === "completed").length}/6 scenarios complete
+                        {mega.horizon} GW horizon · {mega.scenarios.filter((s) => s.status === "completed").length}/{mega.scenarios.length} scenarios complete
                       </div>
                     </div>
                     <Button

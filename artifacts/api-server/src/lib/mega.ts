@@ -19,15 +19,41 @@ export const ALL_CHIPS = [
   "triple_captain",
 ] as const;
 
-/** Scenario order: baseline first so the comparison table fills in early. */
-export const MEGA_SCENARIOS: { key: string; available: string[] }[] = [
-  { key: "none", available: [] },
-  { key: "free", available: [...ALL_CHIPS] },
-  { key: "only-wildcard", available: ["wildcard"] },
-  { key: "only-bench_boost", available: ["bench_boost"] },
-  { key: "only-free_hit", available: ["free_hit"] },
-  { key: "only-triple_captain", available: ["triple_captain"] },
-];
+/**
+ * Scenario set for the chips still available to the team; baseline first so
+ * the comparison table fills in early. With every chip available this is the
+ * full 6-scenario set; already-played chips drop their "only-X" scenario and
+ * leave the "free" pool.
+ */
+export function megaScenarios(
+  availableChips: string[],
+): { key: string; available: string[] }[] {
+  const chips = ALL_CHIPS.filter((c) => availableChips.includes(c));
+  return [
+    { key: "none", available: [] },
+    ...(chips.length > 1 ? [{ key: "free", available: chips }] : []),
+    ...chips.map((c) => ({ key: `only-${c}`, available: [c] })),
+  ];
+}
+
+/**
+ * Chips still available: classic FPL rules — each chip once per season,
+ * except a wildcard played before GW20 comes back for the second half.
+ */
+export function availableChipsFrom(
+  played: { chip: string; gameweek: number }[],
+  nextGw: number,
+): string[] {
+  return ALL_CHIPS.filter((chip) => {
+    const uses = played.filter((p) => p.chip === chip);
+    if (uses.length === 0) return true;
+    if (chip === "wildcard" && nextGw >= 20) {
+      // Second-half wildcard: only spent if used in GW20+.
+      return !uses.some((p) => p.gameweek >= 20);
+    }
+    return false;
+  });
+}
 
 const CHIP_WINDOW_GWS = 6;
 
@@ -40,12 +66,13 @@ export function createMegaRun(
   request: SolveRequest,
   projectionFilename: string,
   firstGw: number,
+  availableChips: string[] = [...ALL_CHIPS],
 ): MegaRunMeta {
   const horizon = request.horizon ?? 5;
   const window = chipWindow(firstGw, horizon);
 
   const runs = listRunMetas();
-  const scenarios = MEGA_SCENARIOS.map((s) => {
+  const scenarios = megaScenarios(availableChips).map((s) => {
     const childRequest: SolveRequest = {
       ...request,
       // Scenario chip availability replaces any manually forced chips.
