@@ -1,5 +1,6 @@
 import React from "react";
-import { useListSolves, useDeleteSolve } from "@workspace/api-client-react";
+import { useListSolves, useDeleteSolve, getListSolvesQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,12 +13,16 @@ import { formatChipStrategy, formatDifferentialFactor, formatPool } from "./solv
 export default function HistoryPage() {
   const { data: solves, isLoading } = useListSolves();
   const deleteMutation = useDeleteSolve();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.preventDefault(); // Prevent navigating
     deleteMutation.mutate({ id }, {
-      onSuccess: () => toast({ title: "Solve run deleted" })
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListSolvesQueryKey() });
+        toast({ title: "Solve run deleted" });
+      }
     });
   };
 

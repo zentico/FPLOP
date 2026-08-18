@@ -1,5 +1,6 @@
 import React from "react";
-import { useUploadProjection, useImportProjection, useGetFfhSessionStatus, useUpdateFfhSession, useListProjections, useDeleteProjection, useGetProjectionPlayers, useGetProjectionPoolStats, useGetGameweekInfo, useGetFplTeam, useCreateSolve, getGetFplTeamQueryKey, getGetProjectionPlayersQueryKey, getGetProjectionPoolStatsQueryKey } from "@workspace/api-client-react";
+import { useUploadProjection, useImportProjection, useGetFfhSessionStatus, useUpdateFfhSession, useListProjections, useDeleteProjection, useGetProjectionPlayers, useGetProjectionPoolStats, useGetGameweekInfo, useGetFplTeam, useCreateSolve, getGetFplTeamQueryKey, getGetProjectionPlayersQueryKey, getGetProjectionPoolStatsQueryKey, getListProjectionsQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -192,6 +193,7 @@ export default function Home() {
   const [cookieInput, setCookieInput] = React.useState<string>("");
   const [showCookieField, setShowCookieField] = React.useState<boolean>(false);
   const deleteMutation = useDeleteProjection();
+  const queryClient = useQueryClient();
   const createSolveMutation = useCreateSolve();
 
   // Handlers
@@ -257,6 +259,7 @@ export default function Home() {
     deleteMutation.mutate({ id }, {
       onSuccess: () => {
         if (projectionId === id) setProjectionId("");
+        queryClient.invalidateQueries({ queryKey: getListProjectionsQueryKey() });
         toast({ title: "Projection deleted" });
       }
     });
