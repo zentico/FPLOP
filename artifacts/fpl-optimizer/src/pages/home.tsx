@@ -58,6 +58,7 @@ export default function Home() {
     decayBase: "0.9",
     ftValue: "0.75",
     itbValue: "0.1",
+    noTransferLastGws: "1",
     secs: "900",
     gap: "0.05",
   });
