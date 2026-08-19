@@ -32,8 +32,38 @@ import { getGameweekInfo, getTeamChipsPlayed } from "../lib/fpl";
 const router: IRouter = Router();
 
 /** History list omits full results to keep payloads small — the contract marks result nullable. */
-function summary(run: SolveRunMeta): SolveRunMeta {
-  return { ...run, result: null };
+/**
+ * Chips for the history list: actual gameweeks from the solved plan when
+ * available, with `optimized: true` for chips whose timing the solver chose
+ * ("Any" assignments and chip-analysis scenarios).
+ */
+function playedChips(
+  run: SolveRunMeta,
+): { chip: string; gameweek: number; optimized: boolean }[] {
+  const anyChips = new Set(
+    (run.request.chips ?? [])
+      .filter((c) => c.gameweek === 0)
+      .map((c) => c.chip),
+  );
+  const allOptimized = run.request.chipMode != null;
+  if (run.status === "completed" && run.result) {
+    return run.result.gameweeks
+      .filter((g) => g.chip)
+      .map((g) => ({
+        chip: g.chip as string,
+        gameweek: g.gameweek,
+        optimized: allOptimized || anyChips.has(g.chip as string),
+      }));
+  }
+  return (run.request.chips ?? []).map((c) => ({
+    chip: c.chip,
+    gameweek: c.gameweek,
+    optimized: c.gameweek === 0,
+  }));
+}
+
+function summary(run: SolveRunMeta): Record<string, unknown> {
+  return { ...run, result: null, playedChips: playedChips(run) };
 }
 
 router.get("/solves", async (_req, res): Promise<void> => {
@@ -357,6 +387,21 @@ router.get("/solves/:id", async (req, res): Promise<void> => {
       ? getRunProgress(run.id)
       : null;
   res.json(GetSolveResponse.parse({ ...run, progress }));
+});
+
+router.delete("/solves", async (_req, res): Promise<void> => {
+  // Delete all historical runs and chip analyses, keeping anything still active.
+  const active = (s: string) => s === "running" || s === "queued";
+  const megas = listMegaMetas();
+  const keptMegas = megas.filter((m) => active(m.status));
+  const keptChildIds = new Set(
+    keptMegas.flatMap((m) => m.scenarios.map((s) => s.runId)),
+  );
+  saveMegaMetas(keptMegas);
+  saveRunMetas(
+    listRunMetas().filter((r) => active(r.status) || keptChildIds.has(r.id)),
+  );
+  res.sendStatus(204);
 });
 
 router.delete("/solves/:id", async (req, res): Promise<void> => {

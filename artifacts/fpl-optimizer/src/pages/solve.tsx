@@ -377,7 +377,7 @@ function FixtureColumnHead({ fixturesError }: { fixturesError: boolean }) {
   );
 }
 
-const CHIP_ABBR: Record<string, string> = {
+export const CHIP_ABBR: Record<string, string> = {
   wildcard: "WC",
   bench_boost: "BB",
   free_hit: "FH",

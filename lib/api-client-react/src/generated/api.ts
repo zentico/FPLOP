@@ -1119,6 +1119,77 @@ export function useListSolves<TData = Awaited<ReturnType<typeof listSolves>>, TE
 
 
 
+export const getDeleteAllSolvesUrl = () => {
+
+
+
+
+  return `/api/solves`
+}
+
+/**
+ * @summary Delete all historical runs and chip analyses (active ones are kept)
+ */
+export const deleteAllSolves = async ( options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteAllSolvesUrl(),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteAllSolvesMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAllSolves>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAllSolves>>, TError,void, TContext> => {
+
+const mutationKey = ['deleteAllSolves'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAllSolves>>, void> = () => {
+
+
+          return  deleteAllSolves(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAllSolvesMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAllSolves>>>
+
+    export type DeleteAllSolvesMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete all historical runs and chip analyses (active ones are kept)
+ */
+export const useDeleteAllSolves = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAllSolves>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAllSolves>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getDeleteAllSolvesMutationOptions(options));
+    }
+
 export const getCreateSolveUrl = () => {
 
 

@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { PlayedChip } from './playedChip';
 import type { SolveInput } from './solveInput';
 import type { SolveProgress } from './solveProgress';
 import type { SolveResult } from './solveResult';
@@ -45,4 +46,6 @@ export interface SolveRun {
   poolTotal?: number | null;
   result?: SolveResult | null;
   progress?: SolveProgress | null;
+  /** Chips with their actual gameweeks (from the solved plan when completed); optimized=true when the solver chose the timing. */
+  playedChips?: PlayedChip[];
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import { useListSolves, useDeleteSolve, useListMegaSolves, useDeleteMegaSolve, getListSolvesQueryKey, getListMegaSolvesQueryKey } from "@workspace/api-client-react";
+import { useListSolves, useDeleteSolve, useDeleteAllSolves, useListMegaSolves, useDeleteMegaSolve, getListSolvesQueryKey, getListMegaSolvesQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { FlaskConical } from "lucide-react";
 import { Link } from "wouter";
@@ -9,13 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, History, ChevronRight, Calculator, AlertCircle } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import { formatChipStrategy, formatDifferentialFactor, formatPool } from "./solve";
+import { CHIP_ABBR, formatDifferentialFactor, formatPool } from "./solve";
 
 export default function HistoryPage() {
   const { data: solves, isLoading } = useListSolves();
   const deleteMutation = useDeleteSolve();
   const { data: megas } = useListMegaSolves();
   const deleteMegaMutation = useDeleteMegaSolve();
+  const deleteAllMutation = useDeleteAllSolves();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -63,11 +64,31 @@ export default function HistoryPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div>
-        <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-3">
-          Run History
-        </h1>
-        <p className="text-muted-foreground mt-2">Past optimization runs and their outcomes.</p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-3">
+            Run History
+          </h1>
+          <p className="text-muted-foreground mt-2">Past optimization runs and their outcomes.</p>
+        </div>
+        <Button
+          variant="outline"
+          className="text-destructive border-destructive/40 hover:bg-destructive/10"
+          disabled={deleteAllMutation.isPending}
+          onClick={() => {
+            if (!window.confirm("Delete ALL historical runs and chip analyses? Runs still in progress are kept. This cannot be undone.")) return;
+            deleteAllMutation.mutate(undefined, {
+              onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: getListSolvesQueryKey() });
+                queryClient.invalidateQueries({ queryKey: getListMegaSolvesQueryKey() });
+                toast({ title: "History cleared" });
+              },
+              onError: () => toast({ title: "Failed to clear history", variant: "destructive" }),
+            });
+          }}
+        >
+          <Trash2 className="h-4 w-4 mr-2" /> Delete all
+        </Button>
       </div>
 
       {megas && megas.length > 0 && (
@@ -152,11 +173,25 @@ export default function HistoryPage() {
                         <Calculator className="h-3 w-3" />
                         {solve.request.horizon} GW horizon
                       </p>
-                      {(formatChipStrategy(solve.request.chips) || formatDifferentialFactor(solve.request.differentialFactor) || formatPool(solve.poolKept, solve.poolTotal)) && (
+                      {((solve.playedChips?.length ?? 0) > 0 || formatDifferentialFactor(solve.request.differentialFactor) || formatPool(solve.poolKept, solve.poolTotal)) && (
                         <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1 pt-1">
-                          {formatChipStrategy(solve.request.chips)?.split(" · ").map((c) => (
-                            <Badge key={c} variant="secondary" className="text-[10px] font-mono font-bold">{c}</Badge>
-                          ))}
+                          {[...(solve.playedChips ?? [])]
+                            .sort((a, b) => a.gameweek - b.gameweek)
+                            .map((c) => (
+                              <Badge
+                                key={c.chip}
+                                variant="secondary"
+                                className={`text-[10px] font-mono font-bold ${
+                                  c.optimized
+                                    ? "bg-violet-500/15 text-violet-600 dark:text-violet-400 border border-violet-500/40"
+                                    : ""
+                                }`}
+                                title={c.optimized ? "Gameweek chosen by the optimizer" : undefined}
+                              >
+                                {CHIP_ABBR[c.chip] ?? c.chip.toUpperCase()}{" "}
+                                {c.gameweek === 0 ? "Any" : `GW${c.gameweek}`}
+                              </Badge>
+                            ))}
                           {formatDifferentialFactor(solve.request.differentialFactor) && (
                             <Badge variant="outline" className="text-[10px] font-mono font-bold border-primary/40 text-primary">
                               {formatDifferentialFactor(solve.request.differentialFactor)}

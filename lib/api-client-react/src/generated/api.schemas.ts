@@ -330,6 +330,12 @@ export interface SolveProgress {
   gapPercent?: number | null;
 }
 
+export interface PlayedChip {
+  chip: string;
+  gameweek: number;
+  optimized: boolean;
+}
+
 export interface SolveRun {
   id: string;
   /** One of queued, running, completed, failed */
@@ -366,6 +372,8 @@ export interface SolveRun {
   poolTotal?: number | null;
   result?: SolveResult | null;
   progress?: SolveProgress | null;
+  /** Chips with their actual gameweeks (from the solved plan when completed); optimized=true when the solver chose the timing. */
+  playedChips?: PlayedChip[];
 }
 
 export interface MegaScenario {

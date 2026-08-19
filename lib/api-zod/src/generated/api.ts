@@ -290,9 +290,20 @@ export const ListSolvesResponseItem = zod.object({
   "stage": zod.string().describe('One of preparing, pool, solving, finalizing'),
   "message": zod.string(),
   "gapPercent": zod.number().nullish().describe('Current optimality gap while the MIP solver runs')
-}),zod.null()]).optional()
+}),zod.null()]).optional(),
+  "playedChips": zod.array(zod.object({
+  "chip": zod.string(),
+  "gameweek": zod.number(),
+  "optimized": zod.boolean()
+})).optional().describe('Chips with their actual gameweeks (from the solved plan when completed); optimized=true when the solver chose the timing.\n')
 })
 export const ListSolvesResponse = zod.array(ListSolvesResponseItem)
+
+
+/**
+ * @summary Delete all historical runs and chip analyses (active ones are kept)
+ */
+export const DeleteAllSolvesResponse = zod.void()
 
 
 /**
@@ -427,7 +438,12 @@ export const CreateSolveResponse = zod.object({
   "stage": zod.string().describe('One of preparing, pool, solving, finalizing'),
   "message": zod.string(),
   "gapPercent": zod.number().nullish().describe('Current optimality gap while the MIP solver runs')
-}),zod.null()]).optional()
+}),zod.null()]).optional(),
+  "playedChips": zod.array(zod.object({
+  "chip": zod.string(),
+  "gameweek": zod.number(),
+  "optimized": zod.boolean()
+})).optional().describe('Chips with their actual gameweeks (from the solved plan when completed); optimized=true when the solver chose the timing.\n')
 })
 
 
@@ -684,7 +700,12 @@ export const GetSolveResponse = zod.object({
   "stage": zod.string().describe('One of preparing, pool, solving, finalizing'),
   "message": zod.string(),
   "gapPercent": zod.number().nullish().describe('Current optimality gap while the MIP solver runs')
-}),zod.null()]).optional()
+}),zod.null()]).optional(),
+  "playedChips": zod.array(zod.object({
+  "chip": zod.string(),
+  "gameweek": zod.number(),
+  "optimized": zod.boolean()
+})).optional().describe('Chips with their actual gameweeks (from the solved plan when completed); optimized=true when the solver chose the timing.\n')
 })
 
 

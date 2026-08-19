@@ -310,6 +310,13 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/SolveRun"
+    delete:
+      operationId: deleteAllSolves
+      tags: [solves]
+      summary: Delete all historical runs and chip analyses (active ones are kept)
+      responses:
+        "204":
+          description: Deleted
     post:
       operationId: createSolve
       tags: [solves]
@@ -824,6 +831,23 @@ components:
           oneOf:
             - $ref: "#/components/schemas/SolveProgress"
             - type: "null"
+        playedChips:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlayedChip"
+          description: >
+            Chips with their actual gameweeks (from the solved plan when
+            completed); optimized=true when the solver chose the timing.
+    PlayedChip:
+      type: object
+      required: [chip, gameweek, optimized]
+      properties:
+        chip:
+          type: string
+        gameweek:
+          type: number
+        optimized:
+          type: boolean
     MegaScenario:
       type: object
       required: [key, runId, status, chips]

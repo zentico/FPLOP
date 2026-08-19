@@ -21,6 +21,7 @@ export * from './importProjectionInput';
 export * from './megaRun';
 export * from './megaScenario';
 export * from './pickPlayer';
+export * from './playedChip';
 export * from './poolFilter';
 export * from './poolPlayerStat';
 export * from './projectedPlayer';
