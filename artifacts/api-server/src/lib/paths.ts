@@ -30,7 +30,10 @@ export const SOLVER_RESULTS_DIR = path.join(SOLVER_DATA_DIR, "results");
 export const STORE_DIR =
   process.env["FPLOP_STORE_DIR"] || path.join(WORKSPACE_ROOT, "solver", "store");
 export const RUNS_DIR = path.join(STORE_DIR, "runs");
+// Master copies of projection CSVs live in the persistent store (survives
+// container rebuilds); per-run copies are placed in SOLVER_DATA_DIR to solve.
+export const PROJECTIONS_DIR = path.join(STORE_DIR, "projections");
 
-for (const d of [STORE_DIR, RUNS_DIR]) {
+for (const d of [STORE_DIR, RUNS_DIR, PROJECTIONS_DIR]) {
   fs.mkdirSync(d, { recursive: true });
 }

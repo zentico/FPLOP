@@ -7,6 +7,7 @@ import { getFplTeam } from "./fpl";
 import {
   RUNS_DIR,
   SOLVER_DATA_DIR,
+  PROJECTIONS_DIR,
   SOLVER_REPO,
   SOLVER_RESULTS_DIR,
 } from "./paths";
@@ -35,7 +36,14 @@ const CHIP_CODE: Record<string, string> = {
 };
 
 export function projectionCsvPath(projectionId: string): string {
-  return path.join(SOLVER_DATA_DIR, `${projectionId}.csv`);
+  const current = path.join(PROJECTIONS_DIR, `${projectionId}.csv`);
+  // Lazy migration: older versions stored projection CSVs in the solver's
+  // own data dir, which is not persistent in Docker deployments.
+  if (!fs.existsSync(current)) {
+    const legacy = path.join(SOLVER_DATA_DIR, `${projectionId}.csv`);
+    if (fs.existsSync(legacy)) fs.copyFileSync(legacy, current);
+  }
+  return current;
 }
 
 /** Map of player id -> price, read from the projection csv. */

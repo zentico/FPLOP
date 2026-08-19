@@ -14,3 +14,5 @@ description: Constraints for running the vendored FPL MILP solver from the API s
 **Differential factor:** ownership-adjusted solves write a temp copy of the projection CSV as datasource `<projectionId>-k<runId>` in the solver data dir (deleted after the run); base points are recovered by dividing solver outputs by each player's factor, so both totals stay consistent with xp_cont weighting.
 
 **Pool filter:** "points per match" that matches FFH's user-facing numbers is total projected pts ÷ gameweeks in the projection (NOT per-90 from xMins — per-90 nearly triples the eligible count). Pool filtering reuses the per-run CSV mechanism; quota validation must mirror the exact effective pool (eligible ∪ locked, minus banned) with unrounded ppm.
+
+- Projection CSV master copies must live in the persistent store dir (FPLOP_STORE_DIR volume in Docker), never only in the vendored solver data dir — that dir is baked into the image and wiped on rebuild (symptom: downloads return a JSON 404 saved as csv.json). projectionCsvPath lazy-migrates legacy files.
