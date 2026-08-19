@@ -9,5 +9,6 @@
 export interface ChipAssignment {
   /** One of wildcard, bench_boost, free_hit, triple_captain */
   chip: string;
+  /** Gameweek to play the chip, or 0 for "Any" — the solver is then required to play the chip but chooses the optimal week itself. */
   gameweek: number;
 }

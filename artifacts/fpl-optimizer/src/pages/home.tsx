@@ -747,6 +747,7 @@ export default function Home() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
+                          <SelectItem value="0">Any (optimized)</SelectItem>
                           {Array.from({length: horizon}).map((_, i) => (
                             <SelectItem key={i} value={(currentGw + i).toString()}>
                               GW {currentGw + i}

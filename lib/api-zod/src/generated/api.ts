@@ -224,7 +224,7 @@ export const ListSolvesResponseItem = zod.object({
 }).describe('Rank-based pool selection. Within each position players are ranked by impact (points per match), value (ppm per £m) and price (cheaper better). Per position the top `main` players by the average of impact and value ranks are kept, then from the remainder the top `bench` players by the average of price and value ranks. Locked players are always kept. All counts must be whole numbers between 0 and 500 (enforced server-side).\n'),zod.null()]).optional(),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
-  "gameweek": zod.number()
+  "gameweek": zod.number().describe('Gameweek to play the chip, or 0 for \"Any\" — the solver is then required to play the chip but chooses the optimal week itself.\n')
 })).optional(),
   "options": zod.union([zod.object({
   "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
@@ -316,7 +316,7 @@ export const CreateSolveBody = zod.object({
 }).describe('Rank-based pool selection. Within each position players are ranked by impact (points per match), value (ppm per £m) and price (cheaper better). Per position the top `main` players by the average of impact and value ranks are kept, then from the remainder the top `bench` players by the average of price and value ranks. Locked players are always kept. All counts must be whole numbers between 0 and 500 (enforced server-side).\n'),zod.null()]).optional(),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
-  "gameweek": zod.number()
+  "gameweek": zod.number().describe('Gameweek to play the chip, or 0 for \"Any\" — the solver is then required to play the chip but chooses the optimal week itself.\n')
 })).optional(),
   "options": zod.union([zod.object({
   "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
@@ -361,7 +361,7 @@ export const CreateSolveResponse = zod.object({
 }).describe('Rank-based pool selection. Within each position players are ranked by impact (points per match), value (ppm per £m) and price (cheaper better). Per position the top `main` players by the average of impact and value ranks are kept, then from the remainder the top `bench` players by the average of price and value ranks. Locked players are always kept. All counts must be whole numbers between 0 and 500 (enforced server-side).\n'),zod.null()]).optional(),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
-  "gameweek": zod.number()
+  "gameweek": zod.number().describe('Gameweek to play the chip, or 0 for \"Any\" — the solver is then required to play the chip but chooses the optimal week itself.\n')
 })).optional(),
   "options": zod.union([zod.object({
   "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
@@ -452,7 +452,7 @@ export const ListMegaSolvesResponseItem = zod.object({
   "deltaVsBaseline": zod.number().nullish().describe('Points gained vs the no-chips baseline (null until both completed)'),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
-  "gameweek": zod.number()
+  "gameweek": zod.number().describe('Gameweek to play the chip, or 0 for \"Any\" — the solver is then required to play the chip but chooses the optimal week itself.\n')
 })).describe('Chips the solver chose to play in this scenario'),
   "progress": zod.union([zod.object({
   "stage": zod.string().describe('One of preparing, pool, solving, finalizing'),
@@ -486,7 +486,7 @@ export const CreateMegaSolveBody = zod.object({
 }).describe('Rank-based pool selection. Within each position players are ranked by impact (points per match), value (ppm per £m) and price (cheaper better). Per position the top `main` players by the average of impact and value ranks are kept, then from the remainder the top `bench` players by the average of price and value ranks. Locked players are always kept. All counts must be whole numbers between 0 and 500 (enforced server-side).\n'),zod.null()]).optional(),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
-  "gameweek": zod.number()
+  "gameweek": zod.number().describe('Gameweek to play the chip, or 0 for \"Any\" — the solver is then required to play the chip but chooses the optimal week itself.\n')
 })).optional(),
   "options": zod.union([zod.object({
   "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
@@ -525,7 +525,7 @@ export const CreateMegaSolveResponse = zod.object({
   "deltaVsBaseline": zod.number().nullish().describe('Points gained vs the no-chips baseline (null until both completed)'),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
-  "gameweek": zod.number()
+  "gameweek": zod.number().describe('Gameweek to play the chip, or 0 for \"Any\" — the solver is then required to play the chip but chooses the optimal week itself.\n')
 })).describe('Chips the solver chose to play in this scenario'),
   "progress": zod.union([zod.object({
   "stage": zod.string().describe('One of preparing, pool, solving, finalizing'),
@@ -562,7 +562,7 @@ export const GetMegaSolveResponse = zod.object({
   "deltaVsBaseline": zod.number().nullish().describe('Points gained vs the no-chips baseline (null until both completed)'),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
-  "gameweek": zod.number()
+  "gameweek": zod.number().describe('Gameweek to play the chip, or 0 for \"Any\" — the solver is then required to play the chip but chooses the optimal week itself.\n')
 })).describe('Chips the solver chose to play in this scenario'),
   "progress": zod.union([zod.object({
   "stage": zod.string().describe('One of preparing, pool, solving, finalizing'),
@@ -615,7 +615,7 @@ export const GetSolveResponse = zod.object({
 }).describe('Rank-based pool selection. Within each position players are ranked by impact (points per match), value (ppm per £m) and price (cheaper better). Per position the top `main` players by the average of impact and value ranks are kept, then from the remainder the top `bench` players by the average of price and value ranks. Locked players are always kept. All counts must be whole numbers between 0 and 500 (enforced server-side).\n'),zod.null()]).optional(),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
-  "gameweek": zod.number()
+  "gameweek": zod.number().describe('Gameweek to play the chip, or 0 for \"Any\" — the solver is then required to play the chip but chooses the optimal week itself.\n')
 })).optional(),
   "options": zod.union([zod.object({
   "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),

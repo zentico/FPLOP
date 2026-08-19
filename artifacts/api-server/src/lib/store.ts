@@ -52,6 +52,11 @@ export interface SolveRequest {
   differentialFactor?: number | null;
   poolFilter?: PoolFilter | null;
   chips?: ChipAssignment[];
+  /**
+   * Server-computed gameweek window for chips assigned gameweek 0 ("Any"):
+   * the solver must play the chip exactly once within these gameweeks.
+   */
+  anyChipGws?: number[] | null;
   options?: SolveOptions | null;
   /**
    * Internal (mega-run scenarios only): let the solver choose chip timing.

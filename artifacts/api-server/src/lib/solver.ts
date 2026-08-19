@@ -460,11 +460,22 @@ function buildConfig(
     config["team_id"] = request.teamId;
   }
 
+  const forcedChipGws: Record<string, number[]> = {};
   for (const assignment of request.chips ?? []) {
+    if (assignment.gameweek === 0) {
+      // "Any": the solver must play this chip exactly once, timing optimized.
+      const code = CHIP_CODE_SHORT[assignment.chip];
+      const window = request.anyChipGws ?? [];
+      if (code && window.length > 0) forcedChipGws[code] = window;
+      continue;
+    }
     const key = CHIP_OPTION[assignment.chip];
     if (key) {
       (config[key] as number[]).push(assignment.gameweek);
     }
+  }
+  if (Object.keys(forcedChipGws).length > 0) {
+    config["forced_chip_gws"] = forcedChipGws;
   }
 
   const clamp = (v: number, lo: number, hi: number) =>

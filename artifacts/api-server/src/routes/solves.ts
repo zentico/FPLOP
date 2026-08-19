@@ -185,13 +185,33 @@ router.post("/solves", async (req, res): Promise<void> => {
   }
   const { projection } = validated;
 
+  // Chips assigned gameweek 0 ("Any") need the horizon window so the solver
+  // can be forced to play the chip at a week of its own choosing.
+  let anyChipGws: number[] | null = null;
+  if ((request.chips ?? []).some((c) => c.gameweek === 0)) {
+    let firstGw = 1;
+    if (!request.firstGameweek) {
+      try {
+        firstGw = (await getGameweekInfo()).nextGameweek;
+      } catch {
+        res.status(400).json({
+          error:
+            'Could not determine the next gameweek from FPL, which is needed for "Any" chip timing. Try again or pick a specific gameweek.',
+        });
+        return;
+      }
+    }
+    const horizon = request.horizon ?? 5;
+    anyChipGws = Array.from({ length: horizon }, (_, i) => firstGw + i);
+  }
+
   const run: SolveRunMeta = {
     id: newId(),
     status: "queued",
     createdAt: new Date().toISOString(),
     completedAt: null,
     error: null,
-    request,
+    request: { ...request, anyChipGws },
     projectionFilename: projection.filename,
     totalExpectedPoints: null,
     result: null,
@@ -202,7 +222,7 @@ router.post("/solves", async (req, res): Promise<void> => {
 
   // Fire and forget; startSolve records failures on the run itself, and
   // this catch guards the pre-try synchronous window.
-  startSolve(run.id, request).catch((err) => {
+  startSolve(run.id, run.request).catch((err) => {
     logger.error({ err, runId: run.id }, "startSolve crashed");
   });
 
