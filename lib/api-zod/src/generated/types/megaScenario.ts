@@ -17,6 +17,11 @@ export interface MegaScenario {
   /** @nullable */
   totalExpectedPoints?: number | null;
   /**
+     * Total using unadjusted projections, when a differential factor was applied
+     * @nullable
+     */
+  totalBaseExpectedPoints?: number | null;
+  /**
      * Points gained vs the no-chips baseline (null until both completed)
      * @nullable
      */

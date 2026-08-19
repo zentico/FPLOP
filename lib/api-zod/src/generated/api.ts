@@ -449,6 +449,7 @@ export const ListMegaSolvesResponseItem = zod.object({
   "runId": zod.string(),
   "status": zod.string().describe('One of queued, running, completed, failed'),
   "totalExpectedPoints": zod.number().nullish(),
+  "totalBaseExpectedPoints": zod.number().nullish().describe('Total using unadjusted projections, when a differential factor was applied'),
   "deltaVsBaseline": zod.number().nullish().describe('Points gained vs the no-chips baseline (null until both completed)'),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
@@ -522,6 +523,7 @@ export const CreateMegaSolveResponse = zod.object({
   "runId": zod.string(),
   "status": zod.string().describe('One of queued, running, completed, failed'),
   "totalExpectedPoints": zod.number().nullish(),
+  "totalBaseExpectedPoints": zod.number().nullish().describe('Total using unadjusted projections, when a differential factor was applied'),
   "deltaVsBaseline": zod.number().nullish().describe('Points gained vs the no-chips baseline (null until both completed)'),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),
@@ -559,6 +561,7 @@ export const GetMegaSolveResponse = zod.object({
   "runId": zod.string(),
   "status": zod.string().describe('One of queued, running, completed, failed'),
   "totalExpectedPoints": zod.number().nullish(),
+  "totalBaseExpectedPoints": zod.number().nullish().describe('Total using unadjusted projections, when a differential factor was applied'),
   "deltaVsBaseline": zod.number().nullish().describe('Points gained vs the no-chips baseline (null until both completed)'),
   "chips": zod.array(zod.object({
   "chip": zod.string().describe('One of wildcard, bench_boost, free_hit, triple_captain'),

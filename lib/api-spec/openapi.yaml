@@ -838,6 +838,9 @@ components:
           description: One of queued, running, completed, failed
         totalExpectedPoints:
           type: ["number", "null"]
+        totalBaseExpectedPoints:
+          type: ["number", "null"]
+          description: Total using unadjusted projections, when a differential factor was applied
         deltaVsBaseline:
           type: ["number", "null"]
           description: Points gained vs the no-chips baseline (null until both completed)

@@ -244,6 +244,10 @@ function megaView(mega: MegaRunMeta): Record<string, unknown> {
       const run = byId.get(s.runId);
       const pts =
         run?.status === "completed" ? (run.totalExpectedPoints ?? null) : null;
+      const basePts2 =
+        run?.status === "completed"
+          ? (run.totalBaseExpectedPoints ?? null)
+          : null;
       const chips =
         run?.result?.gameweeks
           ?.filter((g) => g.chip)
@@ -253,6 +257,7 @@ function megaView(mega: MegaRunMeta): Record<string, unknown> {
         runId: s.runId,
         status: run?.status ?? "failed",
         totalExpectedPoints: pts,
+        totalBaseExpectedPoints: basePts2,
         deltaVsBaseline: pts != null && basePts != null ? pts - basePts : null,
         chips,
         progress: run?.status === "running" ? getRunProgress(run.id) : null,

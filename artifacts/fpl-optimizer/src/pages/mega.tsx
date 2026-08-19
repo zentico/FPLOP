@@ -56,6 +56,9 @@ export default function MegaDetail() {
     );
   }
 
+  const hasBase = mega.scenarios.some(
+    (s) => s.totalBaseExpectedPoints != null,
+  );
   const done = mega.scenarios.filter(
     (s) => s.status === "completed" || s.status === "failed",
   ).length;
@@ -124,7 +127,8 @@ export default function MegaDetail() {
                   <th className="py-2 pr-4">Scenario</th>
                   <th className="py-2 pr-4">Status</th>
                   <th className="py-2 pr-4">Chips played</th>
-                  <th className="py-2 pr-4 text-right">Total xPts</th>
+                  {hasBase && <th className="py-2 pr-4 text-right">Base xPts</th>}
+                  <th className="py-2 pr-4 text-right">{hasBase ? "Adjusted xPts" : "Total xPts"}</th>
                   <th className="py-2 pr-4 text-right">Δ vs no chips</th>
                   <th className="py-2 pr-4 text-right">Gap</th>
                   <th className="py-2"></th>
@@ -154,6 +158,13 @@ export default function MegaDetail() {
                         <span className="text-muted-foreground">…</span>
                       )}
                     </td>
+                    {hasBase && (
+                      <td className="py-3 pr-4 text-right font-mono">
+                        {s.totalBaseExpectedPoints != null
+                          ? s.totalBaseExpectedPoints.toFixed(2)
+                          : "—"}
+                      </td>
+                    )}
                     <td className="py-3 pr-4 text-right font-mono">
                       {s.totalExpectedPoints != null
                         ? s.totalExpectedPoints.toFixed(2)
