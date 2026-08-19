@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "@/components/ui/switch";
 import { useLocation } from "wouter";
-import { AlertCircle, UploadCloud, DownloadCloud, Download, Trash2, Database, ShieldAlert, Cpu, Trophy, Banknote, Users, LineChart } from "lucide-react";
+import { AlertCircle, UploadCloud, DownloadCloud, Download, Trash2, Database, ShieldAlert, Volleyball, Trophy, Banknote, Users, LineChart } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -581,7 +581,7 @@ export default function Home() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Cpu className="h-5 w-5 text-primary" />
+                <Volleyball className="h-5 w-5 text-primary" />
                 Solver Settings
               </CardTitle>
             </CardHeader>
