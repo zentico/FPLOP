@@ -345,7 +345,9 @@ export default function Home() {
       bookedTransfers: (() => {
         const rows = booked
           .map((b) => ({
-            gameweek: parseInt(b.gw, 10),
+            // Blank GW falls back to the placeholder value (next gameweek)
+            // instead of silently dropping the row.
+            gameweek: b.gw.trim() ? parseInt(b.gw, 10) : currentGw,
             in: b.inP.trim() || undefined,
             out: b.outP.trim() || undefined,
           }))
