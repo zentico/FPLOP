@@ -833,7 +833,7 @@ export default function Home() {
                       <div className="flex items-center justify-between">
                         <div>
                           <Label className="text-xs">Booked transfers</Label>
-                          <p className="text-[11px] text-muted-foreground">Moves you've already decided on — the solver must make them and plans around them.</p>
+                          <p className="text-[11px] text-muted-foreground">Moves you've already decided on — the solver must make them and plans around them. In a first-gameweek solve, a GW1 row forces the player into (or out of) the GW1 squad for that week only.</p>
                         </div>
                         <Button type="button" variant="outline" size="sm" onClick={() => setBooked([...booked, { gw: "", inP: "", outP: "" }])}>
                           Add

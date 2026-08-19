@@ -572,16 +572,33 @@ function buildConfig(
     if (opts.randomized != null) config["randomized"] = opts.randomized;
     if (opts.opposingPlay != null) applyOpposingPlay(config, opts.opposingPlay);
     if (opts.bookedTransfers?.length) {
-      config["booked_transfers"] = opts.bookedTransfers.map((bt) => {
+      // In first-gameweek mode there are no transfers in GW1 (the squad is
+      // built from scratch), so a "booked transfer" for GW1 is translated to
+      // a single-week squad constraint instead: `in` forces the player into
+      // the GW1 squad, `out` keeps them out of it — for that week only.
+      const booked: Record<string, unknown>[] = [];
+      const lockedNextGw: [number, number][] = [];
+      const bannedNextGw: [number, number][] = [];
+      for (const bt of opts.bookedTransfers) {
+        const inId = bt.in
+          ? resolvePlayerRefs(request.projectionId, [bt.in]).ids[0]
+          : undefined;
+        const outId = bt.out
+          ? resolvePlayerRefs(request.projectionId, [bt.out]).ids[0]
+          : undefined;
+        if (request.firstGameweek && bt.gameweek === 1) {
+          if (inId != null) lockedNextGw.push([inId, 1]);
+          if (outId != null) bannedNextGw.push([outId, 1]);
+          continue;
+        }
         const entry: Record<string, unknown> = { gw: bt.gameweek };
-        if (bt.in) {
-          entry["transfer_in"] = resolvePlayerRefs(request.projectionId, [bt.in]).ids[0];
-        }
-        if (bt.out) {
-          entry["transfer_out"] = resolvePlayerRefs(request.projectionId, [bt.out]).ids[0];
-        }
-        return entry;
-      });
+        if (inId != null) entry["transfer_in"] = inId;
+        if (outId != null) entry["transfer_out"] = outId;
+        booked.push(entry);
+      }
+      if (booked.length) config["booked_transfers"] = booked;
+      if (lockedNextGw.length) config["locked_next_gw"] = lockedNextGw;
+      if (bannedNextGw.length) config["banned_next_gw"] = bannedNextGw;
     }
     if (opts.numIterations != null && opts.numIterations > 1) {
       config["num_iterations"] = intClamp(opts.numIterations, 1, 5);

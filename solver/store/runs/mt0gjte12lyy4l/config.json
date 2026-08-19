@@ -1,0 +1,25 @@
+{
+  "datasource": "mswzx23ifbjjsp-rmt0gjte12lyy4l",
+  "horizon": 2,
+  "no_transfer_last_gws": 0,
+  "verbose": true,
+  "print_squads": false,
+  "print_result_table": false,
+  "print_decay_metrics": false,
+  "print_transfer_chip_summary": false,
+  "banned": [],
+  "locked": [],
+  "use_wc": [],
+  "use_bb": [],
+  "use_fh": [],
+  "use_tc": [],
+  "preseason": true,
+  "secs": 15,
+  "gap": 0.05,
+  "locked_next_gw": [
+    [
+      165,
+      1
+    ]
+  ]
+}
