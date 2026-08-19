@@ -117,6 +117,32 @@ function validateSolveRequest(
       resolved[label] = ids;
     }
   }
+  const booked = request.options?.bookedTransfers ?? [];
+  for (const bt of booked) {
+    if (!bt.in && !bt.out) {
+      return { error: "Each booked transfer needs a player in, a player out, or both." };
+    }
+    if (!Number.isInteger(bt.gameweek) || bt.gameweek < 1 || bt.gameweek > 38) {
+      return { error: "Booked transfer gameweek must be between 1 and 38." };
+    }
+    const refs = [bt.in, bt.out].filter(Boolean) as string[];
+    const { unknown, ambiguous } = resolvePlayerRefs(request.projectionId, refs);
+    if (unknown.length > 0) {
+      return {
+        error: `Unknown booked-transfer player(s): ${unknown.join(", ")}. Use names exactly as they appear in the projection.`,
+      };
+    }
+    if (ambiguous.length > 0) {
+      return {
+        error: `Ambiguous booked-transfer player name(s): ${ambiguous.join(", ")} — several players share that name in the projection. Use the player's numeric ID instead.`,
+      };
+    }
+  }
+  const bw = request.options?.benchWeights;
+  if (bw != null && (bw.length !== 4 || bw.some((w) => !Number.isFinite(w) || w < 0 || w > 1))) {
+    return { error: "Bench weights must be four numbers between 0 and 1 (GK, 1st, 2nd, 3rd)." };
+  }
+
   const bannedIds = new Set(resolved.banned);
   const overlap = resolved.locked.filter((id) => bannedIds.has(id));
   if (overlap.length > 0) {
@@ -218,7 +244,11 @@ router.post("/solves", async (req, res): Promise<void> => {
   // Chips assigned gameweek 0 ("Any") need the horizon window so the solver
   // can be forced to play the chip at a week of its own choosing.
   let anyChipGws: number[] | null = null;
-  if ((request.chips ?? []).some((c) => c.gameweek === 0)) {
+  const hasAnyChip = (request.chips ?? []).some((c) => c.gameweek === 0);
+  const bookedGws = (request.options?.bookedTransfers ?? []).map(
+    (bt) => bt.gameweek,
+  );
+  if (hasAnyChip || bookedGws.length > 0) {
     let firstGw = 1;
     if (!request.firstGameweek) {
       try {
@@ -226,13 +256,23 @@ router.post("/solves", async (req, res): Promise<void> => {
       } catch {
         res.status(400).json({
           error:
-            'Could not determine the next gameweek from FPL, which is needed for "Any" chip timing. Try again or pick a specific gameweek.',
+            "Could not determine the next gameweek from FPL, which is needed to time chips and booked transfers. Try again or pick a specific gameweek.",
         });
         return;
       }
     }
     const horizon = request.horizon ?? 5;
-    anyChipGws = Array.from({ length: horizon }, (_, i) => firstGw + i);
+    const lastGw = firstGw + horizon - 1;
+    const outside = bookedGws.filter((gw) => gw < firstGw || gw > lastGw);
+    if (outside.length > 0) {
+      res.status(400).json({
+        error: `Booked transfer gameweek(s) ${outside.join(", ")} fall outside this solve's window (GW ${firstGw}-${lastGw}). Adjust the gameweek or extend the horizon.`,
+      });
+      return;
+    }
+    if (hasAnyChip) {
+      anyChipGws = Array.from({ length: horizon }, (_, i) => firstGw + i);
+    }
   }
 
   const run: SolveRunMeta = {

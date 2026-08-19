@@ -137,6 +137,20 @@ export const SolveOptionsOpposingPlay = {
   forbid: 'forbid',
 } as const;
 
+export interface BookedTransfer {
+  gameweek: number;
+  /**
+     * Player name to transfer in that gameweek
+     * @nullable
+     */
+  in?: string | null;
+  /**
+     * Player name to transfer out that gameweek
+     * @nullable
+     */
+  out?: string | null;
+}
+
 /**
  * Advanced solver settings, mirroring open-fpl-solver config keys
  */
@@ -210,6 +224,15 @@ export interface SolveOptions {
      * @nullable
      */
   opposingPlay?: SolveOptionsOpposingPlay;
+  /** Transfers already decided on; the solver is forced to make them */
+  bookedTransfers?: BookedTransfer[];
+  /**
+     * Generate this many plans (1-5). Each extra plan is forced to differ from the previous ones in next-gameweek transfers.
+     * @nullable
+     */
+  numIterations?: number | null;
+  /** Objective weights for bench slots in order [GK, 1st, 2nd, 3rd], each 0-1 — the odds each bench player ends up scoring. Defaults [0.03, 0.21, 0.06, 0.002]. */
+  benchWeights?: number[];
 }
 
 export interface SolveInput {
@@ -309,6 +332,16 @@ export interface GameweekPlan {
   transfersOut: string[];
 }
 
+export interface SolvePlan {
+  totalExpectedPoints: number;
+  /**
+     * Total using unadjusted projections, when a differential factor was applied
+     * @nullable
+     */
+  totalBaseExpectedPoints?: number | null;
+  gameweeks: GameweekPlan[];
+}
+
 export interface SolveResult {
   totalExpectedPoints: number;
   /**
@@ -317,6 +350,11 @@ export interface SolveResult {
      */
   totalBaseExpectedPoints?: number | null;
   gameweeks: GameweekPlan[];
+  /**
+     * Alternative plans from multi-iteration solves (the main plan is not repeated)
+     * @nullable
+     */
+  alternatives?: SolvePlan[] | null;
 }
 
 export interface SolveProgress {

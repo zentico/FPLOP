@@ -76,6 +76,11 @@ export function createMegaRun(
       ...request,
       // Scenario chip availability replaces any manually forced chips.
       chips: [],
+      // Alternative plans would multiply solve time across every scenario;
+      // the analysis only compares best-plan totals.
+      options: request.options
+        ? { ...request.options, numIterations: null }
+        : request.options,
       chipMode:
         s.available.length > 0
           ? { available: s.available, allowedGws: window }

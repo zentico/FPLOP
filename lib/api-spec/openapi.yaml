@@ -766,6 +766,36 @@ components:
             Handling of zero-sum starting XI matchups (your GK/DEF facing your own
             MID/FWD in the same gameweek). "penalty" discourages them softly,
             "forbid" bans them outright, "off"/null leaves them allowed.
+        bookedTransfers:
+          type: array
+          items:
+            $ref: "#/components/schemas/BookedTransfer"
+          description: Transfers already decided on; the solver is forced to make them
+        numIterations:
+          type: ["number", "null"]
+          description: >-
+            Generate this many plans (1-5). Each extra plan is forced to differ
+            from the previous ones in next-gameweek transfers.
+        benchWeights:
+          type: array
+          items:
+            type: number
+          description: >-
+            Objective weights for bench slots in order [GK, 1st, 2nd, 3rd],
+            each 0-1 — the odds each bench player ends up scoring. Defaults
+            [0.03, 0.21, 0.06, 0.002].
+    BookedTransfer:
+      type: object
+      required: [gameweek]
+      properties:
+        gameweek:
+          type: number
+        in:
+          type: ["string", "null"]
+          description: Player name to transfer in that gameweek
+        out:
+          type: ["string", "null"]
+          description: Player name to transfer out that gameweek
     FixtureInfo:
       type: object
       required: [gameweek, home, away, homeName, awayName, homeDifficulty, awayDifficulty]
@@ -923,6 +953,19 @@ components:
         gapPercent:
           type: ["number", "null"]
           description: Current optimality gap while the MIP solver runs
+    SolvePlan:
+      type: object
+      required: [gameweeks, totalExpectedPoints]
+      properties:
+        totalExpectedPoints:
+          type: number
+        totalBaseExpectedPoints:
+          type: ["number", "null"]
+          description: Total using unadjusted projections, when a differential factor was applied
+        gameweeks:
+          type: array
+          items:
+            $ref: "#/components/schemas/GameweekPlan"
     SolveResult:
       type: object
       required: [gameweeks, totalExpectedPoints]
@@ -936,6 +979,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/GameweekPlan"
+        alternatives:
+          type: ["array", "null"]
+          items:
+            $ref: "#/components/schemas/SolvePlan"
+          description: Alternative plans from multi-iteration solves (the main plan is not repeated)
     GameweekPlan:
       type: object
       required: [gameweek, lineup, bench, expectedPoints, transfersIn, transfersOut]

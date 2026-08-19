@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { BookedTransfer } from './bookedTransfer';
 import type { SolveOptionsOpposingPlay } from './solveOptionsOpposingPlay';
 
 /**
@@ -80,4 +81,13 @@ export interface SolveOptions {
      * @nullable
      */
   opposingPlay?: SolveOptionsOpposingPlay;
+  /** Transfers already decided on; the solver is forced to make them */
+  bookedTransfers?: BookedTransfer[];
+  /**
+     * Generate this many plans (1-5). Each extra plan is forced to differ from the previous ones in next-gameweek transfers.
+     * @nullable
+     */
+  numIterations?: number | null;
+  /** Objective weights for bench slots in order [GK, 1st, 2nd, 3rd], each 0-1 — the odds each bench player ends up scoring. Defaults [0.03, 0.21, 0.06, 0.002]. */
+  benchWeights?: number[];
 }

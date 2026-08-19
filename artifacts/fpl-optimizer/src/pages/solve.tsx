@@ -30,6 +30,8 @@ export default function SolveDetail() {
     return () => clearInterval(interval);
   }, [solve?.status, refetch]);
 
+  const [planIdx, setPlanIdx] = React.useState(0);
+
   if (!solve) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
@@ -42,6 +44,12 @@ export default function SolveDetail() {
   const isPending = solve.status === 'queued' || solve.status === 'running';
   const isFailed = solve.status === 'failed';
   const isCompleted = solve.status === 'completed';
+
+  // Multi-iteration solves carry alternative plans; plan 0 is the optimum.
+  const plans = solve.result
+    ? [solve.result, ...(solve.result.alternatives ?? [])]
+    : [];
+  const plan = plans[Math.min(planIdx, Math.max(0, plans.length - 1))];
 
   return (
     <div className="space-y-6">
@@ -61,16 +69,16 @@ export default function SolveDetail() {
           </div>
         </div>
         
-        {isCompleted && solve.totalExpectedPoints && (
+        {isCompleted && plan && (
           <div className="text-right bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-sm">
             <div className="text-xs uppercase tracking-wider font-semibold opacity-80">
-              {solve.result?.totalBaseExpectedPoints != null ? "Total xPts (base)" : "Total xPts"}
+              {plan.totalBaseExpectedPoints != null ? "Total xPts (base)" : "Total xPts"}
             </div>
             <div className="text-3xl font-black font-mono tracking-tighter">
-              {(solve.result?.totalBaseExpectedPoints ?? solve.totalExpectedPoints).toFixed(2)}
+              {(plan.totalBaseExpectedPoints ?? plan.totalExpectedPoints).toFixed(2)}
             </div>
-            {solve.result?.totalBaseExpectedPoints != null && (
-              <div className="text-xs font-mono opacity-80">adjusted {solve.totalExpectedPoints.toFixed(2)}</div>
+            {plan.totalBaseExpectedPoints != null && (
+              <div className="text-xs font-mono opacity-80">adjusted {plan.totalExpectedPoints.toFixed(2)}</div>
             )}
             {solve.finalGapPercent != null && (
               <div className="text-xs font-mono opacity-80">gap {solve.finalGapPercent.toFixed(2)}%</div>
@@ -149,11 +157,32 @@ export default function SolveDetail() {
             </div>
           </div>
 
+          {/* Plan selector for multi-iteration solves */}
+          {plans.length > 1 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mr-1">Plans</span>
+              {plans.map((p, i) => (
+                <Button
+                  key={i}
+                  size="sm"
+                  variant={i === planIdx ? "default" : "outline"}
+                  className="font-mono"
+                  onClick={() => setPlanIdx(i)}
+                >
+                  {String.fromCharCode(65 + i)} · {(p.totalBaseExpectedPoints ?? p.totalExpectedPoints).toFixed(2)}
+                </Button>
+              ))}
+              <span className="text-[11px] text-muted-foreground ml-1">
+                Plan A is optimal; each later plan uses different next-GW transfers.
+              </span>
+            </div>
+          )}
+
           {/* Gameweek Plans */}
-          <Tabs defaultValue={`gw-${solve.result.gameweeks[0]?.gameweek}`} className="w-full">
+          <Tabs key={planIdx} defaultValue={`gw-${plan?.gameweeks[0]?.gameweek}`} className="w-full">
             <div className="overflow-x-auto pb-2">
               <TabsList className="w-full justify-start inline-flex h-12">
-                {solve.result.gameweeks.map(gw => (
+                {(plan?.gameweeks ?? []).map(gw => (
                   <TabsTrigger 
                     key={gw.gameweek} 
                     value={`gw-${gw.gameweek}`}
@@ -165,7 +194,7 @@ export default function SolveDetail() {
               </TabsList>
             </div>
 
-            {solve.result.gameweeks.map(gw => (
+            {(plan?.gameweeks ?? []).map(gw => (
               <TabsContent key={gw.gameweek} value={`gw-${gw.gameweek}`} className="mt-6 focus-visible:outline-none">
                 <GameweekView plan={gw} />
               </TabsContent>

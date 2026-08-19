@@ -15,6 +15,7 @@ import {
   type GameweekPlan,
   type PickPlayer,
   type SolveRequest,
+  type SolvePlan,
   type SolveResult,
   listRunMetas,
   saveRunMetas,
@@ -309,9 +310,28 @@ function parseResultCsv(
   factors: Map<string, number> | null = null,
 ): SolveResult {
   const rows = parseCsv(csvContent) as unknown as PickRow[];
-  const firstIter = rows.length > 0 ? rows[0]!.iter : "0";
-  const iterRows = rows.filter((r) => r.iter === firstIter);
+  const iters = [...new Set(rows.map((r) => r.iter))].sort(
+    (a, b) => Number(a) - Number(b),
+  );
+  const plans = iters.map((iter) =>
+    parseIterPlan(
+      rows.filter((r) => r.iter === iter),
+      prices,
+      factors,
+    ),
+  );
+  const main = plans[0]!;
+  return {
+    ...main,
+    alternatives: plans.length > 1 ? plans.slice(1) : null,
+  };
+}
 
+function parseIterPlan(
+  iterRows: PickRow[],
+  prices: Map<string, number>,
+  factors: Map<string, number> | null,
+): SolvePlan {
   const weeks = [...new Set(iterRows.map((r) => Number(r.week)))].sort(
     (a, b) => a - b,
   );
@@ -403,10 +423,12 @@ function parseResultCsv(
 export function resolvePlayerRefs(
   projectionId: string,
   refs: string[],
-): { ids: number[]; unknown: string[] } {
+): { ids: number[]; unknown: string[]; ambiguous: string[] } {
   const ids: number[] = [];
   const unknown: string[] = [];
+  const ambiguous: string[] = [];
   const byName = new Map<string, number>();
+  const dupNames = new Set<string>();
   const idSet = new Set<number>();
   try {
     const rows = parseCsv(
@@ -417,7 +439,11 @@ export function resolvePlayerRefs(
       const name = (r["Name"] ?? r["name"] ?? "").toLowerCase();
       if (Number.isFinite(id)) {
         idSet.add(id);
-        if (name) byName.set(name, id);
+        if (name) {
+          const prev = byName.get(name);
+          if (prev != null && prev !== id) dupNames.add(name);
+          byName.set(name, id);
+        }
       }
     }
   } catch {
@@ -432,11 +458,16 @@ export function resolvePlayerRefs(
       else unknown.push(trimmed);
       continue;
     }
-    const id = byName.get(trimmed.toLowerCase());
+    const lower = trimmed.toLowerCase();
+    if (dupNames.has(lower)) {
+      ambiguous.push(trimmed);
+      continue;
+    }
+    const id = byName.get(lower);
     if (id != null) ids.push(id);
     else unknown.push(trimmed);
   }
-  return { ids, unknown };
+  return { ids, unknown, ambiguous };
 }
 
 function buildConfig(
@@ -518,6 +549,27 @@ function buildConfig(
     if (opts.gap != null) config["gap"] = clamp(opts.gap, 0, 1);
     if (opts.randomized != null) config["randomized"] = opts.randomized;
     if (opts.opposingPlay != null) applyOpposingPlay(config, opts.opposingPlay);
+    if (opts.bookedTransfers?.length) {
+      config["booked_transfers"] = opts.bookedTransfers.map((bt) => {
+        const entry: Record<string, unknown> = { gw: bt.gameweek };
+        if (bt.in) {
+          entry["transfer_in"] = resolvePlayerRefs(request.projectionId, [bt.in]).ids[0];
+        }
+        if (bt.out) {
+          entry["transfer_out"] = resolvePlayerRefs(request.projectionId, [bt.out]).ids[0];
+        }
+        return entry;
+      });
+    }
+    if (opts.numIterations != null && opts.numIterations > 1) {
+      config["num_iterations"] = intClamp(opts.numIterations, 1, 5);
+      config["iteration_criteria"] = "this_gw_transfer_in";
+    }
+    if (opts.benchWeights?.length === 4) {
+      config["bench_weights"] = Object.fromEntries(
+        opts.benchWeights.map((w, i) => [i, clamp(w, 0, 1)]),
+      );
+    }
   }
 
   // Mega-run scenarios: solver chooses chip timing within the allowed window.
@@ -601,12 +653,17 @@ export async function startSolve(
       let keepIds: Set<number> | null = null;
       if (filter) {
         keepIds = selectPool(computePoolStats(request.projectionId), filter);
-        // Locked players are always kept regardless of rank.
-        if (request.options?.locked?.length) {
-          for (const id of resolvePlayerRefs(
-            request.projectionId,
-            request.options.locked,
-          ).ids) {
+        // Locked and booked players are always kept regardless of rank —
+        // the solver must be able to see any player it is forced to use.
+        const forcedRefs = [
+          ...(request.options?.locked ?? []),
+          ...(request.options?.bookedTransfers ?? []).flatMap((bt) =>
+            [bt.in, bt.out].filter((x): x is string => !!x),
+          ),
+        ];
+        if (forcedRefs.length > 0) {
+          for (const id of resolvePlayerRefs(request.projectionId, forcedRefs)
+            .ids) {
             keepIds.add(id);
           }
         }
@@ -703,8 +760,8 @@ export async function startSolve(
         return;
       }
 
-      const resultFile = findNewestResult(datasource, startedAt);
-      if (!resultFile) {
+      const resultFiles = findResultFiles(datasource, startedAt);
+      if (resultFiles.length === 0) {
         updateRun(runId, {
           status: "failed",
           completedAt: new Date().toISOString(),
@@ -714,13 +771,15 @@ export async function startSolve(
       }
 
       const result = parseResultCsv(
-        fs.readFileSync(resultFile, "utf-8"),
+        concatCsvFiles(resultFiles),
         priceMap(request.projectionId),
         factors,
       );
       // In first-gameweek mode the initial squad build is not a set of transfers.
-      if (request.firstGameweek && result.gameweeks.length > 0) {
-        result.gameweeks[0]!.transfersIn = [];
+      if (request.firstGameweek) {
+        for (const p of [result, ...(result.alternatives ?? [])]) {
+          if (p.gameweeks.length > 0) p.gameweeks[0]!.transfersIn = [];
+        }
       }
       updateRun(runId, {
         status: "completed",
@@ -730,7 +789,7 @@ export async function startSolve(
         finalGapPercent: extractFinalGap(logPath),
         result,
       });
-      logger.info({ runId, resultFile }, "Solve completed");
+      logger.info({ runId, resultFiles }, "Solve completed");
     } catch (err) {
       logger.error({ err, runId }, "Failed to parse solver result");
       updateRun(runId, {
@@ -872,21 +931,32 @@ function readLogTail(logPath: string): string {
   }
 }
 
-function findNewestResult(
-  datasource: string,
-  startedAt: number,
-): string | null {
+/** Concatenate CSV files that share a header (keep the first header only). */
+function concatCsvFiles(files: string[]): string {
+  return files
+    .map((f, i) => {
+      const content = fs.readFileSync(f, "utf-8");
+      if (i === 0) return content;
+      const nl = content.indexOf("\n");
+      return nl === -1 ? "" : content.slice(nl + 1);
+    })
+    .join("");
+}
+
+/**
+ * All result CSVs for this run's datasource. Multi-iteration solves write one
+ * file per iteration (suffix _0, _1, ...); sorted so iteration 0 comes first.
+ */
+function findResultFiles(datasource: string, startedAt: number): string[] {
   try {
-    const files = fs
+    return fs
       .readdirSync(SOLVER_RESULTS_DIR)
       .filter((f) => f.startsWith(`${datasource}_`) && f.endsWith(".csv"))
       .map((f) => path.join(SOLVER_RESULTS_DIR, f))
-      .filter((f) => fs.statSync(f).mtimeMs >= startedAt - 5000);
-    if (files.length === 0) return null;
-    files.sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
-    return files[0]!;
+      .filter((f) => fs.statSync(f).mtimeMs >= startedAt - 5000)
+      .sort();
   } catch {
-    return null;
+    return [];
   }
 }
 

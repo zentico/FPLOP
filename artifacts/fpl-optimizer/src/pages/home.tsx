@@ -63,6 +63,8 @@ export default function Home() {
     gap: "0.01",
   });
   const [advFlags, setAdvFlags] = React.useState<{ noFutureTransfer: boolean; randomized: boolean }>({ noFutureTransfer: false, randomized: false });
+  // Booked transfers: moves the user has already decided on
+  const [booked, setBooked] = React.useState<{ gw: string; inP: string; outP: string }[]>([]);
   const [opposingPlay, setOpposingPlay] = React.useState<"off" | "penalty" | "forbid">("penalty");
 
   // Queries
@@ -331,6 +333,25 @@ export default function Home() {
       noFutureTransfer: advFlags.noFutureTransfer || undefined,
       randomized: advFlags.randomized || undefined,
       opposingPlay: opposingPlay !== "off" ? opposingPlay : undefined,
+      numIterations: num("numIterations"),
+      benchWeights: (() => {
+        const ws = ["bwGk", "bw1", "bw2", "bw3"].map((k) => adv[k]?.trim());
+        if (ws.every((w) => !w)) return undefined;
+        return ws.map((w, i) => {
+          const n = Number(w);
+          return w && Number.isFinite(n) ? n : [0.03, 0.21, 0.06, 0.002][i]!;
+        });
+      })(),
+      bookedTransfers: (() => {
+        const rows = booked
+          .map((b) => ({
+            gameweek: parseInt(b.gw, 10),
+            in: b.inP.trim() || undefined,
+            out: b.outP.trim() || undefined,
+          }))
+          .filter((b) => Number.isFinite(b.gameweek) && (b.in || b.out));
+        return rows.length > 0 ? rows : undefined;
+      })(),
     };
     const hasOptions = Object.values(options).some((v) => v !== undefined);
 
@@ -791,6 +812,52 @@ export default function Home() {
                       <AdvField label="Min expected minutes" placeholder="300" hint="Exclude players below this xMins total" value={adv.xminLb || ""} onChange={(v) => setAdv({ ...adv, xminLb: v })} />
                       <AdvField label="Time limit (seconds)" placeholder="900" hint="Stop the solver after this long" value={adv.secs || ""} onChange={(v) => setAdv({ ...adv, secs: v })} />
                       <AdvField label="Optimality gap" placeholder="0.01" hint="e.g. 0.01 accepts within 1% of optimal; larger is faster" value={adv.gap || ""} onChange={(v) => setAdv({ ...adv, gap: v })} />
+                      <AdvField label="Alternative plans" placeholder="1" hint="Solve for up to 5 plans, each with different next-GW transfers (multiplies solve time)" value={adv.numIterations || ""} onChange={(v) => setAdv({ ...adv, numIterations: v })} />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Bench weights — odds each bench slot ends up scoring</Label>
+                      <div className="grid grid-cols-4 gap-2">
+                        <AdvField label="Bench GK" placeholder="0.03" hint="" value={adv.bwGk || ""} onChange={(v) => setAdv({ ...adv, bwGk: v })} />
+                        <AdvField label="1st sub" placeholder="0.21" hint="" value={adv.bw1 || ""} onChange={(v) => setAdv({ ...adv, bw1: v })} />
+                        <AdvField label="2nd sub" placeholder="0.06" hint="" value={adv.bw2 || ""} onChange={(v) => setAdv({ ...adv, bw2: v })} />
+                        <AdvField label="3rd sub" placeholder="0.002" hint="" value={adv.bw3 || ""} onChange={(v) => setAdv({ ...adv, bw3: v })} />
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        How much of each bench player's points count in the objective (0–1). Raise these if your starters
+                        have shaky minutes — e.g. 1st sub 0.3 makes the solver invest in a stronger bench.
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-xs">Booked transfers</Label>
+                          <p className="text-[11px] text-muted-foreground">Moves you've already decided on — the solver must make them and plans around them.</p>
+                        </div>
+                        <Button type="button" variant="outline" size="sm" onClick={() => setBooked([...booked, { gw: "", inP: "", outP: "" }])}>
+                          Add
+                        </Button>
+                      </div>
+                      {booked.map((b, i) => (
+                        <div key={i} className="flex items-end gap-2">
+                          <div className="w-24 space-y-1">
+                            <Label className="text-[11px] text-muted-foreground">GW</Label>
+                            <Input inputMode="numeric" placeholder={`${currentGw}`} value={b.gw} onChange={(e) => setBooked(booked.map((x, j) => j === i ? { ...x, gw: e.target.value } : x))} />
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <Label className="text-[11px] text-muted-foreground">Player in</Label>
+                            <Input placeholder="e.g. Haaland" value={b.inP} onChange={(e) => setBooked(booked.map((x, j) => j === i ? { ...x, inP: e.target.value } : x))} />
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <Label className="text-[11px] text-muted-foreground">Player out</Label>
+                            <Input placeholder="e.g. Watkins" value={b.outP} onChange={(e) => setBooked(booked.map((x, j) => j === i ? { ...x, outP: e.target.value } : x))} />
+                          </div>
+                          <Button type="button" variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => setBooked(booked.filter((_, j) => j !== i))}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

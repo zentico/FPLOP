@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './bookedTransfer';
 export * from './chipAssignment';
 export * from './errorMessage';
 export * from './ffhSessionInput';
@@ -30,6 +31,7 @@ export * from './projectionInput';
 export * from './solveInput';
 export * from './solveOptions';
 export * from './solveOptionsOpposingPlay';
+export * from './solvePlan';
 export * from './solveProgress';
 export * from './solveResult';
 export * from './solveRun';

@@ -241,7 +241,14 @@ export const ListSolvesResponseItem = zod.object({
   "secs": zod.number().nullish().describe('Solver time limit in seconds'),
   "gap": zod.number().nullish().describe('Acceptable optimality gap (0 = prove optimal)'),
   "randomized": zod.boolean().nullish().describe('Add noise to projections for alternative solutions'),
-  "opposingPlay": zod.union([zod.literal('off'),zod.literal('penalty'),zod.literal('forbid'),zod.literal(null)]).nullish().describe('Handling of zero-sum starting XI matchups (your GK\/DEF facing your own MID\/FWD in the same gameweek). \"penalty\" discourages them softly, \"forbid\" bans them outright, \"off\"\/null leaves them allowed.')
+  "opposingPlay": zod.union([zod.literal('off'),zod.literal('penalty'),zod.literal('forbid'),zod.literal(null)]).nullish().describe('Handling of zero-sum starting XI matchups (your GK\/DEF facing your own MID\/FWD in the same gameweek). \"penalty\" discourages them softly, \"forbid\" bans them outright, \"off\"\/null leaves them allowed.'),
+  "bookedTransfers": zod.array(zod.object({
+  "gameweek": zod.number(),
+  "in": zod.string().nullish().describe('Player name to transfer in that gameweek'),
+  "out": zod.string().nullish().describe('Player name to transfer out that gameweek')
+})).optional().describe('Transfers already decided on; the solver is forced to make them'),
+  "numIterations": zod.number().nullish().describe('Generate this many plans (1-5). Each extra plan is forced to differ from the previous ones in next-gameweek transfers.'),
+  "benchWeights": zod.array(zod.number()).optional().describe('Objective weights for bench slots in order [GK, 1st, 2nd, 3rd], each 0-1 — the odds each bench player ends up scoring. Defaults [0.03, 0.21, 0.06, 0.002].')
 }).describe('Advanced solver settings, mirroring open-fpl-solver config keys'),zod.null()]).optional()
 }),
   "projectionFilename": zod.string().nullish(),
@@ -284,7 +291,43 @@ export const ListSolvesResponseItem = zod.object({
 })),
   "transfersIn": zod.array(zod.string()),
   "transfersOut": zod.array(zod.string())
+})),
+  "alternatives": zod.array(zod.object({
+  "totalExpectedPoints": zod.number(),
+  "totalBaseExpectedPoints": zod.number().nullish().describe('Total using unadjusted projections, when a differential factor was applied'),
+  "gameweeks": zod.array(zod.object({
+  "gameweek": zod.number(),
+  "chip": zod.string().nullish().describe('Chip played this gameweek, if any'),
+  "expectedPoints": zod.number(),
+  "baseExpectedPoints": zod.number().nullish().describe('Gameweek total using unadjusted projections, when a differential factor was applied'),
+  "bank": zod.number().nullish(),
+  "freeTransfers": zod.number().nullish().describe('Free transfers available going into this gameweek'),
+  "lineup": zod.array(zod.object({
+  "name": zod.string(),
+  "team": zod.string(),
+  "position": zod.string().describe('One of G, D, M, F'),
+  "price": zod.number(),
+  "expectedPoints": zod.number(),
+  "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
+  "isCaptain": zod.boolean(),
+  "isViceCaptain": zod.boolean(),
+  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
+})),
+  "bench": zod.array(zod.object({
+  "name": zod.string(),
+  "team": zod.string(),
+  "position": zod.string().describe('One of G, D, M, F'),
+  "price": zod.number(),
+  "expectedPoints": zod.number(),
+  "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
+  "isCaptain": zod.boolean(),
+  "isViceCaptain": zod.boolean(),
+  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
+})),
+  "transfersIn": zod.array(zod.string()),
+  "transfersOut": zod.array(zod.string())
 }))
+})).nullish().describe('Alternative plans from multi-iteration solves (the main plan is not repeated)')
 }),zod.null()]).optional(),
   "progress": zod.union([zod.object({
   "stage": zod.string().describe('One of preparing, pool, solving, finalizing'),
@@ -344,7 +387,14 @@ export const CreateSolveBody = zod.object({
   "secs": zod.number().nullish().describe('Solver time limit in seconds'),
   "gap": zod.number().nullish().describe('Acceptable optimality gap (0 = prove optimal)'),
   "randomized": zod.boolean().nullish().describe('Add noise to projections for alternative solutions'),
-  "opposingPlay": zod.union([zod.literal('off'),zod.literal('penalty'),zod.literal('forbid'),zod.literal(null)]).nullish().describe('Handling of zero-sum starting XI matchups (your GK\/DEF facing your own MID\/FWD in the same gameweek). \"penalty\" discourages them softly, \"forbid\" bans them outright, \"off\"\/null leaves them allowed.')
+  "opposingPlay": zod.union([zod.literal('off'),zod.literal('penalty'),zod.literal('forbid'),zod.literal(null)]).nullish().describe('Handling of zero-sum starting XI matchups (your GK\/DEF facing your own MID\/FWD in the same gameweek). \"penalty\" discourages them softly, \"forbid\" bans them outright, \"off\"\/null leaves them allowed.'),
+  "bookedTransfers": zod.array(zod.object({
+  "gameweek": zod.number(),
+  "in": zod.string().nullish().describe('Player name to transfer in that gameweek'),
+  "out": zod.string().nullish().describe('Player name to transfer out that gameweek')
+})).optional().describe('Transfers already decided on; the solver is forced to make them'),
+  "numIterations": zod.number().nullish().describe('Generate this many plans (1-5). Each extra plan is forced to differ from the previous ones in next-gameweek transfers.'),
+  "benchWeights": zod.array(zod.number()).optional().describe('Objective weights for bench slots in order [GK, 1st, 2nd, 3rd], each 0-1 — the odds each bench player ends up scoring. Defaults [0.03, 0.21, 0.06, 0.002].')
 }).describe('Advanced solver settings, mirroring open-fpl-solver config keys'),zod.null()]).optional()
 })
 
@@ -389,7 +439,14 @@ export const CreateSolveResponse = zod.object({
   "secs": zod.number().nullish().describe('Solver time limit in seconds'),
   "gap": zod.number().nullish().describe('Acceptable optimality gap (0 = prove optimal)'),
   "randomized": zod.boolean().nullish().describe('Add noise to projections for alternative solutions'),
-  "opposingPlay": zod.union([zod.literal('off'),zod.literal('penalty'),zod.literal('forbid'),zod.literal(null)]).nullish().describe('Handling of zero-sum starting XI matchups (your GK\/DEF facing your own MID\/FWD in the same gameweek). \"penalty\" discourages them softly, \"forbid\" bans them outright, \"off\"\/null leaves them allowed.')
+  "opposingPlay": zod.union([zod.literal('off'),zod.literal('penalty'),zod.literal('forbid'),zod.literal(null)]).nullish().describe('Handling of zero-sum starting XI matchups (your GK\/DEF facing your own MID\/FWD in the same gameweek). \"penalty\" discourages them softly, \"forbid\" bans them outright, \"off\"\/null leaves them allowed.'),
+  "bookedTransfers": zod.array(zod.object({
+  "gameweek": zod.number(),
+  "in": zod.string().nullish().describe('Player name to transfer in that gameweek'),
+  "out": zod.string().nullish().describe('Player name to transfer out that gameweek')
+})).optional().describe('Transfers already decided on; the solver is forced to make them'),
+  "numIterations": zod.number().nullish().describe('Generate this many plans (1-5). Each extra plan is forced to differ from the previous ones in next-gameweek transfers.'),
+  "benchWeights": zod.array(zod.number()).optional().describe('Objective weights for bench slots in order [GK, 1st, 2nd, 3rd], each 0-1 — the odds each bench player ends up scoring. Defaults [0.03, 0.21, 0.06, 0.002].')
 }).describe('Advanced solver settings, mirroring open-fpl-solver config keys'),zod.null()]).optional()
 }),
   "projectionFilename": zod.string().nullish(),
@@ -432,7 +489,43 @@ export const CreateSolveResponse = zod.object({
 })),
   "transfersIn": zod.array(zod.string()),
   "transfersOut": zod.array(zod.string())
+})),
+  "alternatives": zod.array(zod.object({
+  "totalExpectedPoints": zod.number(),
+  "totalBaseExpectedPoints": zod.number().nullish().describe('Total using unadjusted projections, when a differential factor was applied'),
+  "gameweeks": zod.array(zod.object({
+  "gameweek": zod.number(),
+  "chip": zod.string().nullish().describe('Chip played this gameweek, if any'),
+  "expectedPoints": zod.number(),
+  "baseExpectedPoints": zod.number().nullish().describe('Gameweek total using unadjusted projections, when a differential factor was applied'),
+  "bank": zod.number().nullish(),
+  "freeTransfers": zod.number().nullish().describe('Free transfers available going into this gameweek'),
+  "lineup": zod.array(zod.object({
+  "name": zod.string(),
+  "team": zod.string(),
+  "position": zod.string().describe('One of G, D, M, F'),
+  "price": zod.number(),
+  "expectedPoints": zod.number(),
+  "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
+  "isCaptain": zod.boolean(),
+  "isViceCaptain": zod.boolean(),
+  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
+})),
+  "bench": zod.array(zod.object({
+  "name": zod.string(),
+  "team": zod.string(),
+  "position": zod.string().describe('One of G, D, M, F'),
+  "price": zod.number(),
+  "expectedPoints": zod.number(),
+  "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
+  "isCaptain": zod.boolean(),
+  "isViceCaptain": zod.boolean(),
+  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
+})),
+  "transfersIn": zod.array(zod.string()),
+  "transfersOut": zod.array(zod.string())
 }))
+})).nullish().describe('Alternative plans from multi-iteration solves (the main plan is not repeated)')
 }),zod.null()]).optional(),
   "progress": zod.union([zod.object({
   "stage": zod.string().describe('One of preparing, pool, solving, finalizing'),
@@ -520,7 +613,14 @@ export const CreateMegaSolveBody = zod.object({
   "secs": zod.number().nullish().describe('Solver time limit in seconds'),
   "gap": zod.number().nullish().describe('Acceptable optimality gap (0 = prove optimal)'),
   "randomized": zod.boolean().nullish().describe('Add noise to projections for alternative solutions'),
-  "opposingPlay": zod.union([zod.literal('off'),zod.literal('penalty'),zod.literal('forbid'),zod.literal(null)]).nullish().describe('Handling of zero-sum starting XI matchups (your GK\/DEF facing your own MID\/FWD in the same gameweek). \"penalty\" discourages them softly, \"forbid\" bans them outright, \"off\"\/null leaves them allowed.')
+  "opposingPlay": zod.union([zod.literal('off'),zod.literal('penalty'),zod.literal('forbid'),zod.literal(null)]).nullish().describe('Handling of zero-sum starting XI matchups (your GK\/DEF facing your own MID\/FWD in the same gameweek). \"penalty\" discourages them softly, \"forbid\" bans them outright, \"off\"\/null leaves them allowed.'),
+  "bookedTransfers": zod.array(zod.object({
+  "gameweek": zod.number(),
+  "in": zod.string().nullish().describe('Player name to transfer in that gameweek'),
+  "out": zod.string().nullish().describe('Player name to transfer out that gameweek')
+})).optional().describe('Transfers already decided on; the solver is forced to make them'),
+  "numIterations": zod.number().nullish().describe('Generate this many plans (1-5). Each extra plan is forced to differ from the previous ones in next-gameweek transfers.'),
+  "benchWeights": zod.array(zod.number()).optional().describe('Objective weights for bench slots in order [GK, 1st, 2nd, 3rd], each 0-1 — the odds each bench player ends up scoring. Defaults [0.03, 0.21, 0.06, 0.002].')
 }).describe('Advanced solver settings, mirroring open-fpl-solver config keys'),zod.null()]).optional()
 })
 
@@ -651,7 +751,14 @@ export const GetSolveResponse = zod.object({
   "secs": zod.number().nullish().describe('Solver time limit in seconds'),
   "gap": zod.number().nullish().describe('Acceptable optimality gap (0 = prove optimal)'),
   "randomized": zod.boolean().nullish().describe('Add noise to projections for alternative solutions'),
-  "opposingPlay": zod.union([zod.literal('off'),zod.literal('penalty'),zod.literal('forbid'),zod.literal(null)]).nullish().describe('Handling of zero-sum starting XI matchups (your GK\/DEF facing your own MID\/FWD in the same gameweek). \"penalty\" discourages them softly, \"forbid\" bans them outright, \"off\"\/null leaves them allowed.')
+  "opposingPlay": zod.union([zod.literal('off'),zod.literal('penalty'),zod.literal('forbid'),zod.literal(null)]).nullish().describe('Handling of zero-sum starting XI matchups (your GK\/DEF facing your own MID\/FWD in the same gameweek). \"penalty\" discourages them softly, \"forbid\" bans them outright, \"off\"\/null leaves them allowed.'),
+  "bookedTransfers": zod.array(zod.object({
+  "gameweek": zod.number(),
+  "in": zod.string().nullish().describe('Player name to transfer in that gameweek'),
+  "out": zod.string().nullish().describe('Player name to transfer out that gameweek')
+})).optional().describe('Transfers already decided on; the solver is forced to make them'),
+  "numIterations": zod.number().nullish().describe('Generate this many plans (1-5). Each extra plan is forced to differ from the previous ones in next-gameweek transfers.'),
+  "benchWeights": zod.array(zod.number()).optional().describe('Objective weights for bench slots in order [GK, 1st, 2nd, 3rd], each 0-1 — the odds each bench player ends up scoring. Defaults [0.03, 0.21, 0.06, 0.002].')
 }).describe('Advanced solver settings, mirroring open-fpl-solver config keys'),zod.null()]).optional()
 }),
   "projectionFilename": zod.string().nullish(),
@@ -694,7 +801,43 @@ export const GetSolveResponse = zod.object({
 })),
   "transfersIn": zod.array(zod.string()),
   "transfersOut": zod.array(zod.string())
+})),
+  "alternatives": zod.array(zod.object({
+  "totalExpectedPoints": zod.number(),
+  "totalBaseExpectedPoints": zod.number().nullish().describe('Total using unadjusted projections, when a differential factor was applied'),
+  "gameweeks": zod.array(zod.object({
+  "gameweek": zod.number(),
+  "chip": zod.string().nullish().describe('Chip played this gameweek, if any'),
+  "expectedPoints": zod.number(),
+  "baseExpectedPoints": zod.number().nullish().describe('Gameweek total using unadjusted projections, when a differential factor was applied'),
+  "bank": zod.number().nullish(),
+  "freeTransfers": zod.number().nullish().describe('Free transfers available going into this gameweek'),
+  "lineup": zod.array(zod.object({
+  "name": zod.string(),
+  "team": zod.string(),
+  "position": zod.string().describe('One of G, D, M, F'),
+  "price": zod.number(),
+  "expectedPoints": zod.number(),
+  "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
+  "isCaptain": zod.boolean(),
+  "isViceCaptain": zod.boolean(),
+  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
+})),
+  "bench": zod.array(zod.object({
+  "name": zod.string(),
+  "team": zod.string(),
+  "position": zod.string().describe('One of G, D, M, F'),
+  "price": zod.number(),
+  "expectedPoints": zod.number(),
+  "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
+  "isCaptain": zod.boolean(),
+  "isViceCaptain": zod.boolean(),
+  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
+})),
+  "transfersIn": zod.array(zod.string()),
+  "transfersOut": zod.array(zod.string())
 }))
+})).nullish().describe('Alternative plans from multi-iteration solves (the main plan is not repeated)')
 }),zod.null()]).optional(),
   "progress": zod.union([zod.object({
   "stage": zod.string().describe('One of preparing, pool, solving, finalizing'),

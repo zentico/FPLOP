@@ -6,9 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { GameweekPlan } from './gameweekPlan';
-import type { SolvePlan } from './solvePlan';
 
-export interface SolveResult {
+export interface SolvePlan {
   totalExpectedPoints: number;
   /**
      * Total using unadjusted projections, when a differential factor was applied
@@ -16,9 +15,4 @@ export interface SolveResult {
      */
   totalBaseExpectedPoints?: number | null;
   gameweeks: GameweekPlan[];
-  /**
-     * Alternative plans from multi-iteration solves (the main plan is not repeated)
-     * @nullable
-     */
-  alternatives?: SolvePlan[] | null;
 }

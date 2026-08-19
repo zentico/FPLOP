@@ -31,6 +31,18 @@ export interface SolveOptions {
   gap?: number | null;
   randomized?: boolean | null;
   opposingPlay?: "off" | "penalty" | "forbid" | null;
+  /** Transfers the user has already decided on; the solver must make them. */
+  bookedTransfers?: BookedTransfer[] | null;
+  /** Generate this many alternative plans (each forced to differ in next-GW transfers). */
+  numIterations?: number | null;
+  /** Objective weights for bench slots [GK, 1st, 2nd, 3rd]. */
+  benchWeights?: number[] | null;
+}
+
+export interface BookedTransfer {
+  gameweek: number;
+  in?: string | null;
+  out?: string | null;
 }
 
 export interface PoolFilter {
@@ -91,10 +103,15 @@ export interface GameweekPlan {
   transfersOut: string[];
 }
 
-export interface SolveResult {
+export interface SolvePlan {
   totalExpectedPoints: number;
   totalBaseExpectedPoints?: number | null;
   gameweeks: GameweekPlan[];
+}
+
+export interface SolveResult extends SolvePlan {
+  /** Alternative plans from multi-iteration solves (best plan first, excluded). */
+  alternatives?: SolvePlan[] | null;
 }
 
 export interface SolveRunMeta {
