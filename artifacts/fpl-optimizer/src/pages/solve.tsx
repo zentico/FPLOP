@@ -4,7 +4,7 @@ import { useGetSolve, useDeleteSolve, useListFixtures } from "@workspace/api-cli
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowRightLeft, Target, Trophy, Clock, AlertTriangle, ShieldCheck, Cctv, Info } from "lucide-react";
+import { ArrowLeft, ArrowRightLeft, Target, Trophy, Clock, AlertTriangle, ShieldCheck, BrainCircuit, Info } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
@@ -91,7 +91,7 @@ export default function SolveDetail() {
         <Card className="border-primary/20 bg-primary/5 min-h-[40vh] flex flex-col items-center justify-center text-center animate-in fade-in duration-500">
           <div className="relative">
             <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
-            <Cctv className="h-16 w-16 text-primary mb-6 animate-bounce relative z-10" />
+            <BrainCircuit className="h-16 w-16 text-primary mb-6 animate-bounce relative z-10" />
           </div>
           <h3 className="text-xl font-bold mb-2">Optimizer is running...</h3>
           <p className="text-muted-foreground max-w-md mx-auto">
