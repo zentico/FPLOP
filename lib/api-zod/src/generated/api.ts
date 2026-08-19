@@ -338,7 +338,8 @@ export const ListSolvesResponseItem = zod.object({
   "chip": zod.string(),
   "gameweek": zod.number(),
   "optimized": zod.boolean()
-})).optional().describe('Chips with their actual gameweeks (from the solved plan when completed); optimized=true when the solver chose the timing.\n')
+})).optional().describe('Chips with their actual gameweeks (from the solved plan when completed); optimized=true when the solver chose the timing.\n'),
+  "planCount": zod.number().nullish().describe('Number of plans the run produced (or was asked for while pending); greater than 1 when alternative plans were generated.\n')
 })
 export const ListSolvesResponse = zod.array(ListSolvesResponseItem)
 
@@ -536,7 +537,8 @@ export const CreateSolveResponse = zod.object({
   "chip": zod.string(),
   "gameweek": zod.number(),
   "optimized": zod.boolean()
-})).optional().describe('Chips with their actual gameweeks (from the solved plan when completed); optimized=true when the solver chose the timing.\n')
+})).optional().describe('Chips with their actual gameweeks (from the solved plan when completed); optimized=true when the solver chose the timing.\n'),
+  "planCount": zod.number().nullish().describe('Number of plans the run produced (or was asked for while pending); greater than 1 when alternative plans were generated.\n')
 })
 
 
@@ -848,7 +850,8 @@ export const GetSolveResponse = zod.object({
   "chip": zod.string(),
   "gameweek": zod.number(),
   "optimized": zod.boolean()
-})).optional().describe('Chips with their actual gameweeks (from the solved plan when completed); optimized=true when the solver chose the timing.\n')
+})).optional().describe('Chips with their actual gameweeks (from the solved plan when completed); optimized=true when the solver chose the timing.\n'),
+  "planCount": zod.number().nullish().describe('Number of plans the run produced (or was asked for while pending); greater than 1 when alternative plans were generated.\n')
 })
 
 

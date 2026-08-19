@@ -300,6 +300,7 @@ interface PickRow {
   transfer_out: string;
   chip: string;
   buy_price: string;
+  sell_price: string;
   iter: string;
   ft: string;
 }
@@ -308,6 +309,7 @@ function parseResultCsv(
   csvContent: string,
   prices: Map<string, number>,
   factors: Map<string, number> | null = null,
+  startBank: number | null = null,
 ): SolveResult {
   const rows = parseCsv(csvContent) as unknown as PickRow[];
   const iters = [...new Set(rows.map((r) => r.iter))].sort(
@@ -318,6 +320,7 @@ function parseResultCsv(
       rows.filter((r) => r.iter === iter),
       prices,
       factors,
+      startBank,
     ),
   );
   const main = plans[0]!;
@@ -331,10 +334,16 @@ function parseIterPlan(
   iterRows: PickRow[],
   prices: Map<string, number>,
   factors: Map<string, number> | null,
+  startBank: number | null,
 ): SolvePlan {
   const weeks = [...new Set(iterRows.map((r) => Number(r.week)))].sort(
     (a, b) => a - b,
   );
+
+  // Running bank ledger: each week's transfers move money in (sales) and out
+  // (purchases). Free Hit changes revert the following week, so they don't
+  // carry into the running balance.
+  let runningBank = startBank;
 
   const gameweeks: GameweekPlan[] = weeks.map((week) => {
     const wr = iterRows.filter((r) => Number(r.week) === week);
@@ -376,6 +385,19 @@ function parseIterPlan(
       (r) => Number(r.lineup) === 1 || Number(r.bench) >= 0,
     );
 
+    let bank: number | null = null;
+    if (runningBank != null) {
+      const sold = wr
+        .filter((r) => Number(r.transfer_out) === 1)
+        .reduce((s, r) => s + (Number(r.sell_price) || 0), 0);
+      const bought = wr
+        .filter((r) => Number(r.transfer_in) === 1)
+        .reduce((s, r) => s + (Number(r.buy_price) || 0), 0);
+      bank = Math.round((runningBank + sold - bought) * 10) / 10;
+      // Free Hit squads revert after the week, so its spending doesn't carry.
+      if (chipCode !== "FH") runningBank = bank;
+    }
+
     return {
       gameweek: week,
       chip: chipCode ? (CHIP_CODE[chipCode] ?? chipCode) : null,
@@ -391,7 +413,7 @@ function parseIterPlan(
             ) * 100,
           ) / 100
         : null,
-      bank: null,
+      bank,
       freeTransfers: Number.isFinite(Number(wr[0]?.ft))
         ? Math.round(Number(wr[0]!.ft))
         : null,
@@ -737,7 +759,8 @@ export async function startSolve(
     });
   });
 
-  child.on("close", (code) => {
+  child.on("close", (code): void => {
+    void (async () => {
     clearTimeout(timeout);
     logStream.end();
     cleanupAdjusted();
@@ -770,10 +793,22 @@ export async function startSolve(
         return;
       }
 
+      // Starting bank for the money ledger: full budget in first-GW mode,
+      // otherwise the team's actual in-the-bank amount from FPL.
+      let startBank: number | null = request.firstGameweek ? 100 : null;
+      if (!request.firstGameweek && request.teamId) {
+        try {
+          startBank = (await getFplTeam(request.teamId)).bank;
+        } catch {
+          // FPL unreachable — leave the bank unknown rather than guessing.
+        }
+      }
+
       const result = parseResultCsv(
         concatCsvFiles(resultFiles),
         priceMap(request.projectionId),
         factors,
+        startBank,
       );
       // In first-gameweek mode the initial squad build is not a set of transfers.
       if (request.firstGameweek) {
@@ -798,6 +833,7 @@ export async function startSolve(
         error: `Failed to parse solver result: ${(err as Error).message}`,
       });
     }
+    })();
   });
 }
 
@@ -823,7 +859,10 @@ function extractFinalGap(logPath: string | null): number | null {
   }
 }
 
-export function getRunProgress(runId: string): SolveProgress {
+export function getRunProgress(
+  runId: string,
+  totalIterations = 1,
+): SolveProgress {
   let content = "";
   try {
     content = fs.readFileSync(path.join(RUNS_DIR, runId, "solver.log"), "utf-8");
@@ -831,12 +870,28 @@ export function getRunProgress(runId: string): SolveProgress {
     // no log yet
   }
 
-  if (content.includes("Solving report")) {
+  // Multi-iteration runs solve once per plan, so the log repeats the
+  // presolve → search → "Solving report" cycle. Count finished cycles and
+  // only inspect the log tail after the last one for live progress.
+  const total = Math.max(1, totalIterations);
+  const reports = content.split("Solving report");
+  const completed = reports.length - 1;
+  const planTag =
+    total > 1 ? `plan ${Math.min(completed + 1, total)} of ${total}: ` : "";
+
+  if (completed >= total) {
     return {
       stage: "finalizing",
-      message: "Optimal plan found — writing out the solution",
+      message:
+        total > 1
+          ? `All ${total} plans found — writing out the solutions`
+          : "Optimal plan found — writing out the solution",
       gapPercent: null,
     };
+  }
+  if (completed > 0) {
+    // Progress parsing below should only see the in-flight iteration.
+    content = reports[reports.length - 1]!;
   }
 
   // HiGHS branch-and-bound progress rows look like:
@@ -892,7 +947,7 @@ export function getRunProgress(runId: string): SolveProgress {
     }
     return {
       stage: "solving",
-      message,
+      message: planTag ? `${planTag}${message}` : message,
       gapPercent: gap,
     };
   }

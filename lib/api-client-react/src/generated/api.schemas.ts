@@ -412,6 +412,11 @@ export interface SolveRun {
   progress?: SolveProgress | null;
   /** Chips with their actual gameweeks (from the solved plan when completed); optimized=true when the solver chose the timing. */
   playedChips?: PlayedChip[];
+  /**
+     * Number of plans the run produced (or was asked for while pending); greater than 1 when alternative plans were generated.
+     * @nullable
+     */
+  planCount?: number | null;
 }
 
 export interface MegaScenario {

@@ -63,7 +63,12 @@ function playedChips(
 }
 
 function summary(run: SolveRunMeta): Record<string, unknown> {
-  return { ...run, result: null, playedChips: playedChips(run) };
+  // Actual plan count when completed; otherwise the requested count.
+  const planCount =
+    run.status === "completed" && run.result
+      ? 1 + (run.result.alternatives?.length ?? 0)
+      : (run.request.options?.numIterations ?? 1);
+  return { ...run, result: null, playedChips: playedChips(run), planCount };
 }
 
 router.get("/solves", async (_req, res): Promise<void> => {
@@ -330,7 +335,10 @@ function megaView(mega: MegaRunMeta): Record<string, unknown> {
         totalBaseExpectedPoints: basePts2,
         deltaVsBaseline: pts != null && basePts != null ? pts - basePts : null,
         chips,
-        progress: run?.status === "running" ? getRunProgress(run.id) : null,
+        progress:
+          run?.status === "running"
+            ? getRunProgress(run.id, run.request.options?.numIterations ?? 1)
+            : null,
         finalGapPercent:
           run?.status === "completed" ? (run.finalGapPercent ?? null) : null,
       };
@@ -424,7 +432,7 @@ router.get("/solves/:id", async (req, res): Promise<void> => {
   }
   const progress =
     run.status === "running" || run.status === "queued"
-      ? getRunProgress(run.id)
+      ? getRunProgress(run.id, run.request.options?.numIterations ?? 1)
       : null;
   res.json(GetSolveResponse.parse({ ...run, progress }));
 });

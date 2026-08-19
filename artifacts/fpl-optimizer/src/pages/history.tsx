@@ -173,7 +173,7 @@ export default function HistoryPage() {
                         <Calculator className="h-3 w-3" />
                         {solve.request.horizon} GW horizon
                       </p>
-                      {((solve.playedChips?.length ?? 0) > 0 || formatDifferentialFactor(solve.request.differentialFactor) || formatPool(solve.poolKept, solve.poolTotal)) && (
+                      {((solve.playedChips?.length ?? 0) > 0 || (solve.planCount ?? 1) > 1 || formatDifferentialFactor(solve.request.differentialFactor) || formatPool(solve.poolKept, solve.poolTotal)) && (
                         <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1 pt-1">
                           {[...(solve.playedChips ?? [])]
                             .sort((a, b) => a.gameweek - b.gameweek)
@@ -200,6 +200,15 @@ export default function HistoryPage() {
                           {formatPool(solve.poolKept, solve.poolTotal) && (
                             <Badge variant="outline" className="text-[10px] font-mono font-bold">
                               {formatPool(solve.poolKept, solve.poolTotal)}
+                            </Badge>
+                          )}
+                          {(solve.planCount ?? 1) > 1 && (
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] font-mono font-bold bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/40"
+                              title="This run produced alternative plans"
+                            >
+                              {solve.planCount} plans
                             </Badge>
                           )}
                         </div>

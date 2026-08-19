@@ -868,6 +868,11 @@ components:
           description: >
             Chips with their actual gameweeks (from the solved plan when
             completed); optimized=true when the solver chose the timing.
+        planCount:
+          type: ["number", "null"]
+          description: >
+            Number of plans the run produced (or was asked for while pending);
+            greater than 1 when alternative plans were generated.
     PlayedChip:
       type: object
       required: [chip, gameweek, optimized]
