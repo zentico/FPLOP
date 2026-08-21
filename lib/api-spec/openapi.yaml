@@ -1049,3 +1049,6 @@ components:
         benchOrder:
           type: ["number", "null"]
           description: 0-3 for bench players, null for starters
+        ownership:
+          type: ["number", "null"]
+          description: Ownership percentage from the projection file, when available

@@ -69,6 +69,25 @@ function priceMap(projectionId: string): Map<string, number> {
   return map;
 }
 
+/** Map of player id -> ownership %, read from the projection csv. */
+function ownershipMap(projectionId: string): Map<string, number> {
+  const map = new Map<string, number>();
+  try {
+    const rows = parseCsv(fs.readFileSync(projectionCsvPath(projectionId), "utf-8"));
+    if (rows.length === 0) return map;
+    if (!("Ownership" in rows[0]!)) return map;
+    const idCol = ["ID", "Id", "id"].find((c) => c in rows[0]!);
+    if (!idCol) return map;
+    for (const r of rows) {
+      const v = Number(r["Ownership"]);
+      if (r[idCol] && Number.isFinite(v)) map.set(String(Number(r[idCol])), v);
+    }
+  } catch {
+    // ownership enrichment is best-effort
+  }
+  return map;
+}
+
 /** Clamp the differential factor k to a sane fraction range. */
 export function clampDifferentialFactor(k: number): number {
   return Math.min(Math.max(k, 0), 1);
@@ -310,6 +329,7 @@ function parseResultCsv(
   prices: Map<string, number>,
   factors: Map<string, number> | null = null,
   startBank: number | null = null,
+  ownership: Map<string, number> | null = null,
 ): SolveResult {
   const rows = parseCsv(csvContent) as unknown as PickRow[];
   const iters = [...new Set(rows.map((r) => r.iter))].sort(
@@ -321,6 +341,7 @@ function parseResultCsv(
       prices,
       factors,
       startBank,
+      ownership,
     ),
   );
   const main = plans[0]!;
@@ -335,6 +356,7 @@ function parseIterPlan(
   prices: Map<string, number>,
   factors: Map<string, number> | null,
   startBank: number | null,
+  ownership: Map<string, number> | null,
 ): SolvePlan {
   const weeks = [...new Set(iterRows.map((r) => Number(r.week)))].sort(
     (a, b) => a - b,
@@ -368,6 +390,7 @@ function parseIterPlan(
         isCaptain: Number(r.captain) === 1,
         isViceCaptain: Number(r.vicecaptain) === 1,
         benchOrder: benchOrder >= 0 ? benchOrder : null,
+        ownership: ownership?.get(String(Number(r.id))) ?? null,
       };
     };
 
@@ -826,6 +849,7 @@ export async function startSolve(
         priceMap(request.projectionId),
         factors,
         startBank,
+        ownershipMap(request.projectionId),
       );
       // In first-gameweek mode the initial squad build is not a set of transfers.
       if (request.firstGameweek) {

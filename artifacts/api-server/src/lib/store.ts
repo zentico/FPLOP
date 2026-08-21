@@ -87,6 +87,8 @@ export interface PickPlayer {
   isCaptain: boolean;
   isViceCaptain: boolean;
   benchOrder?: number | null;
+  /** Ownership percentage from the projection file, when available. */
+  ownership?: number | null;
 }
 
 export interface GameweekPlan {

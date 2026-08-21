@@ -598,6 +598,7 @@ function GameweekView({ plan, booked }: { plan: GameweekPlan; booked?: { in: Set
                   <TableHead className="hidden md:table-cell">Team</TableHead>
                   <TableHead><FixtureColumnHead fixturesError={fixturesError} /></TableHead>
                   <TableHead className="text-right">Price</TableHead>
+                  <TableHead className="text-right hidden sm:table-cell">Own %</TableHead>
                   {hasBase && <TableHead className="text-right">Base xPts</TableHead>}
                   <TableHead className="text-right pr-6">{hasBase ? "Adj xPts" : "xPts"}</TableHead>
                 </TableRow>
@@ -632,6 +633,9 @@ function GameweekView({ plan, booked }: { plan: GameweekPlan; booked?: { in: Set
                           <FixtureCell chips={opponents.get(player.team)} fixturesLoading={fixturesLoading} fixturesError={fixturesError} />
                         </TableCell>
                         <TableCell className="text-right font-mono text-sm">£{player.price.toFixed(1)}</TableCell>
+                        <TableCell className="text-right font-mono text-sm text-muted-foreground hidden sm:table-cell">
+                          {player.ownership != null ? `${player.ownership.toFixed(1)}%` : "–"}
+                        </TableCell>
                         {hasBase && (
                           <TableCell className="text-right font-mono text-sm text-muted-foreground">
                             {((player.basePoints ?? 0) * (player.isCaptain ? (plan.chip === 'triple_captain' ? 3 : 2) : 1)).toFixed(2)}
@@ -666,6 +670,7 @@ function GameweekView({ plan, booked }: { plan: GameweekPlan; booked?: { in: Set
                   <TableHead className="hidden md:table-cell">Team</TableHead>
                   <TableHead><FixtureColumnHead fixturesError={fixturesError} /></TableHead>
                   <TableHead className="text-right">Price</TableHead>
+                  <TableHead className="text-right hidden sm:table-cell">Own %</TableHead>
                   {hasBase && <TableHead className="text-right">Base xPts</TableHead>}
                   <TableHead className="text-right pr-6">{hasBase ? "Adj xPts" : "xPts"}</TableHead>
                 </TableRow>
@@ -693,6 +698,9 @@ function GameweekView({ plan, booked }: { plan: GameweekPlan; booked?: { in: Set
                         <FixtureCell chips={opponents.get(player.team)} fixturesLoading={fixturesLoading} fixturesError={fixturesError} />
                       </TableCell>
                       <TableCell className="text-right font-mono text-sm">£{player.price.toFixed(1)}</TableCell>
+                      <TableCell className="text-right font-mono text-sm text-muted-foreground hidden sm:table-cell">
+                        {player.ownership != null ? `${player.ownership.toFixed(1)}%` : "–"}
+                      </TableCell>
                       {hasBase && (
                         <TableCell className="text-right font-mono text-sm text-muted-foreground">
                           {(player.basePoints ?? 0).toFixed(2)}

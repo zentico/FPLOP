@@ -276,7 +276,8 @@ export const ListSolvesResponseItem = zod.object({
   "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
   "isCaptain": zod.boolean(),
   "isViceCaptain": zod.boolean(),
-  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
+  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters'),
+  "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "bench": zod.array(zod.object({
   "name": zod.string(),
@@ -287,7 +288,8 @@ export const ListSolvesResponseItem = zod.object({
   "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
   "isCaptain": zod.boolean(),
   "isViceCaptain": zod.boolean(),
-  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
+  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters'),
+  "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "transfersIn": zod.array(zod.string()),
   "transfersOut": zod.array(zod.string())
@@ -311,7 +313,8 @@ export const ListSolvesResponseItem = zod.object({
   "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
   "isCaptain": zod.boolean(),
   "isViceCaptain": zod.boolean(),
-  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
+  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters'),
+  "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "bench": zod.array(zod.object({
   "name": zod.string(),
@@ -322,7 +325,8 @@ export const ListSolvesResponseItem = zod.object({
   "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
   "isCaptain": zod.boolean(),
   "isViceCaptain": zod.boolean(),
-  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
+  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters'),
+  "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "transfersIn": zod.array(zod.string()),
   "transfersOut": zod.array(zod.string())
@@ -475,7 +479,8 @@ export const CreateSolveResponse = zod.object({
   "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
   "isCaptain": zod.boolean(),
   "isViceCaptain": zod.boolean(),
-  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
+  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters'),
+  "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "bench": zod.array(zod.object({
   "name": zod.string(),
@@ -486,7 +491,8 @@ export const CreateSolveResponse = zod.object({
   "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
   "isCaptain": zod.boolean(),
   "isViceCaptain": zod.boolean(),
-  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
+  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters'),
+  "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "transfersIn": zod.array(zod.string()),
   "transfersOut": zod.array(zod.string())
@@ -510,7 +516,8 @@ export const CreateSolveResponse = zod.object({
   "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
   "isCaptain": zod.boolean(),
   "isViceCaptain": zod.boolean(),
-  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
+  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters'),
+  "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "bench": zod.array(zod.object({
   "name": zod.string(),
@@ -521,7 +528,8 @@ export const CreateSolveResponse = zod.object({
   "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
   "isCaptain": zod.boolean(),
   "isViceCaptain": zod.boolean(),
-  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
+  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters'),
+  "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "transfersIn": zod.array(zod.string()),
   "transfersOut": zod.array(zod.string())
@@ -788,7 +796,8 @@ export const GetSolveResponse = zod.object({
   "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
   "isCaptain": zod.boolean(),
   "isViceCaptain": zod.boolean(),
-  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
+  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters'),
+  "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "bench": zod.array(zod.object({
   "name": zod.string(),
@@ -799,7 +808,8 @@ export const GetSolveResponse = zod.object({
   "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
   "isCaptain": zod.boolean(),
   "isViceCaptain": zod.boolean(),
-  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
+  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters'),
+  "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "transfersIn": zod.array(zod.string()),
   "transfersOut": zod.array(zod.string())
@@ -823,7 +833,8 @@ export const GetSolveResponse = zod.object({
   "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
   "isCaptain": zod.boolean(),
   "isViceCaptain": zod.boolean(),
-  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
+  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters'),
+  "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "bench": zod.array(zod.object({
   "name": zod.string(),
@@ -834,7 +845,8 @@ export const GetSolveResponse = zod.object({
   "basePoints": zod.number().nullish().describe('Unadjusted projected points, when a differential factor was applied'),
   "isCaptain": zod.boolean(),
   "isViceCaptain": zod.boolean(),
-  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters')
+  "benchOrder": zod.number().nullish().describe('0-3 for bench players, null for starters'),
+  "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "transfersIn": zod.array(zod.string()),
   "transfersOut": zod.array(zod.string())

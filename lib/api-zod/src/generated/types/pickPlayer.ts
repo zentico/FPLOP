@@ -25,4 +25,9 @@ export interface PickPlayer {
      * @nullable
      */
   benchOrder?: number | null;
+  /**
+     * Ownership percentage from the projection file, when available
+     * @nullable
+     */
+  ownership?: number | null;
 }
