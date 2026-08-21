@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { useLocation, useParams } from "wouter";
-import { useGetSolve, useDeleteSolve, useListFixtures } from "@workspace/api-client-react";
+import { useGetSolve, useDeleteSolve, useListFixtures, useGetProjectionPoolStats, getGetProjectionPoolStatsQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +31,39 @@ export default function SolveDetail() {
   }, [solve?.status, refetch]);
 
   const [planIdx, setPlanIdx] = React.useState(0);
+
+  // Booked transfers from the original request: map refs (names or numeric
+  // IDs) to lowercase player names per gameweek so results can highlight them.
+  const bookedTransfers = solve?.request?.options?.bookedTransfers ?? [];
+  const hasNumericRef = bookedTransfers.some(
+    (bt) => (bt.in && /^\d+$/.test(bt.in.trim())) || (bt.out && /^\d+$/.test(bt.out.trim())),
+  );
+  const projectionId = solve?.request?.projectionId;
+  const { data: poolStats } = useGetProjectionPoolStats(projectionId!, {
+    query: {
+      enabled: !!projectionId && hasNumericRef,
+      queryKey: getGetProjectionPoolStatsQueryKey(projectionId!),
+    },
+  });
+  const bookedByGw = React.useMemo(() => {
+    const idToName = new Map<string, string>();
+    for (const p of poolStats ?? []) idToName.set(String(p.id), p.name);
+    const toName = (ref?: string | null) => {
+      const r = ref?.trim();
+      if (!r) return undefined;
+      return (/^\d+$/.test(r) ? idToName.get(r) ?? r : r).toLowerCase();
+    };
+    const map = new Map<number, { in: Set<string>; out: Set<string> }>();
+    for (const bt of bookedTransfers) {
+      const entry = map.get(bt.gameweek) ?? { in: new Set(), out: new Set() };
+      const inName = toName(bt.in);
+      const outName = toName(bt.out);
+      if (inName) entry.in.add(inName);
+      if (outName) entry.out.add(outName);
+      map.set(bt.gameweek, entry);
+    }
+    return map;
+  }, [JSON.stringify(bookedTransfers), poolStats]);
 
   if (!solve) {
     return (
@@ -196,7 +229,7 @@ export default function SolveDetail() {
 
             {(plan?.gameweeks ?? []).map(gw => (
               <TabsContent key={gw.gameweek} value={`gw-${gw.gameweek}`} className="mt-6 focus-visible:outline-none">
-                <GameweekView plan={gw} />
+                <GameweekView plan={gw} booked={bookedByGw.get(gw.gameweek)} />
               </TabsContent>
             ))}
           </Tabs>
@@ -441,7 +474,17 @@ export function formatDifferentialFactor(
   return `k ${Math.round(k * 1000) / 10}%`;
 }
 
-function GameweekView({ plan }: { plan: GameweekPlan }) {
+function BookedBadge() {
+  return (
+    <Badge variant="outline" className="px-1.5 py-0 h-5 text-[10px] border-violet-500 text-violet-700 dark:text-violet-400">
+      booked
+    </Badge>
+  );
+}
+
+function GameweekView({ plan, booked }: { plan: GameweekPlan; booked?: { in: Set<string>; out: Set<string> } }) {
+  const isBookedIn = (name: string) => booked?.in.has(name.toLowerCase()) ?? false;
+  const isBookedOut = (name: string) => booked?.out.has(name.toLowerCase()) ?? false;
   const { opponents, fixturesLoading, fixturesError } = useOpponents(plan.gameweek);
   const zeroSumClashes = useZeroSumClashes(plan.gameweek, plan.lineup);
   const transfersInSet = React.useMemo(
@@ -512,8 +555,9 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                     <div className="text-xs font-bold text-destructive uppercase tracking-wider mb-2">Transfers Out</div>
                     <ul className="space-y-2">
                       {plan.transfersOut.map((name, i) => (
-                        <li key={i} className="flex justify-between text-sm bg-destructive/5 px-3 py-2 rounded border border-destructive/10">
+                        <li key={i} className={`flex items-center justify-between text-sm px-3 py-2 rounded border ${isBookedOut(name) ? "bg-violet-100/60 dark:bg-violet-900/25 border-violet-300 dark:border-violet-800" : "bg-destructive/5 border-destructive/10"}`}>
                           <span className="font-medium text-destructive">{name}</span>
+                          {isBookedOut(name) && <BookedBadge />}
                         </li>
                       ))}
                     </ul>
@@ -525,8 +569,9 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                     <div className="text-xs font-bold text-primary uppercase tracking-wider mb-2">Transfers In</div>
                     <ul className="space-y-2">
                       {plan.transfersIn.map((name, i) => (
-                        <li key={i} className="flex justify-between text-sm bg-primary/5 px-3 py-2 rounded border border-primary/20">
+                        <li key={i} className={`flex items-center justify-between text-sm px-3 py-2 rounded border ${isBookedIn(name) ? "bg-violet-100/60 dark:bg-violet-900/25 border-violet-300 dark:border-violet-800" : "bg-primary/5 border-primary/20"}`}>
                           <span className="font-medium text-primary">{name}</span>
+                          {isBookedIn(name) && <BookedBadge />}
                         </li>
                       ))}
                     </ul>
@@ -564,12 +609,14 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                   return players.map((player, idx) => {
                     const isTransferIn = transfersInSet.has(player.name);
                     const isClash = zeroSumClashes.has(player.name);
+                    const isBooked = isBookedIn(player.name);
                     return (
-                      <TableRow key={`${pos}-${idx}`} className={`group hover:bg-muted/30 ${isClash ? "bg-amber-100/60 dark:bg-amber-900/25" : isTransferIn ? "bg-primary/8 dark:bg-primary/12" : ""}`}>
+                      <TableRow key={`${pos}-${idx}`} className={`group hover:bg-muted/30 ${isBooked ? "bg-violet-100/60 dark:bg-violet-900/25" : isClash ? "bg-amber-100/60 dark:bg-amber-900/25" : isTransferIn ? "bg-primary/8 dark:bg-primary/12" : ""}`}>
                         <TableCell className="text-center font-mono font-bold text-muted-foreground border-r bg-muted/10">{pos}</TableCell>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
                             {player.name}
+                            {isBooked && <BookedBadge />}
                             {isTransferIn && <Badge className="px-1.5 py-0 h-5 text-[10px] bg-primary/20 text-primary border border-primary/30" variant="outline">IN</Badge>}
                             {player.isCaptain && <Badge className="px-1.5 py-0 h-5 text-[10px] bg-primary">C</Badge>}
                             {player.isViceCaptain && <Badge variant="outline" className="px-1.5 py-0 h-5 text-[10px]">V</Badge>}
@@ -627,8 +674,9 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                 {/* Sort bench by benchOrder 0-3 (0 is GK usually) */}
                 {[...plan.bench].sort((a, b) => (a.benchOrder ?? 99) - (b.benchOrder ?? 99)).map((player) => {
                   const isTransferIn = transfersInSet.has(player.name);
+                  const isBooked = isBookedIn(player.name);
                   return (
-                    <TableRow key={player.name} className={`transition-opacity hover:opacity-100 ${isTransferIn ? "opacity-90 bg-primary/8 dark:bg-primary/12" : "opacity-70"}`}>
+                    <TableRow key={player.name} className={`transition-opacity hover:opacity-100 ${isBooked ? "opacity-90 bg-violet-100/60 dark:bg-violet-900/25" : isTransferIn ? "opacity-90 bg-primary/8 dark:bg-primary/12" : "opacity-70"}`}>
                       <TableCell className="w-12 text-center font-mono text-xs border-r bg-muted/10">
                         {player.benchOrder === 0 ? 'GK' : player.benchOrder}
                       </TableCell>
@@ -636,6 +684,7 @@ function GameweekView({ plan }: { plan: GameweekPlan }) {
                       <TableCell className="font-medium text-sm">
                         <div className="flex items-center gap-2">
                           {player.name}
+                          {isBooked && <BookedBadge />}
                           {isTransferIn && <Badge className="px-1.5 py-0 h-5 text-[10px] bg-primary/20 text-primary border border-primary/30" variant="outline">IN</Badge>}
                         </div>
                       </TableCell>
