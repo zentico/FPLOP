@@ -78,6 +78,8 @@ export interface SolveRequest {
 }
 
 export interface PickPlayer {
+  /** Stable player ID from the projection/solver data, when available. */
+  id?: string | null;
   name: string;
   team: string;
   position: string;

@@ -211,6 +211,11 @@ export default function SolveDetail() {
             </div>
           )}
 
+          {/* All-gameweeks squad matrix */}
+          {(plan?.gameweeks?.length ?? 0) > 1 && (
+            <SquadMatrix gameweeks={plan!.gameweeks} />
+          )}
+
           {/* Gameweek Plans */}
           <Tabs key={planIdx} defaultValue={`gw-${plan?.gameweeks[0]?.gameweek}`} className="w-full">
             <div className="overflow-x-auto pb-2">
@@ -717,5 +722,160 @@ function GameweekView({ plan, booked }: { plan: GameweekPlan; booked?: { in: Set
       </div>
 
     </div>
+  );
+}
+
+const POS_ORDER: Record<string, number> = { G: 0, D: 1, M: 2, F: 3 };
+
+type MatrixCell =
+  | { kind: "xi"; captain: boolean; vice: boolean; points: number }
+  | { kind: "bench"; order: number | null; points: number }
+  | { kind: "out" }
+  | { kind: "absent" };
+
+// Stable identity: player ID when available (new runs), display name otherwise (old runs).
+const playerKey = (p: PickPlayer) => p.id ?? p.name;
+
+function SquadMatrix({ gameweeks }: { gameweeks: GameweekPlan[] }) {
+  const { rows } = React.useMemo(() => {
+    // Union of all squad players across gameweeks
+    const players = new Map<string, { key: string; name: string; team: string; position: string; firstGwIdx: number }>();
+    gameweeks.forEach((gw, i) => {
+      for (const p of [...gw.lineup, ...gw.bench]) {
+        const key = playerKey(p);
+        if (!players.has(key)) {
+          players.set(key, { key, name: p.name, team: p.team, position: p.position, firstGwIdx: i });
+        }
+      }
+    });
+
+    // IN/OUT are derived from actual squad membership between consecutive gameweeks,
+    // so they stay correct for chip weeks and out-then-back-in sequences.
+    const rows = Array.from(players.values()).map(meta => {
+      const inGwIdx = new Set<number>();
+      const inSquad = (gw: GameweekPlan) =>
+        gw.lineup.some(p => playerKey(p) === meta.key) || gw.bench.some(p => playerKey(p) === meta.key);
+      const cells: MatrixCell[] = gameweeks.map((gw, i) => {
+        const xi = gw.lineup.find(p => playerKey(p) === meta.key);
+        const b = xi ? undefined : gw.bench.find(p => playerKey(p) === meta.key);
+        if (xi || b) {
+          if (i > 0 && !inSquad(gameweeks[i - 1])) inGwIdx.add(i);
+          if (xi) return { kind: "xi" as const, captain: xi.isCaptain, vice: xi.isViceCaptain, points: xi.expectedPoints };
+          return { kind: "bench" as const, order: b!.benchOrder ?? null, points: b!.expectedPoints };
+        }
+        // Mark the gameweek the player left the squad
+        if (i > 0 && inSquad(gameweeks[i - 1])) return { kind: "out" as const };
+        return { kind: "absent" as const };
+      });
+      return { ...meta, cells, inGwIdx };
+    });
+
+    rows.sort((a, b) =>
+      (POS_ORDER[a.position] ?? 9) - (POS_ORDER[b.position] ?? 9) ||
+      a.firstGwIdx - b.firstGwIdx ||
+      a.name.localeCompare(b.name),
+    );
+    return { rows };
+  }, [gameweeks]);
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <ArrowRightLeft className="h-5 w-5 text-muted-foreground" />
+          Squad Across Gameweeks
+        </CardTitle>
+        <div className="text-xs text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 pt-1">
+          <span><span className="inline-block h-3 w-3 rounded-sm bg-primary/15 align-middle mr-1" />starting XI</span>
+          <span><span className="inline-block h-3 w-3 rounded-sm bg-muted align-middle mr-1" />bench</span>
+          <span><span className="inline-block h-3 w-3 rounded-sm bg-emerald-200 dark:bg-emerald-900/60 align-middle mr-1" />transferred in</span>
+          <span><span className="inline-block h-3 w-3 rounded-sm bg-red-200 dark:bg-red-900/50 align-middle mr-1" />transferred out</span>
+          <span>cells show expected points · <span className="font-mono">C/V</span> = captain/vice</span>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="pl-6 min-w-[160px]">Player</TableHead>
+                <TableHead className="hidden md:table-cell">Team</TableHead>
+                {gameweeks.map(gw => (
+                  <TableHead key={gw.gameweek} className="text-center font-mono whitespace-nowrap">GW {gw.gameweek}</TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map(row => (
+                <TableRow key={row.key}>
+                  <TableCell className="pl-6 whitespace-nowrap">
+                    <span className="font-mono text-xs text-muted-foreground mr-2 inline-block w-3">{row.position}</span>
+                    <span className="font-medium">{row.name}</span>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{row.team}</TableCell>
+                  {row.cells.map((cell, i) => {
+                    const gw = gameweeks[i].gameweek;
+                    const isIn = row.inGwIdx.has(i);
+                    const base = "text-center font-mono text-xs whitespace-nowrap";
+                    if (cell.kind === "out") {
+                      return (
+                        <TableCell key={gw} className={`${base} bg-red-200/60 dark:bg-red-900/40 text-red-700 dark:text-red-300 font-semibold`}>
+                          OUT
+                        </TableCell>
+                      );
+                    }
+                    if (cell.kind === "absent") {
+                      return <TableCell key={gw} className={`${base} text-muted-foreground/40`}>–</TableCell>;
+                    }
+                    const suffix = cell.kind === "xi" ? (cell.captain ? " (C)" : cell.vice ? " (V)" : "") : "";
+                    const label = `${cell.points.toFixed(2)}${suffix}`;
+                    return (
+                      <TableCell
+                        key={gw}
+                        className={`${base} ${isIn
+                          ? "bg-emerald-200/60 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 font-semibold"
+                          : cell.kind === "xi"
+                            ? "bg-primary/10 font-semibold"
+                            : "bg-muted/60 text-muted-foreground"}`}
+                      >
+                        {isIn ? `IN · ${label}` : label}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              ))}
+              {/* Per-gameweek totals */}
+              <TableRow className="border-t-2 hover:bg-transparent">
+                <TableCell className="pl-6 font-semibold text-sm">Expected Points</TableCell>
+                <TableCell className="hidden md:table-cell" />
+                {gameweeks.map(gw => (
+                  <TableCell key={gw.gameweek} className="text-center font-mono font-bold">
+                    {(gw.baseExpectedPoints ?? gw.expectedPoints).toFixed(2)}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow className="hover:bg-transparent">
+                <TableCell className="pl-6 font-semibold text-sm">Bank</TableCell>
+                <TableCell className="hidden md:table-cell" />
+                {gameweeks.map(gw => (
+                  <TableCell key={gw.gameweek} className="text-center font-mono text-sm">
+                    {gw.bank != null ? `£${gw.bank.toFixed(1)}` : "–"}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow className="hover:bg-transparent">
+                <TableCell className="pl-6 font-semibold text-sm">Free Transfers</TableCell>
+                <TableCell className="hidden md:table-cell" />
+                {gameweeks.map(gw => (
+                  <TableCell key={gw.gameweek} className="text-center font-mono text-sm">
+                    {gw.freeTransfers ?? "–"}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

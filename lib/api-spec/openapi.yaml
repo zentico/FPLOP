@@ -1028,6 +1028,9 @@ components:
       type: object
       required: [name, team, position, price, expectedPoints, isCaptain, isViceCaptain]
       properties:
+        id:
+          type: ["string", "null"]
+          description: Stable player ID from the projection/solver data, when available
         name:
           type: string
         team:

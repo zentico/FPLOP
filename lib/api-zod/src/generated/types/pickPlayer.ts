@@ -7,6 +7,11 @@
  */
 
 export interface PickPlayer {
+  /**
+     * Stable player ID from the projection/solver data, when available
+     * @nullable
+     */
+  id?: string | null;
   name: string;
   team: string;
   /** One of G, D, M, F */

@@ -268,6 +268,7 @@ export const ListSolvesResponseItem = zod.object({
   "bank": zod.number().nullish(),
   "freeTransfers": zod.number().nullish().describe('Free transfers available going into this gameweek'),
   "lineup": zod.array(zod.object({
+  "id": zod.string().nullish().describe('Stable player ID from the projection\/solver data, when available'),
   "name": zod.string(),
   "team": zod.string(),
   "position": zod.string().describe('One of G, D, M, F'),
@@ -280,6 +281,7 @@ export const ListSolvesResponseItem = zod.object({
   "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "bench": zod.array(zod.object({
+  "id": zod.string().nullish().describe('Stable player ID from the projection\/solver data, when available'),
   "name": zod.string(),
   "team": zod.string(),
   "position": zod.string().describe('One of G, D, M, F'),
@@ -305,6 +307,7 @@ export const ListSolvesResponseItem = zod.object({
   "bank": zod.number().nullish(),
   "freeTransfers": zod.number().nullish().describe('Free transfers available going into this gameweek'),
   "lineup": zod.array(zod.object({
+  "id": zod.string().nullish().describe('Stable player ID from the projection\/solver data, when available'),
   "name": zod.string(),
   "team": zod.string(),
   "position": zod.string().describe('One of G, D, M, F'),
@@ -317,6 +320,7 @@ export const ListSolvesResponseItem = zod.object({
   "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "bench": zod.array(zod.object({
+  "id": zod.string().nullish().describe('Stable player ID from the projection\/solver data, when available'),
   "name": zod.string(),
   "team": zod.string(),
   "position": zod.string().describe('One of G, D, M, F'),
@@ -471,6 +475,7 @@ export const CreateSolveResponse = zod.object({
   "bank": zod.number().nullish(),
   "freeTransfers": zod.number().nullish().describe('Free transfers available going into this gameweek'),
   "lineup": zod.array(zod.object({
+  "id": zod.string().nullish().describe('Stable player ID from the projection\/solver data, when available'),
   "name": zod.string(),
   "team": zod.string(),
   "position": zod.string().describe('One of G, D, M, F'),
@@ -483,6 +488,7 @@ export const CreateSolveResponse = zod.object({
   "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "bench": zod.array(zod.object({
+  "id": zod.string().nullish().describe('Stable player ID from the projection\/solver data, when available'),
   "name": zod.string(),
   "team": zod.string(),
   "position": zod.string().describe('One of G, D, M, F'),
@@ -508,6 +514,7 @@ export const CreateSolveResponse = zod.object({
   "bank": zod.number().nullish(),
   "freeTransfers": zod.number().nullish().describe('Free transfers available going into this gameweek'),
   "lineup": zod.array(zod.object({
+  "id": zod.string().nullish().describe('Stable player ID from the projection\/solver data, when available'),
   "name": zod.string(),
   "team": zod.string(),
   "position": zod.string().describe('One of G, D, M, F'),
@@ -520,6 +527,7 @@ export const CreateSolveResponse = zod.object({
   "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "bench": zod.array(zod.object({
+  "id": zod.string().nullish().describe('Stable player ID from the projection\/solver data, when available'),
   "name": zod.string(),
   "team": zod.string(),
   "position": zod.string().describe('One of G, D, M, F'),
@@ -788,6 +796,7 @@ export const GetSolveResponse = zod.object({
   "bank": zod.number().nullish(),
   "freeTransfers": zod.number().nullish().describe('Free transfers available going into this gameweek'),
   "lineup": zod.array(zod.object({
+  "id": zod.string().nullish().describe('Stable player ID from the projection\/solver data, when available'),
   "name": zod.string(),
   "team": zod.string(),
   "position": zod.string().describe('One of G, D, M, F'),
@@ -800,6 +809,7 @@ export const GetSolveResponse = zod.object({
   "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "bench": zod.array(zod.object({
+  "id": zod.string().nullish().describe('Stable player ID from the projection\/solver data, when available'),
   "name": zod.string(),
   "team": zod.string(),
   "position": zod.string().describe('One of G, D, M, F'),
@@ -825,6 +835,7 @@ export const GetSolveResponse = zod.object({
   "bank": zod.number().nullish(),
   "freeTransfers": zod.number().nullish().describe('Free transfers available going into this gameweek'),
   "lineup": zod.array(zod.object({
+  "id": zod.string().nullish().describe('Stable player ID from the projection\/solver data, when available'),
   "name": zod.string(),
   "team": zod.string(),
   "position": zod.string().describe('One of G, D, M, F'),
@@ -837,6 +848,7 @@ export const GetSolveResponse = zod.object({
   "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "bench": zod.array(zod.object({
+  "id": zod.string().nullish().describe('Stable player ID from the projection\/solver data, when available'),
   "name": zod.string(),
   "team": zod.string(),
   "position": zod.string().describe('One of G, D, M, F'),

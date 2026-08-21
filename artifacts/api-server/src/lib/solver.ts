@@ -377,6 +377,7 @@ function parseIterPlan(
       const benchOrder = Number(r.bench);
       const buyPrice = Number(r.buy_price);
       return {
+        id: r.id != null && r.id !== "" ? String(Number(r.id)) : null,
         name: r.name,
         team: r.team,
         position: (r.pos || "?").charAt(0),
