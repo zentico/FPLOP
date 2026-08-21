@@ -1,0 +1,30 @@
+{
+  "datasource": "mt2xyxw5i2rley-rmt2yvwzdgj3jm5",
+  "horizon": 8,
+  "no_transfer_last_gws": 0,
+  "verbose": true,
+  "print_squads": false,
+  "print_result_table": false,
+  "print_decay_metrics": false,
+  "print_transfer_chip_summary": false,
+  "banned": [],
+  "locked": [],
+  "use_wc": [],
+  "use_bb": [
+    1
+  ],
+  "use_fh": [],
+  "use_tc": [],
+  "preseason": true,
+  "decay_base": 0.9,
+  "ft_value": 0.1,
+  "itb_value": 0.1,
+  "secs": 900,
+  "gap": 0.001,
+  "bench_weights": {
+    "0": 0.1,
+    "1": 0.2,
+    "2": 0.1,
+    "3": 0.05
+  }
+}

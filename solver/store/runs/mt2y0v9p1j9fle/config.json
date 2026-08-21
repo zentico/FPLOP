@@ -1,0 +1,46 @@
+{
+  "datasource": "mt2xyxw5i2rley-rmt2y0v9p1j9fle",
+  "horizon": 10,
+  "no_transfer_last_gws": 1,
+  "verbose": true,
+  "print_squads": false,
+  "print_result_table": false,
+  "print_decay_metrics": false,
+  "print_transfer_chip_summary": false,
+  "banned": [
+    411
+  ],
+  "locked": [],
+  "use_wc": [],
+  "use_bb": [
+    1
+  ],
+  "use_fh": [],
+  "use_tc": [],
+  "preseason": true,
+  "decay_base": 0.9,
+  "ft_value": 0.75,
+  "itb_value": 0.1,
+  "secs": 900,
+  "gap": 0.001,
+  "no_opposing_play": "penalty",
+  "opposing_play_group": "position",
+  "locked_next_gw": [
+    [
+      426,
+      1
+    ],
+    [
+      346,
+      1
+    ],
+    [
+      165,
+      1
+    ],
+    [
+      106,
+      1
+    ]
+  ]
+}

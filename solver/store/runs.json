@@ -1,5 +1,5240 @@
 [
   {
+    "id": "mt2yvwzdgj3jm5",
+    "status": "completed",
+    "createdAt": "2026-08-21T13:10:26.233Z",
+    "completedAt": "2026-08-21T13:10:43.390Z",
+    "error": null,
+    "request": {
+      "projectionId": "mt2xyxw5i2rley",
+      "firstGameweek": true,
+      "teamId": null,
+      "horizon": 8,
+      "poolFilter": {
+        "gkMain": 12,
+        "gkBench": 4,
+        "defMain": 32,
+        "defBench": 8,
+        "midMain": 32,
+        "midBench": 8,
+        "fwdMain": 20,
+        "fwdBench": 4
+      },
+      "chips": [
+        {
+          "chip": "bench_boost",
+          "gameweek": 1
+        }
+      ],
+      "options": {
+        "decayBase": 0.9,
+        "ftValue": 0.1,
+        "itbValue": 0.1,
+        "secs": 900,
+        "gap": 0.001,
+        "benchWeights": [
+          0.1,
+          0.2,
+          0.1,
+          0.05
+        ]
+      },
+      "anyChipGws": null
+    },
+    "projectionFilename": "FFH predictions 2026-08-21 (GW1-10)",
+    "totalExpectedPoints": 498.17,
+    "result": {
+      "totalExpectedPoints": 498.17,
+      "totalBaseExpectedPoints": null,
+      "gameweeks": [
+        {
+          "gameweek": 1,
+          "chip": "bench_boost",
+          "expectedPoints": 80.4,
+          "baseExpectedPoints": null,
+          "bank": 0,
+          "freeTransfers": 0,
+          "lineup": [
+            {
+              "name": "Verbruggen",
+              "team": "Brighton",
+              "position": "G",
+              "price": 4.5,
+              "expectedPoints": 3.58,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 5.15,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "O'Shea",
+              "team": "Ipswich Town",
+              "position": "D",
+              "price": 4,
+              "expectedPoints": 3.88,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.41,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Shaw",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 4.5,
+              "expectedPoints": 4.72,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 5.1,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 6.45,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.04,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.71,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.89,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Szoboszlai",
+              "team": "Liverpool",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 4.9,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Tzolis",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.42,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 4.82,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Thiago",
+              "team": "Brentford",
+              "position": "F",
+              "price": 8,
+              "expectedPoints": 4.95,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Haaland",
+              "team": "Man City",
+              "position": "F",
+              "price": 15.5,
+              "expectedPoints": 6.69,
+              "basePoints": null,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [],
+          "transfersIn": [],
+          "transfersOut": []
+        },
+        {
+          "gameweek": 2,
+          "chip": null,
+          "expectedPoints": 59.19,
+          "baseExpectedPoints": null,
+          "bank": 0,
+          "freeTransfers": 1,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 3.83,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.54,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.63,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 4.87,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.53,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.7,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.77,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Szoboszlai",
+              "team": "Liverpool",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 5.09,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "Thiago",
+              "team": "Brentford",
+              "position": "F",
+              "price": 8,
+              "expectedPoints": 4.71,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 5.08,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Haaland",
+              "team": "Man City",
+              "position": "F",
+              "price": 15.5,
+              "expectedPoints": 6.22,
+              "basePoints": null,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Verbruggen",
+              "team": "Brighton",
+              "position": "G",
+              "price": 4.5,
+              "expectedPoints": 2.98,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "Shaw",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 4.5,
+              "expectedPoints": 4.24,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Tzolis",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.23,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "O'Shea",
+              "team": "Ipswich Town",
+              "position": "D",
+              "price": 4,
+              "expectedPoints": 2.91,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [],
+          "transfersOut": []
+        },
+        {
+          "gameweek": 3,
+          "chip": null,
+          "expectedPoints": 59.9,
+          "baseExpectedPoints": null,
+          "bank": 0,
+          "freeTransfers": 2,
+          "lineup": [
+            {
+              "name": "Verbruggen",
+              "team": "Brighton",
+              "position": "G",
+              "price": 4.5,
+              "expectedPoints": 4.04,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 3.88,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.06,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 5.11,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.39,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.43,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Tzolis",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.5,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.65,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Szoboszlai",
+              "team": "Liverpool",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 4.86,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Thiago",
+              "team": "Brentford",
+              "position": "F",
+              "price": 8,
+              "expectedPoints": 5.18,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "Haaland",
+              "team": "Man City",
+              "position": "F",
+              "price": 15.5,
+              "expectedPoints": 7.4,
+              "basePoints": null,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 3.96,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 3.75,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Shaw",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 4.5,
+              "expectedPoints": 3.71,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "O'Shea",
+              "team": "Ipswich Town",
+              "position": "D",
+              "price": 4,
+              "expectedPoints": 3.21,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [],
+          "transfersOut": []
+        },
+        {
+          "gameweek": 4,
+          "chip": null,
+          "expectedPoints": 59.5,
+          "baseExpectedPoints": null,
+          "bank": 0,
+          "freeTransfers": 3,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 4.29,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "O'Shea",
+              "team": "Ipswich Town",
+              "position": "D",
+              "price": 4,
+              "expectedPoints": 3.7,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Van Hecke",
+              "team": "Spurs",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.46,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 5.39,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.51,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.67,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Szoboszlai",
+              "team": "Liverpool",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 5.12,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.3,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Thiago",
+              "team": "Brentford",
+              "position": "F",
+              "price": 8,
+              "expectedPoints": 4.71,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Haaland",
+              "team": "Man City",
+              "position": "F",
+              "price": 15.5,
+              "expectedPoints": 5.67,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 5.84,
+              "basePoints": null,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Verbruggen",
+              "team": "Brighton",
+              "position": "G",
+              "price": 4.5,
+              "expectedPoints": 3.84,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.07,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 3.49,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Shaw",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 4.5,
+              "expectedPoints": 3.15,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [
+            "Van Hecke",
+            "Sarr"
+          ],
+          "transfersOut": [
+            "Ballard",
+            "Tzolis"
+          ]
+        },
+        {
+          "gameweek": 5,
+          "chip": null,
+          "expectedPoints": 58.9,
+          "baseExpectedPoints": null,
+          "bank": 0,
+          "freeTransfers": 2,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 3.71,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Van Hecke",
+              "team": "Spurs",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.13,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 4.77,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.46,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.54,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Szoboszlai",
+              "team": "Liverpool",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 4.65,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.21,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 4.71,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Thiago",
+              "team": "Brentford",
+              "position": "F",
+              "price": 8,
+              "expectedPoints": 4.86,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Haaland",
+              "team": "Man City",
+              "position": "F",
+              "price": 15.5,
+              "expectedPoints": 6.93,
+              "basePoints": null,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Verbruggen",
+              "team": "Brighton",
+              "position": "G",
+              "price": 4.5,
+              "expectedPoints": 3.21,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 3.97,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "O'Shea",
+              "team": "Ipswich Town",
+              "position": "D",
+              "price": 4,
+              "expectedPoints": 3.69,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Shaw",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 4.5,
+              "expectedPoints": 3.65,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [],
+          "transfersOut": []
+        },
+        {
+          "gameweek": 6,
+          "chip": null,
+          "expectedPoints": 58.75,
+          "baseExpectedPoints": null,
+          "bank": 0,
+          "freeTransfers": 3,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 4.52,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "O'Shea",
+              "team": "Ipswich Town",
+              "position": "D",
+              "price": 4,
+              "expectedPoints": 4,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.34,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 5.73,
+              "basePoints": null,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Szoboszlai",
+              "team": "Liverpool",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 4.48,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.59,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.93,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.04,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Thiago",
+              "team": "Brentford",
+              "position": "F",
+              "price": 8,
+              "expectedPoints": 4.53,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 5.32,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Haaland",
+              "team": "Man City",
+              "position": "F",
+              "price": 15.5,
+              "expectedPoints": 5.54,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Verbruggen",
+              "team": "Brighton",
+              "position": "G",
+              "price": 4.5,
+              "expectedPoints": 3.8,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.27,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Shaw",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 4.5,
+              "expectedPoints": 3.97,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Van Hecke",
+              "team": "Spurs",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 3.26,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [],
+          "transfersOut": []
+        },
+        {
+          "gameweek": 7,
+          "chip": null,
+          "expectedPoints": 60.64,
+          "baseExpectedPoints": null,
+          "bank": 0,
+          "freeTransfers": 4,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 4.1,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.06,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Van Hecke",
+              "team": "Spurs",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.71,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 5.2,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.39,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Szoboszlai",
+              "team": "Liverpool",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 4.64,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.67,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.75,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 4.64,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Thiago",
+              "team": "Brentford",
+              "position": "F",
+              "price": 8,
+              "expectedPoints": 4.74,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Haaland",
+              "team": "Man City",
+              "position": "F",
+              "price": 15.5,
+              "expectedPoints": 7.37,
+              "basePoints": null,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Verbruggen",
+              "team": "Brighton",
+              "position": "G",
+              "price": 4.5,
+              "expectedPoints": 4.05,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.32,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Shaw",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 4.5,
+              "expectedPoints": 3.71,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "O'Shea",
+              "team": "Ipswich Town",
+              "position": "D",
+              "price": 4,
+              "expectedPoints": 2.66,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [],
+          "transfersOut": []
+        },
+        {
+          "gameweek": 8,
+          "chip": null,
+          "expectedPoints": 60.89,
+          "baseExpectedPoints": null,
+          "bank": 0,
+          "freeTransfers": 5,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 4.53,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.22,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.61,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 5.72,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.76,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Szoboszlai",
+              "team": "Liverpool",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 4.91,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.97,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bruno G.",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 5.07,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Thiago",
+              "team": "Brentford",
+              "position": "F",
+              "price": 8,
+              "expectedPoints": 5.09,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 5.25,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Haaland",
+              "team": "Man City",
+              "position": "F",
+              "price": 15.5,
+              "expectedPoints": 5.88,
+              "basePoints": null,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Verbruggen",
+              "team": "Brighton",
+              "position": "G",
+              "price": 4.5,
+              "expectedPoints": 2.85,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "Xhaka",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 5.5,
+              "expectedPoints": 4.22,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "O'Shea",
+              "team": "Ipswich Town",
+              "position": "D",
+              "price": 4,
+              "expectedPoints": 4.04,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Shaw",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 4.5,
+              "expectedPoints": 3.84,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [
+            "Ballard",
+            "Bruno G.",
+            "Xhaka"
+          ],
+          "transfersOut": [
+            "Van Hecke",
+            "Dewsbury-Hall",
+            "Scott"
+          ]
+        }
+      ],
+      "alternatives": null
+    },
+    "poolKept": 120,
+    "poolTotal": 578,
+    "totalBaseExpectedPoints": null,
+    "finalGapPercent": 0.0876
+  },
+  {
+    "id": "mt2y487ls6jc89",
+    "status": "completed",
+    "createdAt": "2026-08-21T12:48:54.417Z",
+    "completedAt": "2026-08-21T12:51:20.327Z",
+    "error": null,
+    "request": {
+      "projectionId": "mt2xyxw5i2rley",
+      "firstGameweek": true,
+      "teamId": null,
+      "horizon": 10,
+      "poolFilter": {
+        "gkMain": 12,
+        "gkBench": 4,
+        "defMain": 32,
+        "defBench": 8,
+        "midMain": 32,
+        "midBench": 8,
+        "fwdMain": 20,
+        "fwdBench": 4
+      },
+      "chips": [
+        {
+          "chip": "bench_boost",
+          "gameweek": 1
+        }
+      ],
+      "options": {
+        "noTransferLastGws": 1,
+        "decayBase": 0.9,
+        "ftValue": 0.75,
+        "itbValue": 0.1,
+        "secs": 900,
+        "gap": 0.001,
+        "opposingPlay": "penalty"
+      },
+      "anyChipGws": null
+    },
+    "projectionFilename": "FFH predictions 2026-08-21 (GW1-10)",
+    "totalExpectedPoints": 614.09,
+    "result": {
+      "totalExpectedPoints": 614.09,
+      "totalBaseExpectedPoints": null,
+      "gameweeks": [
+        {
+          "gameweek": 1,
+          "chip": "bench_boost",
+          "expectedPoints": 79.36,
+          "baseExpectedPoints": null,
+          "bank": 0,
+          "freeTransfers": 0,
+          "lineup": [
+            {
+              "name": "Verbruggen",
+              "team": "Brighton",
+              "position": "G",
+              "price": 4.5,
+              "expectedPoints": 3.58,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 5.15,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.41,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Lacroix",
+              "team": "Chelsea",
+              "position": "D",
+              "price": 6,
+              "expectedPoints": 4.42,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Shaw",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 4.5,
+              "expectedPoints": 4.72,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 5.1,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 6.45,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.04,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.25,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.71,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Szoboszlai",
+              "team": "Liverpool",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 4.9,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Tzolis",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.42,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 4.01,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 4.82,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Haaland",
+              "team": "Man City",
+              "position": "F",
+              "price": 15.5,
+              "expectedPoints": 6.69,
+              "basePoints": null,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [],
+          "transfersIn": [],
+          "transfersOut": []
+        },
+        {
+          "gameweek": 2,
+          "chip": null,
+          "expectedPoints": 58.99,
+          "baseExpectedPoints": null,
+          "bank": 0,
+          "freeTransfers": 1,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 3.83,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Lacroix",
+              "team": "Chelsea",
+              "position": "D",
+              "price": 6,
+              "expectedPoints": 4.45,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.54,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.63,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 4.87,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.7,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.77,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Szoboszlai",
+              "team": "Liverpool",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 5.09,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 4.59,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 5.08,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Haaland",
+              "team": "Man City",
+              "position": "F",
+              "price": 15.5,
+              "expectedPoints": 6.22,
+              "basePoints": null,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Verbruggen",
+              "team": "Brighton",
+              "position": "G",
+              "price": 4.5,
+              "expectedPoints": 2.98,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.29,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Shaw",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 4.5,
+              "expectedPoints": 4.24,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Tzolis",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.23,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [],
+          "transfersOut": []
+        },
+        {
+          "gameweek": 3,
+          "chip": null,
+          "expectedPoints": 58.58,
+          "baseExpectedPoints": null,
+          "bank": 0,
+          "freeTransfers": 2,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 3.96,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 3.88,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.06,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 5.11,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.39,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.43,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Tzolis",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.5,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.56,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Szoboszlai",
+              "team": "Liverpool",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 4.86,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 4.03,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Haaland",
+              "team": "Man City",
+              "position": "F",
+              "price": 15.5,
+              "expectedPoints": 7.4,
+              "basePoints": null,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Verbruggen",
+              "team": "Brighton",
+              "position": "G",
+              "price": 4.5,
+              "expectedPoints": 4.04,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 3.75,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Shaw",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 4.5,
+              "expectedPoints": 3.71,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Lacroix",
+              "team": "Chelsea",
+              "position": "D",
+              "price": 6,
+              "expectedPoints": 3.46,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [],
+          "transfersOut": []
+        },
+        {
+          "gameweek": 4,
+          "chip": null,
+          "expectedPoints": 60.75,
+          "baseExpectedPoints": null,
+          "bank": 0,
+          "freeTransfers": 3,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 4.29,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Van Hecke",
+              "team": "Spurs",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.46,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Lacroix",
+              "team": "Chelsea",
+              "position": "D",
+              "price": 6,
+              "expectedPoints": 5.21,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 5.39,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Tzolis",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.38,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.67,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Szoboszlai",
+              "team": "Liverpool",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 5.12,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.3,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 4.58,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Haaland",
+              "team": "Man City",
+              "position": "F",
+              "price": 15.5,
+              "expectedPoints": 5.67,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 5.84,
+              "basePoints": null,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Verbruggen",
+              "team": "Brighton",
+              "position": "G",
+              "price": 4.5,
+              "expectedPoints": 3.84,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.07,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 3.49,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Shaw",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 4.5,
+              "expectedPoints": 3.15,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [
+            "Van Hecke"
+          ],
+          "transfersOut": [
+            "Ballard"
+          ]
+        },
+        {
+          "gameweek": 5,
+          "chip": null,
+          "expectedPoints": 58.86,
+          "baseExpectedPoints": null,
+          "bank": 0,
+          "freeTransfers": 3,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 3.71,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Van Hecke",
+              "team": "Spurs",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.13,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Lacroix",
+              "team": "Chelsea",
+              "position": "D",
+              "price": 6,
+              "expectedPoints": 4.17,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 4.77,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.46,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.54,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Szoboszlai",
+              "team": "Liverpool",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 4.65,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.21,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 4.65,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 4.71,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Haaland",
+              "team": "Man City",
+              "position": "F",
+              "price": 15.5,
+              "expectedPoints": 6.93,
+              "basePoints": null,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Verbruggen",
+              "team": "Brighton",
+              "position": "G",
+              "price": 4.5,
+              "expectedPoints": 3.21,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 3.97,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Shaw",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 4.5,
+              "expectedPoints": 3.65,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [
+            "Dewsbury-Hall"
+          ],
+          "transfersOut": [
+            "Tzolis"
+          ]
+        },
+        {
+          "gameweek": 6,
+          "chip": null,
+          "expectedPoints": 59.36,
+          "baseExpectedPoints": null,
+          "bank": 0,
+          "freeTransfers": 3,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 4.52,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Shaw",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 4.5,
+              "expectedPoints": 3.97,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.34,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Lacroix",
+              "team": "Chelsea",
+              "position": "D",
+              "price": 6,
+              "expectedPoints": 4.52,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 5.73,
+              "basePoints": null,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.59,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.93,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.04,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bruno G.",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 5.13,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 5.32,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Haaland",
+              "team": "Man City",
+              "position": "F",
+              "price": 15.5,
+              "expectedPoints": 5.54,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Verbruggen",
+              "team": "Brighton",
+              "position": "G",
+              "price": 4.5,
+              "expectedPoints": 3.8,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.27,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 3.42,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Van Hecke",
+              "team": "Spurs",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 3.26,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [
+            "Bruno G."
+          ],
+          "transfersOut": [
+            "Szoboszlai"
+          ]
+        },
+        {
+          "gameweek": 7,
+          "chip": null,
+          "expectedPoints": 60.3,
+          "baseExpectedPoints": null,
+          "bank": 0,
+          "freeTransfers": 3,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 4.1,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Lacroix",
+              "team": "Chelsea",
+              "position": "D",
+              "price": 6,
+              "expectedPoints": 4.43,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Van Hecke",
+              "team": "Spurs",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.71,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 5.2,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.32,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.39,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bruno G.",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 4.73,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.75,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 4.29,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 4.64,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Haaland",
+              "team": "Man City",
+              "position": "F",
+              "price": 15.5,
+              "expectedPoints": 7.37,
+              "basePoints": null,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Verbruggen",
+              "team": "Brighton",
+              "position": "G",
+              "price": 4.5,
+              "expectedPoints": 4.05,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.67,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.06,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Shaw",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 4.5,
+              "expectedPoints": 3.71,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [],
+          "transfersOut": []
+        },
+        {
+          "gameweek": 8,
+          "chip": null,
+          "expectedPoints": 59.38,
+          "baseExpectedPoints": null,
+          "bank": 0,
+          "freeTransfers": 4,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 4.53,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Shaw",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 4.5,
+              "expectedPoints": 3.84,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.22,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.61,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Lacroix",
+              "team": "Chelsea",
+              "position": "D",
+              "price": 6,
+              "expectedPoints": 4.65,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 5.72,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.76,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.97,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bruno G.",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 5.07,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 5.25,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Haaland",
+              "team": "Man City",
+              "position": "F",
+              "price": 15.5,
+              "expectedPoints": 5.88,
+              "basePoints": null,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Verbruggen",
+              "team": "Brighton",
+              "position": "G",
+              "price": 4.5,
+              "expectedPoints": 2.85,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.26,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 4.16,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 3.79,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [
+            "Ballard"
+          ],
+          "transfersOut": [
+            "Van Hecke"
+          ]
+        },
+        {
+          "gameweek": 9,
+          "chip": null,
+          "expectedPoints": 57.24,
+          "baseExpectedPoints": null,
+          "bank": 0,
+          "freeTransfers": 4,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 3.39,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Lacroix",
+              "team": "Chelsea",
+              "position": "D",
+              "price": 6,
+              "expectedPoints": 4.25,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 4.38,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.4,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bruno G.",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 4.36,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.46,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.5,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.6,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.73,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 4.89,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "Haaland",
+              "team": "Man City",
+              "position": "F",
+              "price": 15.5,
+              "expectedPoints": 6.64,
+              "basePoints": null,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Verbruggen",
+              "team": "Brighton",
+              "position": "G",
+              "price": 4.5,
+              "expectedPoints": 2.64,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 4.18,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 3.38,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Shaw",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 4.5,
+              "expectedPoints": 3.05,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [],
+          "transfersOut": []
+        },
+        {
+          "gameweek": 10,
+          "chip": null,
+          "expectedPoints": 61.27,
+          "baseExpectedPoints": null,
+          "bank": 0,
+          "freeTransfers": 5,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 4.86,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.23,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Lacroix",
+              "team": "Chelsea",
+              "position": "D",
+              "price": 6,
+              "expectedPoints": 4.61,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 6.16,
+              "basePoints": null,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.52,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.59,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.26,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bruno G.",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 5.47,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 4.56,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 4.72,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Haaland",
+              "team": "Man City",
+              "position": "F",
+              "price": 15.5,
+              "expectedPoints": 6.13,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Verbruggen",
+              "team": "Brighton",
+              "position": "G",
+              "price": 4.5,
+              "expectedPoints": 3.79,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.5,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 3.99,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Shaw",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 4.5,
+              "expectedPoints": 3.86,
+              "basePoints": null,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [],
+          "transfersOut": []
+        }
+      ],
+      "alternatives": null
+    },
+    "poolKept": 120,
+    "poolTotal": 578,
+    "totalBaseExpectedPoints": null,
+    "finalGapPercent": 0.0999
+  },
+  {
+    "id": "mt2y0v9p1j9fle",
+    "status": "completed",
+    "createdAt": "2026-08-21T12:46:17.677Z",
+    "completedAt": "2026-08-21T12:47:24.496Z",
+    "error": null,
+    "request": {
+      "projectionId": "mt2xyxw5i2rley",
+      "firstGameweek": true,
+      "teamId": null,
+      "horizon": 10,
+      "differentialFactor": 0.2,
+      "poolFilter": {
+        "gkMain": 12,
+        "gkBench": 4,
+        "defMain": 32,
+        "defBench": 8,
+        "midMain": 32,
+        "midBench": 8,
+        "fwdMain": 20,
+        "fwdBench": 4
+      },
+      "chips": [
+        {
+          "chip": "bench_boost",
+          "gameweek": 1
+        }
+      ],
+      "options": {
+        "banned": [
+          "Haaland"
+        ],
+        "noTransferLastGws": 1,
+        "decayBase": 0.9,
+        "ftValue": 0.75,
+        "itbValue": 0.1,
+        "secs": 900,
+        "gap": 0.001,
+        "opposingPlay": "penalty",
+        "bookedTransfers": [
+          {
+            "gameweek": 1,
+            "in": "B.Fernandes"
+          },
+          {
+            "gameweek": 1,
+            "in": "Calvert-Lewin"
+          },
+          {
+            "gameweek": 1,
+            "in": "João Pedro"
+          },
+          {
+            "gameweek": 1,
+            "in": "Thiago"
+          }
+        ]
+      },
+      "anyChipGws": null
+    },
+    "projectionFilename": "FFH predictions 2026-08-21 (GW1-10)",
+    "totalExpectedPoints": 705.56,
+    "result": {
+      "totalExpectedPoints": 705.56,
+      "totalBaseExpectedPoints": 611.68,
+      "gameweeks": [
+        {
+          "gameweek": 1,
+          "chip": "bench_boost",
+          "expectedPoints": 92.25,
+          "baseExpectedPoints": 80.27,
+          "bank": 1,
+          "freeTransfers": 0,
+          "lineup": [
+            {
+              "name": "Kelleher",
+              "team": "Brentford",
+              "position": "G",
+              "price": 5,
+              "expectedPoints": 4.63,
+              "basePoints": 3.9,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 5.8,
+              "basePoints": 5.15,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bijol",
+              "team": "Leeds",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.88,
+              "basePoints": 4.07,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Virgil",
+              "team": "Liverpool",
+              "position": "D",
+              "price": 6.5,
+              "expectedPoints": 4.92,
+              "basePoints": 4.23,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 5.24,
+              "basePoints": 4.41,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 5.95,
+              "basePoints": 5.1,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 7.36,
+              "basePoints": 6.45,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 4.84,
+              "basePoints": 4.04,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 5.55,
+              "basePoints": 4.71,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.84,
+              "basePoints": 4.89,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Tzolis",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 6.25,
+              "basePoints": 5.42,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "B.Fernandes",
+              "team": "Man Utd",
+              "position": "M",
+              "price": 12,
+              "expectedPoints": 7.75,
+              "basePoints": 7.06,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 4.57,
+              "basePoints": 4.01,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 5.17,
+              "basePoints": 4.82,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Thiago",
+              "team": "Brentford",
+              "position": "F",
+              "price": 8,
+              "expectedPoints": 5.77,
+              "basePoints": 4.95,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [],
+          "transfersIn": [],
+          "transfersOut": []
+        },
+        {
+          "gameweek": 2,
+          "chip": null,
+          "expectedPoints": 69.37,
+          "baseExpectedPoints": 60.38,
+          "bank": 1,
+          "freeTransfers": 1,
+          "lineup": [
+            {
+              "name": "Kelleher",
+              "team": "Brentford",
+              "position": "G",
+              "price": 5,
+              "expectedPoints": 4.65,
+              "basePoints": 3.91,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 5.4,
+              "basePoints": 4.63,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 5.4,
+              "basePoints": 4.54,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 5.55,
+              "basePoints": 4.87,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Virgil",
+              "team": "Liverpool",
+              "position": "D",
+              "price": 6.5,
+              "expectedPoints": 5.72,
+              "basePoints": 4.92,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.41,
+              "basePoints": 4.53,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "E.Le Fée",
+              "team": "Sunderland",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 5.62,
+              "basePoints": 4.77,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 5.63,
+              "basePoints": 4.7,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "B.Fernandes",
+              "team": "Man Utd",
+              "position": "M",
+              "price": 12,
+              "expectedPoints": 7.53,
+              "basePoints": 6.86,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 5.45,
+              "basePoints": 5.08,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Thiago",
+              "team": "Brentford",
+              "position": "F",
+              "price": 8,
+              "expectedPoints": 5.49,
+              "basePoints": 4.71,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 4.31,
+              "basePoints": 3.83,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 5.23,
+              "basePoints": 4.59,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Bijol",
+              "team": "Leeds",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 5.13,
+              "basePoints": 4.28,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Tzolis",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.88,
+              "basePoints": 4.23,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [],
+          "transfersOut": []
+        },
+        {
+          "gameweek": 3,
+          "chip": null,
+          "expectedPoints": 66.05,
+          "baseExpectedPoints": 56.93,
+          "bank": 0,
+          "freeTransfers": 2,
+          "lineup": [
+            {
+              "name": "Kelleher",
+              "team": "Brentford",
+              "position": "G",
+              "price": 5,
+              "expectedPoints": 5.37,
+              "basePoints": 4.52,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bijol",
+              "team": "Leeds",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.41,
+              "basePoints": 3.68,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Virgil",
+              "team": "Liverpool",
+              "position": "D",
+              "price": 6.5,
+              "expectedPoints": 5.28,
+              "basePoints": 4.54,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 5.83,
+              "basePoints": 5.11,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 5.3,
+              "basePoints": 4.43,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.43,
+              "basePoints": 4.56,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.55,
+              "basePoints": 4.65,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bruno G.",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 5.74,
+              "basePoints": 4.83,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "B.Fernandes",
+              "team": "Man Utd",
+              "position": "M",
+              "price": 12,
+              "expectedPoints": 6.25,
+              "basePoints": 5.7,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 4.59,
+              "basePoints": 4.03,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Thiago",
+              "team": "Brentford",
+              "position": "F",
+              "price": 8,
+              "expectedPoints": 6.04,
+              "basePoints": 5.18,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 4.46,
+              "basePoints": 3.96,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.73,
+              "basePoints": 4.06,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.61,
+              "basePoints": 3.88,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 4.02,
+              "basePoints": 3.75,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [
+            "Sarr",
+            "Bruno G."
+          ],
+          "transfersOut": [
+            "E.Le Fée",
+            "Tzolis"
+          ]
+        },
+        {
+          "gameweek": 4,
+          "chip": null,
+          "expectedPoints": 69.15,
+          "baseExpectedPoints": 59.64,
+          "bank": 0.5,
+          "freeTransfers": 1,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 4.83,
+              "basePoints": 4.29,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bijol",
+              "team": "Leeds",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 5,
+              "basePoints": 4.17,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 6.15,
+              "basePoints": 5.39,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Lacroix",
+              "team": "Chelsea",
+              "position": "D",
+              "price": 6,
+              "expectedPoints": 6.16,
+              "basePoints": 5.21,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.38,
+              "basePoints": 4.51,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 5.59,
+              "basePoints": 4.67,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bruno G.",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 5.67,
+              "basePoints": 4.77,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "B.Fernandes",
+              "team": "Man Utd",
+              "position": "M",
+              "price": 12,
+              "expectedPoints": 6.01,
+              "basePoints": 5.48,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 6.31,
+              "basePoints": 5.3,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Thiago",
+              "team": "Brentford",
+              "position": "F",
+              "price": 8,
+              "expectedPoints": 5.49,
+              "basePoints": 4.71,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 6.26,
+              "basePoints": 5.84,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Kelleher",
+              "team": "Brentford",
+              "position": "G",
+              "price": 5,
+              "expectedPoints": 4.23,
+              "basePoints": 3.56,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 5.21,
+              "basePoints": 4.58,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.3,
+              "basePoints": 3.62,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.07,
+              "basePoints": 3.49,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [
+            "Lacroix"
+          ],
+          "transfersOut": [
+            "Virgil"
+          ]
+        },
+        {
+          "gameweek": 5,
+          "chip": null,
+          "expectedPoints": 65.5,
+          "baseExpectedPoints": 57.13,
+          "bank": 0.5,
+          "freeTransfers": 1,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 4.18,
+              "basePoints": 3.71,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.66,
+              "basePoints": 4,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bijol",
+              "team": "Leeds",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 5.42,
+              "basePoints": 4.52,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 5.44,
+              "basePoints": 4.77,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 5.34,
+              "basePoints": 4.46,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bruno G.",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 5.42,
+              "basePoints": 4.56,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 6.22,
+              "basePoints": 5.21,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "B.Fernandes",
+              "team": "Man Utd",
+              "position": "M",
+              "price": 12,
+              "expectedPoints": 6.41,
+              "basePoints": 5.84,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 5.05,
+              "basePoints": 4.71,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 5.29,
+              "basePoints": 4.65,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Thiago",
+              "team": "Brentford",
+              "position": "F",
+              "price": 8,
+              "expectedPoints": 5.66,
+              "basePoints": 4.86,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Kelleher",
+              "team": "Brentford",
+              "position": "G",
+              "price": 5,
+              "expectedPoints": 4.42,
+              "basePoints": 3.72,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.4,
+              "basePoints": 4.54,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Lacroix",
+              "team": "Chelsea",
+              "position": "D",
+              "price": 6,
+              "expectedPoints": 4.93,
+              "basePoints": 4.17,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 3.62,
+              "basePoints": 3.04,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [],
+          "transfersOut": []
+        },
+        {
+          "gameweek": 6,
+          "chip": null,
+          "expectedPoints": 70.05,
+          "baseExpectedPoints": 61.08,
+          "bank": 0.5,
+          "freeTransfers": 2,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 5.09,
+              "basePoints": 4.52,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.97,
+              "basePoints": 4.18,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Maguire",
+              "team": "Man Utd",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 5.06,
+              "basePoints": 4.34,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Lacroix",
+              "team": "Chelsea",
+              "position": "D",
+              "price": 6,
+              "expectedPoints": 5.34,
+              "basePoints": 4.52,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 6.54,
+              "basePoints": 5.73,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.88,
+              "basePoints": 4.93,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 6,
+              "basePoints": 5.04,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bruno G.",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 6.1,
+              "basePoints": 5.13,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "B.Fernandes",
+              "team": "Man Utd",
+              "position": "M",
+              "price": 12,
+              "expectedPoints": 7.04,
+              "basePoints": 6.42,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Thiago",
+              "team": "Brentford",
+              "position": "F",
+              "price": 8,
+              "expectedPoints": 5.28,
+              "basePoints": 4.53,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 5.71,
+              "basePoints": 5.32,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Kelleher",
+              "team": "Brentford",
+              "position": "G",
+              "price": 5,
+              "expectedPoints": 4.28,
+              "basePoints": 3.6,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 5.11,
+              "basePoints": 4.27,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 3.89,
+              "basePoints": 3.42,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Bijol",
+              "team": "Leeds",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 3.83,
+              "basePoints": 3.19,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [],
+          "transfersOut": []
+        },
+        {
+          "gameweek": 7,
+          "chip": null,
+          "expectedPoints": 66.03,
+          "baseExpectedPoints": 57.55,
+          "bank": 0,
+          "freeTransfers": 3,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 4.62,
+              "basePoints": 4.1,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Lacroix",
+              "team": "Chelsea",
+              "position": "D",
+              "price": 6,
+              "expectedPoints": 5.23,
+              "basePoints": 4.43,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Hill",
+              "team": "Bournemouth",
+              "position": "D",
+              "price": 5.5,
+              "expectedPoints": 5.67,
+              "basePoints": 4.73,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 5.93,
+              "basePoints": 5.2,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.14,
+              "basePoints": 4.32,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bruno G.",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 5.62,
+              "basePoints": 4.73,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 5.69,
+              "basePoints": 4.75,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "B.Fernandes",
+              "team": "Man Utd",
+              "position": "M",
+              "price": 12,
+              "expectedPoints": 6.38,
+              "basePoints": 5.81,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 4.88,
+              "basePoints": 4.29,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 4.98,
+              "basePoints": 4.64,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Thiago",
+              "team": "Brentford",
+              "position": "F",
+              "price": 8,
+              "expectedPoints": 5.52,
+              "basePoints": 4.74,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Kelleher",
+              "team": "Brentford",
+              "position": "G",
+              "price": 5,
+              "expectedPoints": 4.27,
+              "basePoints": 3.59,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.57,
+              "basePoints": 4.67,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Bijol",
+              "team": "Leeds",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.73,
+              "basePoints": 3.94,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.51,
+              "basePoints": 3.79,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [
+            "Hill"
+          ],
+          "transfersOut": [
+            "Maguire"
+          ]
+        },
+        {
+          "gameweek": 8,
+          "chip": null,
+          "expectedPoints": 70.56,
+          "baseExpectedPoints": 61.16,
+          "bank": 0,
+          "freeTransfers": 3,
+          "lineup": [
+            {
+              "name": "Kelleher",
+              "team": "Brentford",
+              "position": "G",
+              "price": 5,
+              "expectedPoints": 5.11,
+              "basePoints": 4.3,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bijol",
+              "team": "Leeds",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 5.13,
+              "basePoints": 4.28,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 5.48,
+              "basePoints": 4.61,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Lacroix",
+              "team": "Chelsea",
+              "position": "D",
+              "price": 6,
+              "expectedPoints": 5.49,
+              "basePoints": 4.65,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 6.52,
+              "basePoints": 5.72,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 5.1,
+              "basePoints": 4.26,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.91,
+              "basePoints": 4.97,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bruno G.",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 6.03,
+              "basePoints": 5.07,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "B.Fernandes",
+              "team": "Man Utd",
+              "position": "M",
+              "price": 12,
+              "expectedPoints": 7.11,
+              "basePoints": 6.48,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 5.63,
+              "basePoints": 5.25,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Thiago",
+              "team": "Brentford",
+              "position": "F",
+              "price": 8,
+              "expectedPoints": 5.93,
+              "basePoints": 5.09,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 5.1,
+              "basePoints": 4.53,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 4.74,
+              "basePoints": 4.16,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 4.52,
+              "basePoints": 3.79,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Hill",
+              "team": "Bournemouth",
+              "position": "D",
+              "price": 5.5,
+              "expectedPoints": 4.06,
+              "basePoints": 3.39,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [],
+          "transfersOut": []
+        },
+        {
+          "gameweek": 9,
+          "chip": null,
+          "expectedPoints": 65.5,
+          "baseExpectedPoints": 56.28,
+          "bank": 0,
+          "freeTransfers": 4,
+          "lineup": [
+            {
+              "name": "Kelleher",
+              "team": "Brentford",
+              "position": "G",
+              "price": 5,
+              "expectedPoints": 5.13,
+              "basePoints": 4.32,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 5,
+              "basePoints": 4.38,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 5.23,
+              "basePoints": 4.4,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Hill",
+              "team": "Bournemouth",
+              "position": "D",
+              "price": 5.5,
+              "expectedPoints": 5.45,
+              "basePoints": 4.55,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bruno G.",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 5.18,
+              "basePoints": 4.36,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.31,
+              "basePoints": 4.46,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.37,
+              "basePoints": 4.5,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 5.66,
+              "basePoints": 4.73,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "B.Fernandes",
+              "team": "Man Utd",
+              "position": "M",
+              "price": 12,
+              "expectedPoints": 5.85,
+              "basePoints": 5.33,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 5.24,
+              "basePoints": 4.89,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Thiago",
+              "team": "Brentford",
+              "position": "F",
+              "price": 8,
+              "expectedPoints": 6.04,
+              "basePoints": 5.18,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 3.82,
+              "basePoints": 3.39,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "Lacroix",
+              "team": "Chelsea",
+              "position": "D",
+              "price": 6,
+              "expectedPoints": 5.02,
+              "basePoints": 4.25,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 4.76,
+              "basePoints": 4.18,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Bijol",
+              "team": "Leeds",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.55,
+              "basePoints": 3.79,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [],
+          "transfersOut": []
+        },
+        {
+          "gameweek": 10,
+          "chip": null,
+          "expectedPoints": 71.1,
+          "baseExpectedPoints": 61.26,
+          "bank": 0,
+          "freeTransfers": 5,
+          "lineup": [
+            {
+              "name": "Raya",
+              "team": "Arsenal",
+              "position": "G",
+              "price": 6,
+              "expectedPoints": 5.47,
+              "basePoints": 4.86,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bijol",
+              "team": "Leeds",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 5.18,
+              "basePoints": 4.32,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Lacroix",
+              "team": "Chelsea",
+              "position": "D",
+              "price": 6,
+              "expectedPoints": 5.45,
+              "basePoints": 4.61,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Gabriel",
+              "team": "Arsenal",
+              "position": "D",
+              "price": 8,
+              "expectedPoints": 7.03,
+              "basePoints": 6.16,
+              "isCaptain": true,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Sarr",
+              "team": "Crystal Palace",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 5.38,
+              "basePoints": 4.52,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Scott",
+              "team": "Bournemouth",
+              "position": "M",
+              "price": 6,
+              "expectedPoints": 5.49,
+              "basePoints": 4.59,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Dewsbury-Hall",
+              "team": "Everton",
+              "position": "M",
+              "price": 6.5,
+              "expectedPoints": 6.28,
+              "basePoints": 5.26,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Bruno G.",
+              "team": "Arsenal",
+              "position": "M",
+              "price": 7,
+              "expectedPoints": 6.5,
+              "basePoints": 5.47,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "B.Fernandes",
+              "team": "Man Utd",
+              "position": "M",
+              "price": 12,
+              "expectedPoints": 6.81,
+              "basePoints": 6.21,
+              "isCaptain": false,
+              "isViceCaptain": true,
+              "benchOrder": null
+            },
+            {
+              "name": "Calvert-Lewin",
+              "team": "Leeds",
+              "position": "F",
+              "price": 6,
+              "expectedPoints": 5.19,
+              "basePoints": 4.56,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            },
+            {
+              "name": "Thiago",
+              "team": "Brentford",
+              "position": "F",
+              "price": 8,
+              "expectedPoints": 5.29,
+              "basePoints": 4.54,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": null
+            }
+          ],
+          "bench": [
+            {
+              "name": "Kelleher",
+              "team": "Brentford",
+              "position": "G",
+              "price": 5,
+              "expectedPoints": 4.14,
+              "basePoints": 3.48,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 0
+            },
+            {
+              "name": "João Pedro",
+              "team": "Chelsea",
+              "position": "F",
+              "price": 7.5,
+              "expectedPoints": 5.06,
+              "basePoints": 4.72,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 1
+            },
+            {
+              "name": "Hill",
+              "team": "Bournemouth",
+              "position": "D",
+              "price": 5.5,
+              "expectedPoints": 5,
+              "basePoints": 4.17,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 2
+            },
+            {
+              "name": "Ballard",
+              "team": "Sunderland",
+              "position": "D",
+              "price": 5,
+              "expectedPoints": 4.75,
+              "basePoints": 3.99,
+              "isCaptain": false,
+              "isViceCaptain": false,
+              "benchOrder": 3
+            }
+          ],
+          "transfersIn": [],
+          "transfersOut": []
+        }
+      ],
+      "alternatives": null
+    },
+    "poolKept": 121,
+    "poolTotal": 578,
+    "totalBaseExpectedPoints": 611.68,
+    "finalGapPercent": 0.0999
+  },
+  {
     "id": "mt0h4edcsg43xh",
     "status": "completed",
     "createdAt": "2026-08-19T19:17:36.576Z",
