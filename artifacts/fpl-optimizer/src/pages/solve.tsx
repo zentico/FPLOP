@@ -228,6 +228,47 @@ export default function SolveDetail() {
             </div>
           )}
 
+          {/* Chip value vs the no-chip baseline solve */}
+          {(solve.chipEval?.length ?? 0) > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {solve.chipEval!.map(ev => {
+                const threshold = solve.request.options?.chipEvalThreshold ?? 15;
+                const amber = Math.min(10, threshold);
+                const band =
+                  ev.boost >= threshold
+                    ? { label: "Well invested", cls: "border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30", text: "text-emerald-700 dark:text-emerald-300" }
+                    : ev.boost >= amber
+                      ? { label: "Marginal", cls: "border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30", text: "text-amber-700 dark:text-amber-300" }
+                      : { label: "Poor value", cls: "border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/30", text: "text-red-700 dark:text-red-300" };
+                return (
+                  <div key={`${ev.chip}-${ev.gameweek}`} className={`border rounded-lg p-4 shadow-sm ${band.cls}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="font-bold capitalize flex items-center gap-2">
+                        <Target className="h-4 w-4" />
+                        {ev.chip.replace("_", " ")} · GW {ev.gameweek}
+                      </div>
+                      <span className={`text-xs font-semibold uppercase tracking-wider ${band.text}`}>{band.label}</span>
+                    </div>
+                    <div className={`font-mono text-3xl font-black mt-2 ${band.text}`}>
+                      {ev.boost >= 0 ? "+" : ""}{ev.boost.toFixed(2)} pts
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Raw (unadjusted, undecayed) points over GW {ev.windowStart}–{ev.windowEnd}:{" "}
+                      <span className="font-mono">{ev.chipPoints.toFixed(2)}</span> with the chip vs{" "}
+                      <span className="font-mono">{ev.baselinePoints.toFixed(2)}</span> in the no-chip baseline solve
+                      · threshold {threshold}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {solve.chipEvalError && (
+            <div className="border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 rounded-lg p-3 text-sm text-amber-800 dark:text-amber-300">
+              {solve.chipEvalError}
+            </div>
+          )}
+
           {/* All-gameweeks squad matrix */}
           {(plan?.gameweeks?.length ?? 0) > 1 && (
             <SquadMatrix gameweeks={plan!.gameweeks} decayBase={decayBase} />

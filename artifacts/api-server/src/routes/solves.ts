@@ -249,23 +249,25 @@ router.post("/solves", async (req, res): Promise<void> => {
   // Chips assigned gameweek 0 ("Any") need the horizon window so the solver
   // can be forced to play the chip at a week of its own choosing.
   let anyChipGws: number[] | null = null;
+  let startGw: number | null = null;
   const hasAnyChip = (request.chips ?? []).some((c) => c.gameweek === 0);
   const bookedGws = (request.options?.bookedTransfers ?? []).map(
     (bt) => bt.gameweek,
   );
   if (hasAnyChip || bookedGws.length > 0) {
-    let firstGw = 1;
-    if (!request.firstGameweek) {
-      try {
-        firstGw = (await getGameweekInfo()).nextGameweek;
-      } catch {
-        res.status(400).json({
-          error:
-            "Could not determine the next gameweek from FPL, which is needed to time chips and booked transfers. Try again or pick a specific gameweek.",
-        });
-        return;
-      }
+    // The solver starts at FPL's next gameweek in both modes (preseason mode
+    // also builds the squad at next_gw, not GW 1), so the chip window must too.
+    let firstGw: number;
+    try {
+      firstGw = (await getGameweekInfo()).nextGameweek;
+    } catch {
+      res.status(400).json({
+        error:
+          "Could not determine the next gameweek from FPL, which is needed to time chips and booked transfers. Try again or pick a specific gameweek.",
+      });
+      return;
     }
+    startGw = firstGw;
     const horizon = request.horizon ?? 5;
     const lastGw = firstGw + horizon - 1;
     const outside = bookedGws.filter((gw) => gw < firstGw || gw > lastGw);
@@ -286,7 +288,7 @@ router.post("/solves", async (req, res): Promise<void> => {
     createdAt: new Date().toISOString(),
     completedAt: null,
     error: null,
-    request: { ...request, anyChipGws },
+    request: { ...request, anyChipGws, startGw },
     projectionFilename: projection.filename,
     totalExpectedPoints: null,
     result: null,

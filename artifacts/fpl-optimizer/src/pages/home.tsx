@@ -44,6 +44,7 @@ export default function Home() {
   const [teamIdStr, setTeamIdStr] = React.useState<string>("");
   const [horizon, setHorizon] = React.useState<number>(5);
   const [chips, setChips] = React.useState<Record<string, string>>({}); // chip type -> gameweek string
+  const [chipThreshold, setChipThreshold] = React.useState("15"); // raw-points boost for a well-invested "Any" chip
   const [diffFactorStr, setDiffFactorStr] = React.useState<string>("20");
   const [poolEnabled, setPoolEnabled] = React.useState(true);
   const [poolCounts, setPoolCounts] = React.useState({
@@ -333,6 +334,11 @@ export default function Home() {
       noFutureTransfer: advFlags.noFutureTransfer || undefined,
       randomized: advFlags.randomized || undefined,
       opposingPlay: opposingPlay !== "off" ? opposingPlay : undefined,
+      chipEvalThreshold: (() => {
+        if (!Object.values(chips).includes("0")) return undefined;
+        const n = Number(chipThreshold.trim());
+        return Number.isFinite(n) && n > 0 ? n : 15;
+      })(),
       numIterations: num("numIterations"),
       benchWeights: (() => {
         const ws = ["bwGk", "bw1", "bw2", "bw3"].map((k) => adv[k]?.trim());
@@ -781,6 +787,26 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
+                {Object.values(chips).includes("0") && (
+                  <div className="flex items-center justify-between gap-3 p-3 border rounded-lg bg-muted/20">
+                    <div>
+                      <Label className="text-sm">Chip value threshold</Label>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        "Any" chips are compared against a second no-chip solve (adds solve time).
+                        The boost is raw points over the chip week + 3 following; at or above this
+                        value the chip counts as well-invested.
+                      </p>
+                    </div>
+                    <Input
+                      type="number"
+                      className="w-[90px] h-8 text-xs font-mono"
+                      value={chipThreshold}
+                      onChange={(e) => setChipThreshold(e.target.value)}
+                      min={1}
+                      step={1}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4 pt-2 border-t">

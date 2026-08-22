@@ -709,10 +709,34 @@ components:
         fwdBench:
           type: number
           description: Additional forwards kept by bench-squad rank
+    ChipEval:
+      type: object
+      description: Raw-points value of a chip measured against a no-chip baseline solve
+      required: [chip, gameweek, windowStart, windowEnd, chipPoints, baselinePoints, boost]
+      properties:
+        chip:
+          type: string
+        gameweek:
+          type: number
+        windowStart:
+          type: number
+        windowEnd:
+          type: number
+        chipPoints:
+          type: number
+          description: Unadjusted, undecayed points over the window with the chip
+        baselinePoints:
+          type: number
+          description: Same window from the no-chip baseline solve
+        boost:
+          type: number
     SolveOptions:
       type: object
       description: Advanced solver settings, mirroring open-fpl-solver config keys
       properties:
+        chipEvalThreshold:
+          type: ["number", "null"]
+          description: Raw-points boost at which an "Any" chip counts as well-invested (display only)
         banned:
           type: array
           items:
@@ -850,6 +874,14 @@ components:
         objective:
           type: ["number", "null"]
           description: Solver objective value (decayed, adjusted, incl. bench weights and FT/ITB bonuses)
+        chipEval:
+          type: ["array", "null"]
+          description: Chip value vs a no-chip baseline solve, for "Any"-gameweek chip assignments
+          items:
+            $ref: "#/components/schemas/ChipEval"
+        chipEvalError:
+          type: ["string", "null"]
+          description: Set when the baseline comparison solve could not be completed
         poolKept:
           type: ["number", "null"]
           description: Players in the solver pool after filtering (null when unfiltered)

@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { ChipEval } from './chipEval';
 import type { PlayedChip } from './playedChip';
 import type { SolveInput } from './solveInput';
 import type { SolveProgress } from './solveProgress';
@@ -39,6 +40,16 @@ export interface SolveRun {
      * @nullable
      */
   objective?: number | null;
+  /**
+     * Chip value vs a no-chip baseline solve, for "Any"-gameweek chip assignments
+     * @nullable
+     */
+  chipEval?: ChipEval[] | null;
+  /**
+     * Set when the baseline comparison solve could not be completed
+     * @nullable
+     */
+  chipEvalError?: string | null;
   /**
      * Players in the solver pool after filtering (null when unfiltered)
      * @nullable

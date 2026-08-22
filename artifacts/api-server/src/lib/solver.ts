@@ -12,6 +12,7 @@ import {
   SOLVER_RESULTS_DIR,
 } from "./paths";
 import {
+  type ChipEval,
   type GameweekPlan,
   type PickPlayer,
   type SolveRequest,
@@ -596,10 +597,13 @@ function buildConfig(
     if (opts.randomized != null) config["randomized"] = opts.randomized;
     if (opts.opposingPlay != null) applyOpposingPlay(config, opts.opposingPlay);
     if (opts.bookedTransfers?.length) {
-      // In first-gameweek mode there are no transfers in GW1 (the squad is
-      // built from scratch), so a "booked transfer" for GW1 is translated to
-      // a single-week squad constraint instead: `in` forces the player into
-      // the GW1 squad, `out` keeps them out of it — for that week only.
+      // In first-gameweek mode there are no transfers in the first modeled
+      // week (the squad is built from scratch), so a "booked transfer" for
+      // that week is translated to a single-week squad constraint instead:
+      // `in` forces the player into that week's squad, `out` keeps them out
+      // of it — for that week only. The first modeled week is FPL's next
+      // gameweek (server-computed startGw), not necessarily GW 1.
+      const firstModeledGw = request.startGw ?? 1;
       const booked: Record<string, unknown>[] = [];
       const lockedNextGw: [number, number][] = [];
       const bannedNextGw: [number, number][] = [];
@@ -610,9 +614,9 @@ function buildConfig(
         const outId = bt.out
           ? resolvePlayerRefs(request.projectionId, [bt.out]).ids[0]
           : undefined;
-        if (request.firstGameweek && bt.gameweek === 1) {
-          if (inId != null) lockedNextGw.push([inId, 1]);
-          if (outId != null) bannedNextGw.push([outId, 1]);
+        if (request.firstGameweek && bt.gameweek === firstModeledGw) {
+          if (inId != null) lockedNextGw.push([inId, bt.gameweek]);
+          if (outId != null) bannedNextGw.push([outId, bt.gameweek]);
           continue;
         }
         const entry: Record<string, unknown> = { gw: bt.gameweek };
@@ -804,7 +808,6 @@ export async function startSolve(
     void (async () => {
     clearTimeout(timeout);
     logStream.end();
-    cleanupAdjusted();
     try {
       if (code !== 0) {
         const tail = readLogTail(logPath);
@@ -858,6 +861,29 @@ export async function startSolve(
           if (p.gameweeks.length > 0) p.gameweeks[0]!.transfersIn = [];
         }
       }
+
+      // "Any"-gameweek chips: measure the chip's raw-points value against a
+      // second, no-chip baseline solve over the same data.
+      let chipEval: ChipEval[] | null = null;
+      let chipEvalError: string | null = null;
+      const hasAnyChip = (request.chips ?? []).some((c) => c.gameweek === 0);
+      if (hasAnyChip && result.gameweeks.some((gw) => gw.chip)) {
+        try {
+          const baseline = await runBaselineSolve(
+            runId,
+            request,
+            datasource,
+            factors,
+            startBank,
+            resultFiles,
+          );
+          chipEval = compareChipValue(result, baseline);
+        } catch (err) {
+          chipEvalError = `Chip value comparison failed: ${(err as Error).message}`;
+          logger.error({ err, runId }, "Baseline chip-eval solve failed");
+        }
+      }
+
       updateRun(runId, {
         status: "completed",
         completedAt: new Date().toISOString(),
@@ -865,6 +891,8 @@ export async function startSolve(
         totalBaseExpectedPoints: result.totalBaseExpectedPoints ?? null,
         finalGapPercent: extractFinalGap(logPath),
         objective: extractObjective(logPath),
+        chipEval,
+        chipEvalError,
         result,
       });
       logger.info({ runId, resultFiles }, "Solve completed");
@@ -875,8 +903,119 @@ export async function startSolve(
         completedAt: new Date().toISOString(),
         error: `Failed to parse solver result: ${(err as Error).message}`,
       });
+    } finally {
+      cleanupAdjusted();
     }
     })();
+  });
+}
+
+/** How many gameweeks after the chip week count toward its measured value. */
+const CHIP_EVAL_SUBSEQUENT_GWS = 3;
+
+const round2 = (x: number) => Math.round(x * 100) / 100;
+
+function rawPointsInWindow(plan: SolvePlan, start: number, end: number): number {
+  return plan.gameweeks
+    .filter((gw) => gw.gameweek >= start && gw.gameweek <= end)
+    .reduce((s, gw) => s + (gw.baseExpectedPoints ?? gw.expectedPoints), 0);
+}
+
+/** Chip value: unadjusted, undecayed points over the chip GW + subsequent GWs, vs the baseline. */
+function compareChipValue(result: SolveResult, baseline: SolveResult): ChipEval[] {
+  const lastGw = result.gameweeks[result.gameweeks.length - 1]?.gameweek ?? 0;
+  const evals: ChipEval[] = [];
+  for (const gw of result.gameweeks) {
+    if (!gw.chip) continue;
+    const windowEnd = Math.min(gw.gameweek + CHIP_EVAL_SUBSEQUENT_GWS, lastGw);
+    const chipPoints = rawPointsInWindow(result, gw.gameweek, windowEnd);
+    const baselinePoints = rawPointsInWindow(baseline, gw.gameweek, windowEnd);
+    evals.push({
+      chip: gw.chip,
+      gameweek: gw.gameweek,
+      windowStart: gw.gameweek,
+      windowEnd,
+      chipPoints: round2(chipPoints),
+      baselinePoints: round2(baselinePoints),
+      boost: round2(chipPoints - baselinePoints),
+    });
+  }
+  return evals;
+}
+
+/** Solve the same request with all chips disabled, against the same per-run datasource. */
+function runBaselineSolve(
+  runId: string,
+  request: SolveRequest,
+  datasource: string,
+  factors: Map<string, number> | null,
+  startBank: number | null,
+  primaryResultFiles: string[],
+): Promise<SolveResult> {
+  const runDir = path.join(RUNS_DIR, runId);
+  const baselineRequest: SolveRequest = {
+    ...request,
+    chips: [],
+    anyChipGws: null,
+  };
+  const config = buildConfig(baselineRequest, datasource);
+  // The baseline is a point of comparison, not a plan — one solution is enough.
+  config["num_iterations"] = 1;
+  const configPath = path.join(runDir, "config-baseline.json");
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+  const logPath = path.join(runDir, "solver-baseline.log");
+  const logStream = fs.createWriteStream(logPath);
+  const startedAt = Date.now();
+
+  return new Promise<SolveResult>((resolve, reject) => {
+    const child = spawn(
+      "uv",
+      ["run", "python", "run/solve.py", "--config", configPath],
+      { cwd: SOLVER_REPO, env: { ...process.env } },
+    );
+    child.stdout!.pipe(logStream);
+    child.stderr!.pipe(logStream);
+    const timeout = setTimeout(() => {
+      logger.warn({ runId }, "Baseline solve timed out, killing solver process");
+      child.kill("SIGKILL");
+    }, solveTimeoutMs(request));
+    child.on("error", (err) => {
+      clearTimeout(timeout);
+      logStream.end();
+      reject(err);
+    });
+    child.on("close", (code) => {
+      clearTimeout(timeout);
+      logStream.end();
+      try {
+        if (code !== 0) {
+          throw new Error(
+            code === null
+              ? "the baseline solve timed out"
+              : `the baseline solver exited with code ${code}`,
+          );
+        }
+        // The mtime check has slack, and the baseline starts seconds after the
+        // primary solve finishes — exclude the primary's files explicitly.
+        const files = findResultFiles(datasource, startedAt).filter(
+          (f) => !primaryResultFiles.includes(f),
+        );
+        if (files.length === 0) {
+          throw new Error("the baseline solve produced no result file");
+        }
+        resolve(
+          parseResultCsv(
+            concatCsvFiles(files),
+            priceMap(request.projectionId),
+            factors,
+            startBank,
+            ownershipMap(request.projectionId),
+          ),
+        );
+      } catch (err) {
+        reject(err as Error);
+      }
+    });
   });
 }
 

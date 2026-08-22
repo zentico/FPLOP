@@ -18,6 +18,8 @@ export interface ChipAssignment {
 export interface SolveOptions {
   banned?: string[];
   locked?: string[];
+  /** Raw-points boost at which an "Any" chip counts as well-invested (display only). */
+  chipEvalThreshold?: number | null;
   noTransferLastGws?: number | null;
   noFutureTransfer?: boolean | null;
   numTransfers?: number | null;
@@ -69,6 +71,11 @@ export interface SolveRequest {
    * the solver must play the chip exactly once within these gameweeks.
    */
   anyChipGws?: number[] | null;
+  /**
+   * Server-computed first modeled gameweek (FPL's next gameweek). Set whenever
+   * chips or booked transfers need gameweek-accurate constraints.
+   */
+  startGw?: number | null;
   options?: SolveOptions | null;
   /**
    * Internal (mega-run scenarios only): let the solver choose chip timing.
@@ -113,6 +120,20 @@ export interface SolvePlan {
   gameweeks: GameweekPlan[];
 }
 
+/** Raw-points value of a chip, measured against a no-chip baseline solve. */
+export interface ChipEval {
+  chip: string;
+  gameweek: number;
+  /** Window over which points are compared (chip GW + subsequent GWs, capped by horizon). */
+  windowStart: number;
+  windowEnd: number;
+  /** Unadjusted, undecayed points over the window with the chip. */
+  chipPoints: number;
+  /** Same, from the no-chip baseline solve. */
+  baselinePoints: number;
+  boost: number;
+}
+
 export interface SolveResult extends SolvePlan {
   /** Alternative plans from multi-iteration solves (best plan first, excluded). */
   alternatives?: SolvePlan[] | null;
@@ -131,6 +152,10 @@ export interface SolveRunMeta {
   finalGapPercent?: number | null;
   /** Solver objective value (decayed, adjusted, incl. bench weights and FT/ITB bonuses). */
   objective?: number | null;
+  /** Chip value vs a no-chip baseline, for "Any"-gameweek chip assignments. */
+  chipEval?: ChipEval[] | null;
+  /** Set when the baseline comparison solve could not be completed. */
+  chipEvalError?: string | null;
   totalBaseExpectedPoints?: number | null;
   poolKept?: number | null;
   poolTotal?: number | null;

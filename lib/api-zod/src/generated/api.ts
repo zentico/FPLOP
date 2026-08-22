@@ -227,6 +227,7 @@ export const ListSolvesResponseItem = zod.object({
   "gameweek": zod.number().describe('Gameweek to play the chip, or 0 for \"Any\" — the solver is then required to play the chip but chooses the optimal week itself.\n')
 })).optional(),
   "options": zod.union([zod.object({
+  "chipEvalThreshold": zod.number().nullish().describe('Raw-points boost at which an \"Any\" chip counts as well-invested (display only)'),
   "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
   "locked": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must keep in the squad'),
   "noTransferLastGws": zod.number().nullish().describe('Roll transfers in the last N gameweeks of the horizon'),
@@ -256,6 +257,16 @@ export const ListSolvesResponseItem = zod.object({
   "totalBaseExpectedPoints": zod.number().nullish().describe('Total expected points before differential adjustment (null when k = 0)'),
   "finalGapPercent": zod.number().nullish().describe('Final optimality gap (%) the solver achieved at completion'),
   "objective": zod.number().nullish().describe('Solver objective value (decayed, adjusted, incl. bench weights and FT\/ITB bonuses)'),
+  "chipEval": zod.array(zod.object({
+  "chip": zod.string(),
+  "gameweek": zod.number(),
+  "windowStart": zod.number(),
+  "windowEnd": zod.number(),
+  "chipPoints": zod.number().describe('Unadjusted, undecayed points over the window with the chip'),
+  "baselinePoints": zod.number().describe('Same window from the no-chip baseline solve'),
+  "boost": zod.number()
+}).describe('Raw-points value of a chip measured against a no-chip baseline solve')).nullish().describe('Chip value vs a no-chip baseline solve, for \"Any\"-gameweek chip assignments'),
+  "chipEvalError": zod.string().nullish().describe('Set when the baseline comparison solve could not be completed'),
   "poolKept": zod.number().nullish().describe('Players in the solver pool after filtering (null when unfiltered)'),
   "poolTotal": zod.number().nullish().describe('Total players in the projection when a pool filter was used'),
   "result": zod.union([zod.object({
@@ -383,6 +394,7 @@ export const CreateSolveBody = zod.object({
   "gameweek": zod.number().describe('Gameweek to play the chip, or 0 for \"Any\" — the solver is then required to play the chip but chooses the optimal week itself.\n')
 })).optional(),
   "options": zod.union([zod.object({
+  "chipEvalThreshold": zod.number().nullish().describe('Raw-points boost at which an \"Any\" chip counts as well-invested (display only)'),
   "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
   "locked": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must keep in the squad'),
   "noTransferLastGws": zod.number().nullish().describe('Roll transfers in the last N gameweeks of the horizon'),
@@ -435,6 +447,7 @@ export const CreateSolveResponse = zod.object({
   "gameweek": zod.number().describe('Gameweek to play the chip, or 0 for \"Any\" — the solver is then required to play the chip but chooses the optimal week itself.\n')
 })).optional(),
   "options": zod.union([zod.object({
+  "chipEvalThreshold": zod.number().nullish().describe('Raw-points boost at which an \"Any\" chip counts as well-invested (display only)'),
   "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
   "locked": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must keep in the squad'),
   "noTransferLastGws": zod.number().nullish().describe('Roll transfers in the last N gameweeks of the horizon'),
@@ -464,6 +477,16 @@ export const CreateSolveResponse = zod.object({
   "totalBaseExpectedPoints": zod.number().nullish().describe('Total expected points before differential adjustment (null when k = 0)'),
   "finalGapPercent": zod.number().nullish().describe('Final optimality gap (%) the solver achieved at completion'),
   "objective": zod.number().nullish().describe('Solver objective value (decayed, adjusted, incl. bench weights and FT\/ITB bonuses)'),
+  "chipEval": zod.array(zod.object({
+  "chip": zod.string(),
+  "gameweek": zod.number(),
+  "windowStart": zod.number(),
+  "windowEnd": zod.number(),
+  "chipPoints": zod.number().describe('Unadjusted, undecayed points over the window with the chip'),
+  "baselinePoints": zod.number().describe('Same window from the no-chip baseline solve'),
+  "boost": zod.number()
+}).describe('Raw-points value of a chip measured against a no-chip baseline solve')).nullish().describe('Chip value vs a no-chip baseline solve, for \"Any\"-gameweek chip assignments'),
+  "chipEvalError": zod.string().nullish().describe('Set when the baseline comparison solve could not be completed'),
   "poolKept": zod.number().nullish().describe('Players in the solver pool after filtering (null when unfiltered)'),
   "poolTotal": zod.number().nullish().describe('Total players in the projection when a pool filter was used'),
   "result": zod.union([zod.object({
@@ -619,6 +642,7 @@ export const CreateMegaSolveBody = zod.object({
   "gameweek": zod.number().describe('Gameweek to play the chip, or 0 for \"Any\" — the solver is then required to play the chip but chooses the optimal week itself.\n')
 })).optional(),
   "options": zod.union([zod.object({
+  "chipEvalThreshold": zod.number().nullish().describe('Raw-points boost at which an \"Any\" chip counts as well-invested (display only)'),
   "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
   "locked": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must keep in the squad'),
   "noTransferLastGws": zod.number().nullish().describe('Roll transfers in the last N gameweeks of the horizon'),
@@ -757,6 +781,7 @@ export const GetSolveResponse = zod.object({
   "gameweek": zod.number().describe('Gameweek to play the chip, or 0 for \"Any\" — the solver is then required to play the chip but chooses the optimal week itself.\n')
 })).optional(),
   "options": zod.union([zod.object({
+  "chipEvalThreshold": zod.number().nullish().describe('Raw-points boost at which an \"Any\" chip counts as well-invested (display only)'),
   "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
   "locked": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must keep in the squad'),
   "noTransferLastGws": zod.number().nullish().describe('Roll transfers in the last N gameweeks of the horizon'),
@@ -786,6 +811,16 @@ export const GetSolveResponse = zod.object({
   "totalBaseExpectedPoints": zod.number().nullish().describe('Total expected points before differential adjustment (null when k = 0)'),
   "finalGapPercent": zod.number().nullish().describe('Final optimality gap (%) the solver achieved at completion'),
   "objective": zod.number().nullish().describe('Solver objective value (decayed, adjusted, incl. bench weights and FT\/ITB bonuses)'),
+  "chipEval": zod.array(zod.object({
+  "chip": zod.string(),
+  "gameweek": zod.number(),
+  "windowStart": zod.number(),
+  "windowEnd": zod.number(),
+  "chipPoints": zod.number().describe('Unadjusted, undecayed points over the window with the chip'),
+  "baselinePoints": zod.number().describe('Same window from the no-chip baseline solve'),
+  "boost": zod.number()
+}).describe('Raw-points value of a chip measured against a no-chip baseline solve')).nullish().describe('Chip value vs a no-chip baseline solve, for \"Any\"-gameweek chip assignments'),
+  "chipEvalError": zod.string().nullish().describe('Set when the baseline comparison solve could not be completed'),
   "poolKept": zod.number().nullish().describe('Players in the solver pool after filtering (null when unfiltered)'),
   "poolTotal": zod.number().nullish().describe('Total players in the projection when a pool filter was used'),
   "result": zod.union([zod.object({

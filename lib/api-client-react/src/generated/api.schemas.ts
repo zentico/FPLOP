@@ -155,6 +155,11 @@ export interface BookedTransfer {
  * Advanced solver settings, mirroring open-fpl-solver config keys
  */
 export interface SolveOptions {
+  /**
+     * Raw-points boost at which an "Any" chip counts as well-invested (display only)
+     * @nullable
+     */
+  chipEvalThreshold?: number | null;
   /** Player names (or FPL ids) the solver must never pick */
   banned?: string[];
   /** Player names (or FPL ids) the solver must keep in the squad */
@@ -266,6 +271,21 @@ export interface PoolPlayerStat {
   ppm: number;
   /** Per-gameweek projected points, in ascending gameweek order */
   gwPoints: number[];
+}
+
+/**
+ * Raw-points value of a chip measured against a no-chip baseline solve
+ */
+export interface ChipEval {
+  chip: string;
+  gameweek: number;
+  windowStart: number;
+  windowEnd: number;
+  /** Unadjusted, undecayed points over the window with the chip */
+  chipPoints: number;
+  /** Same window from the no-chip baseline solve */
+  baselinePoints: number;
+  boost: number;
 }
 
 export interface FixtureInfo {
@@ -413,6 +433,16 @@ export interface SolveRun {
      * @nullable
      */
   objective?: number | null;
+  /**
+     * Chip value vs a no-chip baseline solve, for "Any"-gameweek chip assignments
+     * @nullable
+     */
+  chipEval?: ChipEval[] | null;
+  /**
+     * Set when the baseline comparison solve could not be completed
+     * @nullable
+     */
+  chipEvalError?: string | null;
   /**
      * Players in the solver pool after filtering (null when unfiltered)
      * @nullable

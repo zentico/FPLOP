@@ -8,6 +8,7 @@
 
 export * from './bookedTransfer';
 export * from './chipAssignment';
+export * from './chipEval';
 export * from './errorMessage';
 export * from './ffhSessionInput';
 export * from './ffhSessionStatus';

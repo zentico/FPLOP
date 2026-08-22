@@ -12,6 +12,11 @@ import type { SolveOptionsOpposingPlay } from './solveOptionsOpposingPlay';
  * Advanced solver settings, mirroring open-fpl-solver config keys
  */
 export interface SolveOptions {
+  /**
+     * Raw-points boost at which an "Any" chip counts as well-invested (display only)
+     * @nullable
+     */
+  chipEvalThreshold?: number | null;
   /** Player names (or FPL ids) the solver must never pick */
   banned?: string[];
   /** Player names (or FPL ids) the solver must keep in the squad */
