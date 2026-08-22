@@ -83,6 +83,8 @@ export default function SolveDetail() {
     ? [solve.result, ...(solve.result.alternatives ?? [])]
     : [];
   const plan = plans[Math.min(planIdx, Math.max(0, plans.length - 1))];
+  // Decay base actually used by the solver (settings default 0.9 when not overridden)
+  const decayBase = solve.request.options?.decayBase ?? 0.9;
 
   return (
     <div className="space-y-6">
@@ -155,7 +157,7 @@ export default function SolveDetail() {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           
           {/* Metadata Card */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div className="bg-card border rounded-lg p-4 shadow-sm">
               <div className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Projection</div>
               <div className="font-mono mt-1 text-sm break-all">{solve.projectionFilename}</div>
@@ -188,6 +190,17 @@ export default function SolveDetail() {
                   : "-"}
               </div>
             </div>
+            <div className="bg-card border rounded-lg p-4 shadow-sm">
+              <div className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Optimization Score</div>
+              <div className="font-mono mt-1 text-sm font-bold">
+                {plan
+                  ? plan.gameweeks
+                      .reduce((sum, gw, i) => sum + gw.expectedPoints * Math.pow(decayBase, i), 0)
+                      .toFixed(2)
+                  : "-"}
+              </div>
+              <div className="text-[10px] text-muted-foreground mt-0.5">adjusted xPts × decay {decayBase}</div>
+            </div>
           </div>
 
           {/* Plan selector for multi-iteration solves */}
@@ -213,7 +226,7 @@ export default function SolveDetail() {
 
           {/* All-gameweeks squad matrix */}
           {(plan?.gameweeks?.length ?? 0) > 1 && (
-            <SquadMatrix gameweeks={plan!.gameweeks} />
+            <SquadMatrix gameweeks={plan!.gameweeks} decayBase={decayBase} />
           )}
 
           {/* Gameweek Plans */}
@@ -736,7 +749,7 @@ type MatrixCell =
 // Stable identity: player ID when available (new runs), display name otherwise (old runs).
 const playerKey = (p: PickPlayer) => p.id ?? p.name;
 
-function SquadMatrix({ gameweeks }: { gameweeks: GameweekPlan[] }) {
+function SquadMatrix({ gameweeks, decayBase }: { gameweeks: GameweekPlan[]; decayBase: number }) {
   const { rows } = React.useMemo(() => {
     // Union of all squad players across gameweeks
     const players = new Map<string, { key: string; name: string; team: string; position: string; firstGwIdx: number }>();
@@ -851,6 +864,18 @@ function SquadMatrix({ gameweeks }: { gameweeks: GameweekPlan[] }) {
                 {gameweeks.map(gw => (
                   <TableCell key={gw.gameweek} className="text-center font-mono font-bold">
                     {(gw.baseExpectedPoints ?? gw.expectedPoints).toFixed(2)}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow className="hover:bg-transparent">
+                <TableCell className="pl-6 font-semibold text-sm">
+                  Optimizer Score
+                  <span className="block text-[10px] font-normal text-muted-foreground">adjusted xPts × decay {decayBase}</span>
+                </TableCell>
+                <TableCell className="hidden md:table-cell" />
+                {gameweeks.map((gw, i) => (
+                  <TableCell key={gw.gameweek} className="text-center font-mono text-sm text-muted-foreground">
+                    {(gw.expectedPoints * Math.pow(decayBase, i)).toFixed(2)}
                   </TableCell>
                 ))}
               </TableRow>
