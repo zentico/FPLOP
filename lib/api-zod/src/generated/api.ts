@@ -255,6 +255,7 @@ export const ListSolvesResponseItem = zod.object({
   "totalExpectedPoints": zod.number().nullish(),
   "totalBaseExpectedPoints": zod.number().nullish().describe('Total expected points before differential adjustment (null when k = 0)'),
   "finalGapPercent": zod.number().nullish().describe('Final optimality gap (%) the solver achieved at completion'),
+  "objective": zod.number().nullish().describe('Solver objective value (decayed, adjusted, incl. bench weights and FT\/ITB bonuses)'),
   "poolKept": zod.number().nullish().describe('Players in the solver pool after filtering (null when unfiltered)'),
   "poolTotal": zod.number().nullish().describe('Total players in the projection when a pool filter was used'),
   "result": zod.union([zod.object({
@@ -462,6 +463,7 @@ export const CreateSolveResponse = zod.object({
   "totalExpectedPoints": zod.number().nullish(),
   "totalBaseExpectedPoints": zod.number().nullish().describe('Total expected points before differential adjustment (null when k = 0)'),
   "finalGapPercent": zod.number().nullish().describe('Final optimality gap (%) the solver achieved at completion'),
+  "objective": zod.number().nullish().describe('Solver objective value (decayed, adjusted, incl. bench weights and FT\/ITB bonuses)'),
   "poolKept": zod.number().nullish().describe('Players in the solver pool after filtering (null when unfiltered)'),
   "poolTotal": zod.number().nullish().describe('Total players in the projection when a pool filter was used'),
   "result": zod.union([zod.object({
@@ -783,6 +785,7 @@ export const GetSolveResponse = zod.object({
   "totalExpectedPoints": zod.number().nullish(),
   "totalBaseExpectedPoints": zod.number().nullish().describe('Total expected points before differential adjustment (null when k = 0)'),
   "finalGapPercent": zod.number().nullish().describe('Final optimality gap (%) the solver achieved at completion'),
+  "objective": zod.number().nullish().describe('Solver objective value (decayed, adjusted, incl. bench weights and FT\/ITB bonuses)'),
   "poolKept": zod.number().nullish().describe('Players in the solver pool after filtering (null when unfiltered)'),
   "poolTotal": zod.number().nullish().describe('Total players in the projection when a pool filter was used'),
   "result": zod.union([zod.object({

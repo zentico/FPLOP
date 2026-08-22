@@ -129,6 +129,8 @@ export interface SolveRunMeta {
   totalExpectedPoints?: number | null;
   /** Final optimality gap (%) reported by the solver at completion. */
   finalGapPercent?: number | null;
+  /** Solver objective value (decayed, adjusted, incl. bench weights and FT/ITB bonuses). */
+  objective?: number | null;
   totalBaseExpectedPoints?: number | null;
   poolKept?: number | null;
   poolTotal?: number | null;

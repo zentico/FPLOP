@@ -847,6 +847,9 @@ components:
         finalGapPercent:
           type: ["number", "null"]
           description: Final optimality gap (%) the solver achieved at completion
+        objective:
+          type: ["number", "null"]
+          description: Solver objective value (decayed, adjusted, incl. bench weights and FT/ITB bonuses)
         poolKept:
           type: ["number", "null"]
           description: Players in the solver pool after filtering (null when unfiltered)

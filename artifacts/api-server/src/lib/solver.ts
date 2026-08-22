@@ -864,6 +864,7 @@ export async function startSolve(
         totalExpectedPoints: result.totalExpectedPoints,
         totalBaseExpectedPoints: result.totalBaseExpectedPoints ?? null,
         finalGapPercent: extractFinalGap(logPath),
+        objective: extractObjective(logPath),
         result,
       });
       logger.info({ runId, resultFiles }, "Solve completed");
@@ -896,6 +897,19 @@ function extractFinalGap(logPath: string | null): number | null {
     const content = fs.readFileSync(logPath, "utf-8");
     const m = /^\s*Gap\s+(\d+(?:\.\d+)?)%/m.exec(content);
     return m ? Number(m[1]) : null;
+  } catch {
+    return null;
+  }
+}
+
+function extractObjective(logPath: string | null): number | null {
+  if (!logPath) return null;
+  try {
+    const content = fs.readFileSync(logPath, "utf-8");
+    const matches = [...content.matchAll(/^\s*(-?\d+(?:\.\d+)?)\s+\(objective\)/gm)];
+    if (matches.length === 0) return null;
+    // Multi-iteration solves log one objective per iteration; the optimal plan has the best value.
+    return Math.max(...matches.map(m => Number(m[1])));
   } catch {
     return null;
   }

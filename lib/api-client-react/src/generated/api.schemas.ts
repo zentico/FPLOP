@@ -409,6 +409,11 @@ export interface SolveRun {
      */
   finalGapPercent?: number | null;
   /**
+     * Solver objective value (decayed, adjusted, incl. bench weights and FT/ITB bonuses)
+     * @nullable
+     */
+  objective?: number | null;
+  /**
      * Players in the solver pool after filtering (null when unfiltered)
      * @nullable
      */

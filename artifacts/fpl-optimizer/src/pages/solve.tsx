@@ -193,13 +193,17 @@ export default function SolveDetail() {
             <div className="bg-card border rounded-lg p-4 shadow-sm">
               <div className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Optimization Score</div>
               <div className="font-mono mt-1 text-sm font-bold">
-                {plan
-                  ? plan.gameweeks
-                      .reduce((sum, gw, i) => sum + gw.expectedPoints * Math.pow(decayBase, i), 0)
-                      .toFixed(2)
-                  : "-"}
+                {solve.objective != null
+                  ? solve.objective.toFixed(2)
+                  : plan
+                    ? plan.gameweeks
+                        .reduce((sum, gw, i) => sum + gw.expectedPoints * Math.pow(decayBase, i), 0)
+                        .toFixed(2)
+                    : "-"}
               </div>
-              <div className="text-[10px] text-muted-foreground mt-0.5">adjusted xPts × decay {decayBase}</div>
+              <div className="text-[10px] text-muted-foreground mt-0.5">
+                {solve.objective != null ? "solver objective (decay, bench, FT/ITB)" : `adjusted xPts × decay ${decayBase}`}
+              </div>
             </div>
           </div>
 
@@ -894,6 +898,15 @@ function SquadMatrix({ gameweeks, decayBase }: { gameweeks: GameweekPlan[]; deca
                 {gameweeks.map(gw => (
                   <TableCell key={gw.gameweek} className="text-center font-mono text-sm">
                     {gw.freeTransfers ?? "–"}
+                  </TableCell>
+                ))}
+              </TableRow>
+              <TableRow className="hover:bg-transparent">
+                <TableCell className="pl-6 font-semibold text-sm">Chip</TableCell>
+                <TableCell className="hidden md:table-cell" />
+                {gameweeks.map(gw => (
+                  <TableCell key={gw.gameweek} className="text-center font-mono text-sm capitalize">
+                    {gw.chip ? gw.chip.replace("_", " ") : "–"}
                   </TableCell>
                 ))}
               </TableRow>
