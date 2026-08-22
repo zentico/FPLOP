@@ -45,6 +45,8 @@ export default function Home() {
   const [horizon, setHorizon] = React.useState<number>(5);
   const [chips, setChips] = React.useState<Record<string, string>>({}); // chip type -> gameweek string
   const [chipThreshold, setChipThreshold] = React.useState("15"); // raw-points boost for a well-invested "Any" chip
+  const [chipLowerThreshold, setChipLowerThreshold] = React.useState("10"); // below this the chip is poor value
+  const [chipWindow, setChipWindow] = React.useState("6"); // total GWs over which chip value is measured
   const [diffFactorStr, setDiffFactorStr] = React.useState<string>("20");
   const [poolEnabled, setPoolEnabled] = React.useState(true);
   const [poolCounts, setPoolCounts] = React.useState({
@@ -334,11 +336,19 @@ export default function Home() {
       noFutureTransfer: advFlags.noFutureTransfer || undefined,
       randomized: advFlags.randomized || undefined,
       opposingPlay: opposingPlay !== "off" ? opposingPlay : undefined,
-      chipEvalThreshold: (() => {
-        if (!Object.values(chips).includes("0")) return undefined;
-        const n = Number(chipThreshold.trim());
-        return Number.isFinite(n) && n > 0 ? n : 15;
-      })(),
+      ...(Object.values(chips).includes("0")
+        ? (() => {
+            const num = (v: string, fallback: number) => {
+              const n = Number(v.trim());
+              return Number.isFinite(n) && n > 0 ? n : fallback;
+            };
+            return {
+              chipEvalThreshold: num(chipThreshold, 15),
+              chipEvalLowerThreshold: num(chipLowerThreshold, 10),
+              chipEvalWindow: Math.round(num(chipWindow, 6)),
+            };
+          })()
+        : {}),
       numIterations: num("numIterations"),
       benchWeights: (() => {
         const ws = ["bwGk", "bw1", "bw2", "bw3"].map((k) => adv[k]?.trim());
@@ -788,23 +798,51 @@ export default function Home() {
                   ))}
                 </div>
                 {Object.values(chips).includes("0") && (
-                  <div className="flex items-center justify-between gap-3 p-3 border rounded-lg bg-muted/20">
+                  <div className="space-y-3 p-3 border rounded-lg bg-muted/20">
                     <div>
-                      <Label className="text-sm">Chip value threshold</Label>
+                      <Label className="text-sm">Chip value evaluation</Label>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         "Any" chips are compared against a second no-chip solve (adds solve time).
-                        The boost is raw points over the chip week + 3 following; at or above this
-                        value the chip counts as well-invested.
+                        The boost is raw points over the evaluation window starting at the chip
+                        week. At or above the green threshold the chip is well-invested; below
+                        the amber threshold it's poor value.
                       </p>
                     </div>
-                    <Input
-                      type="number"
-                      className="w-[90px] h-8 text-xs font-mono"
-                      value={chipThreshold}
-                      onChange={(e) => setChipThreshold(e.target.value)}
-                      min={1}
-                      step={1}
-                    />
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Green ≥</Label>
+                        <Input
+                          type="number"
+                          className="h-8 text-xs font-mono"
+                          value={chipThreshold}
+                          onChange={(e) => setChipThreshold(e.target.value)}
+                          min={1}
+                          step={1}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Amber ≥</Label>
+                        <Input
+                          type="number"
+                          className="h-8 text-xs font-mono"
+                          value={chipLowerThreshold}
+                          onChange={(e) => setChipLowerThreshold(e.target.value)}
+                          min={0}
+                          step={1}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Window (GWs)</Label>
+                        <Input
+                          type="number"
+                          className="h-8 text-xs font-mono"
+                          value={chipWindow}
+                          onChange={(e) => setChipWindow(e.target.value)}
+                          min={1}
+                          step={1}
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

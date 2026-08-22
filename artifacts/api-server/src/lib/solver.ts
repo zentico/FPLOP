@@ -877,7 +877,11 @@ export async function startSolve(
             startBank,
             resultFiles,
           );
-          chipEval = compareChipValue(result, baseline);
+          chipEval = compareChipValue(
+            result,
+            baseline,
+            request.options?.chipEvalWindow ?? CHIP_EVAL_WINDOW_GWS,
+          );
         } catch (err) {
           chipEvalError = `Chip value comparison failed: ${(err as Error).message}`;
           logger.error({ err, runId }, "Baseline chip-eval solve failed");
@@ -910,8 +914,8 @@ export async function startSolve(
   });
 }
 
-/** How many gameweeks after the chip week count toward its measured value. */
-const CHIP_EVAL_SUBSEQUENT_GWS = 3;
+/** Default total window (chip week included) over which chip value is measured. */
+const CHIP_EVAL_WINDOW_GWS = 6;
 
 const round2 = (x: number) => Math.round(x * 100) / 100;
 
@@ -922,12 +926,17 @@ function rawPointsInWindow(plan: SolvePlan, start: number, end: number): number 
 }
 
 /** Chip value: unadjusted, undecayed points over the chip GW + subsequent GWs, vs the baseline. */
-function compareChipValue(result: SolveResult, baseline: SolveResult): ChipEval[] {
+function compareChipValue(
+  result: SolveResult,
+  baseline: SolveResult,
+  windowGws: number,
+): ChipEval[] {
   const lastGw = result.gameweeks[result.gameweeks.length - 1]?.gameweek ?? 0;
+  const window = Math.max(1, Math.round(windowGws));
   const evals: ChipEval[] = [];
   for (const gw of result.gameweeks) {
     if (!gw.chip) continue;
-    const windowEnd = Math.min(gw.gameweek + CHIP_EVAL_SUBSEQUENT_GWS, lastGw);
+    const windowEnd = Math.min(gw.gameweek + window - 1, lastGw);
     const chipPoints = rawPointsInWindow(result, gw.gameweek, windowEnd);
     const baselinePoints = rawPointsInWindow(baseline, gw.gameweek, windowEnd);
     evals.push({

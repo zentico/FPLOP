@@ -228,6 +228,8 @@ export const ListSolvesResponseItem = zod.object({
 })).optional(),
   "options": zod.union([zod.object({
   "chipEvalThreshold": zod.number().nullish().describe('Raw-points boost at which an \"Any\" chip counts as well-invested (display only)'),
+  "chipEvalLowerThreshold": zod.number().nullish().describe('Raw-points boost below which an \"Any\" chip counts as poor value (display only)'),
+  "chipEvalWindow": zod.number().nullish().describe('Total gameweeks (chip week included) over which chip value is measured'),
   "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
   "locked": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must keep in the squad'),
   "noTransferLastGws": zod.number().nullish().describe('Roll transfers in the last N gameweeks of the horizon'),
@@ -395,6 +397,8 @@ export const CreateSolveBody = zod.object({
 })).optional(),
   "options": zod.union([zod.object({
   "chipEvalThreshold": zod.number().nullish().describe('Raw-points boost at which an \"Any\" chip counts as well-invested (display only)'),
+  "chipEvalLowerThreshold": zod.number().nullish().describe('Raw-points boost below which an \"Any\" chip counts as poor value (display only)'),
+  "chipEvalWindow": zod.number().nullish().describe('Total gameweeks (chip week included) over which chip value is measured'),
   "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
   "locked": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must keep in the squad'),
   "noTransferLastGws": zod.number().nullish().describe('Roll transfers in the last N gameweeks of the horizon'),
@@ -448,6 +452,8 @@ export const CreateSolveResponse = zod.object({
 })).optional(),
   "options": zod.union([zod.object({
   "chipEvalThreshold": zod.number().nullish().describe('Raw-points boost at which an \"Any\" chip counts as well-invested (display only)'),
+  "chipEvalLowerThreshold": zod.number().nullish().describe('Raw-points boost below which an \"Any\" chip counts as poor value (display only)'),
+  "chipEvalWindow": zod.number().nullish().describe('Total gameweeks (chip week included) over which chip value is measured'),
   "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
   "locked": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must keep in the squad'),
   "noTransferLastGws": zod.number().nullish().describe('Roll transfers in the last N gameweeks of the horizon'),
@@ -643,6 +649,8 @@ export const CreateMegaSolveBody = zod.object({
 })).optional(),
   "options": zod.union([zod.object({
   "chipEvalThreshold": zod.number().nullish().describe('Raw-points boost at which an \"Any\" chip counts as well-invested (display only)'),
+  "chipEvalLowerThreshold": zod.number().nullish().describe('Raw-points boost below which an \"Any\" chip counts as poor value (display only)'),
+  "chipEvalWindow": zod.number().nullish().describe('Total gameweeks (chip week included) over which chip value is measured'),
   "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
   "locked": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must keep in the squad'),
   "noTransferLastGws": zod.number().nullish().describe('Roll transfers in the last N gameweeks of the horizon'),
@@ -782,6 +790,8 @@ export const GetSolveResponse = zod.object({
 })).optional(),
   "options": zod.union([zod.object({
   "chipEvalThreshold": zod.number().nullish().describe('Raw-points boost at which an \"Any\" chip counts as well-invested (display only)'),
+  "chipEvalLowerThreshold": zod.number().nullish().describe('Raw-points boost below which an \"Any\" chip counts as poor value (display only)'),
+  "chipEvalWindow": zod.number().nullish().describe('Total gameweeks (chip week included) over which chip value is measured'),
   "banned": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must never pick'),
   "locked": zod.array(zod.string()).optional().describe('Player names (or FPL ids) the solver must keep in the squad'),
   "noTransferLastGws": zod.number().nullish().describe('Roll transfers in the last N gameweeks of the horizon'),

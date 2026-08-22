@@ -233,7 +233,7 @@ export default function SolveDetail() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {solve.chipEval!.map(ev => {
                 const threshold = solve.request.options?.chipEvalThreshold ?? 15;
-                const amber = Math.min(10, threshold);
+                const amber = solve.request.options?.chipEvalLowerThreshold ?? 10;
                 const band =
                   ev.boost >= threshold
                     ? { label: "Well invested", cls: "border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30", text: "text-emerald-700 dark:text-emerald-300" }

@@ -737,6 +737,12 @@ components:
         chipEvalThreshold:
           type: ["number", "null"]
           description: Raw-points boost at which an "Any" chip counts as well-invested (display only)
+        chipEvalLowerThreshold:
+          type: ["number", "null"]
+          description: Raw-points boost below which an "Any" chip counts as poor value (display only)
+        chipEvalWindow:
+          type: ["number", "null"]
+          description: Total gameweeks (chip week included) over which chip value is measured
         banned:
           type: array
           items:

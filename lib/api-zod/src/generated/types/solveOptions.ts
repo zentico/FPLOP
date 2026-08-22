@@ -17,6 +17,16 @@ export interface SolveOptions {
      * @nullable
      */
   chipEvalThreshold?: number | null;
+  /**
+     * Raw-points boost below which an "Any" chip counts as poor value (display only)
+     * @nullable
+     */
+  chipEvalLowerThreshold?: number | null;
+  /**
+     * Total gameweeks (chip week included) over which chip value is measured
+     * @nullable
+     */
+  chipEvalWindow?: number | null;
   /** Player names (or FPL ids) the solver must never pick */
   banned?: string[];
   /** Player names (or FPL ids) the solver must keep in the squad */

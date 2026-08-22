@@ -1,0 +1,26 @@
+{
+  "datasource": "mt2xyxw5i2rley-rmt41yphlnkb2tv",
+  "horizon": 3,
+  "no_transfer_last_gws": 0,
+  "verbose": true,
+  "print_squads": false,
+  "print_result_table": false,
+  "print_decay_metrics": false,
+  "print_transfer_chip_summary": false,
+  "banned": [],
+  "locked": [],
+  "use_wc": [],
+  "use_bb": [],
+  "use_fh": [],
+  "use_tc": [],
+  "preseason": true,
+  "forced_chip_gws": {
+    "bb": [
+      2,
+      3,
+      4
+    ]
+  },
+  "secs": 20,
+  "gap": 0.05
+}

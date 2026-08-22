@@ -20,6 +20,10 @@ export interface SolveOptions {
   locked?: string[];
   /** Raw-points boost at which an "Any" chip counts as well-invested (display only). */
   chipEvalThreshold?: number | null;
+  /** Raw-points boost below which an "Any" chip counts as poor value (display only). */
+  chipEvalLowerThreshold?: number | null;
+  /** Total gameweeks (chip week included) over which chip value is measured. */
+  chipEvalWindow?: number | null;
   noTransferLastGws?: number | null;
   noFutureTransfer?: boolean | null;
   numTransfers?: number | null;
