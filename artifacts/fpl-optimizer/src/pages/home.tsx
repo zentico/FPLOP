@@ -41,7 +41,13 @@ export default function Home() {
   // State
   const [projectionId, setProjectionId] = React.useState<string>("");
   const [firstGameweek, setFirstGameweek] = React.useState<boolean>(false);
-  const [teamIdStr, setTeamIdStr] = React.useState<string>("");
+  // Remembered across visits: defaults to the last team ID used.
+  const [teamIdStr, setTeamIdStr] = React.useState<string>(
+    () => localStorage.getItem("fplop.teamId") ?? "",
+  );
+  React.useEffect(() => {
+    if (teamIdStr.trim()) localStorage.setItem("fplop.teamId", teamIdStr.trim());
+  }, [teamIdStr]);
   const [horizon, setHorizon] = React.useState<number>(5);
   const [chips, setChips] = React.useState<Record<string, string>>({}); // chip type -> gameweek string
   const [chipThreshold, setChipThreshold] = React.useState("15"); // raw-points boost for a well-invested "Any" chip
