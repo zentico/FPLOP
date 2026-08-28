@@ -42,7 +42,12 @@ import {
 } from "../lib/fantalens";
 import { getGameweekInfo, getSeasonName } from "../lib/fpl";
 import { BlendError, buildBlend } from "../lib/blend";
-import { saveProjectionSnapshot } from "../lib/projections";
+import {
+  buildCanonicalCsv,
+  canonicalRowsFromCsv,
+  enrichCanonicalRowsWithOfficialFpl,
+  saveProjectionSnapshot,
+} from "../lib/projections";
 import { computePoolStats, projectionCsvPath } from "../lib/solver";
 import { listProjectionMetas, saveProjectionMetas } from "../lib/store";
 
@@ -98,6 +103,21 @@ router.post("/projections", async (req, res): Promise<void> => {
     return;
   }
 
+  let officialRows;
+  try {
+    officialRows = await enrichCanonicalRowsWithOfficialFpl(
+      canonicalRowsFromCsv(rows, gameweeks),
+    );
+  } catch (err) {
+    res.status(400).json({
+      error:
+        err instanceof Error
+          ? err.message
+          : "Could not match the upload to official FPL players.",
+    });
+    return;
+  }
+
   let season: string | null = null;
   try {
     season = await getSeasonName();
@@ -106,8 +126,8 @@ router.post("/projections", async (req, res): Promise<void> => {
   }
   const meta = saveProjectionSnapshot({
     filename,
-    csv: content,
-    playerCount: rows.length,
+    csv: buildCanonicalCsv(officialRows, gameweeks),
+    playerCount: officialRows.length,
     gameweeks,
     source: "upload",
     sourceLabel: "Manual upload",

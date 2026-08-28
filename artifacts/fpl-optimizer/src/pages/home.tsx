@@ -682,7 +682,7 @@ export default function Home() {
                     </Label>
                     <Input id="file-upload" type="file" accept=".csv" className="hidden" onChange={handleFileUpload} disabled={uploadMutation.isPending} />
                     <p className="text-xs text-muted-foreground mt-2 max-w-md mx-auto">
-                      Requires columns: Pos, Name, Team, Price/Value, and per-gameweek "N_Pts" / "N_xMins" columns.
+                      Requires an official FPL "ID" plus per-gameweek "N_Pts" / "N_xMins" columns. Current name, team, position, price, and ownership come from FPL.
                     </p>
                     {uploadMutation.isPending && (
                       <p className="text-sm text-primary mt-4 font-medium animate-pulse">Uploading and processing...</p>

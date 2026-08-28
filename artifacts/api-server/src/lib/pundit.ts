@@ -3,6 +3,7 @@ import { getBootstrap, getGameweekInfo, getSeasonName, type Bootstrap } from "./
 import { fetchFfhRows } from "./ffh";
 import {
   buildCanonicalCsv,
+  enrichCanonicalRowsWithBootstrap,
   importedProjectionFilename,
   saveProjectionSnapshot,
   type CanonicalPlayerRow,
@@ -467,7 +468,10 @@ async function preparePundit(): Promise<{
   }
   const gameweeks = punditGameweekWindow(nextGameweek);
   return {
-    canonical: buildPunditCanonicalRows(rows, outcome.ids, gameweeks),
+    canonical: enrichCanonicalRowsWithBootstrap(
+      buildPunditCanonicalRows(rows, outcome.ids, gameweeks),
+      bootstrap,
+    ),
     gameweeks,
     sourcePlayerCount: rows.length,
   };

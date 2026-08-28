@@ -1,6 +1,7 @@
 import { getSeasonName } from "./fpl";
 import {
   buildCanonicalCsv,
+  enrichCanonicalRowsWithOfficialFpl,
   importedProjectionFilename,
   saveProjectionSnapshot,
   type CanonicalPlayerRow,
@@ -173,7 +174,9 @@ export async function importDraftHoundProjection(): Promise<ProjectionMeta> {
     throw new DraftHoundUpstreamError("DraftHound returned invalid JSON.");
   }
   const { players, updatedAt } = parseDraftHoundPayload(body);
-  const { rows, gameweeks } = mapDraftHoundPlayers(players);
+  const mapped = mapDraftHoundPlayers(players);
+  const rows = await enrichCanonicalRowsWithOfficialFpl(mapped.rows);
+  const { gameweeks } = mapped;
 
   let season: string | null = null;
   try {

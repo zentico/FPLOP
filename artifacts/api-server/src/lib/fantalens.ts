@@ -1,6 +1,7 @@
 import { getSeasonName } from "./fpl";
 import {
   buildCanonicalCsv,
+  enrichCanonicalRowsWithOfficialFpl,
   importedProjectionFilename,
   saveProjectionSnapshot,
   type CanonicalPlayerRow,
@@ -382,7 +383,9 @@ export async function importFantaLensProjection(): Promise<ProjectionMeta> {
       `FantaLens returned only ${players.length} players; refusing a suspiciously small import.`,
     );
   }
-  const rows = mapFantaLensPlayers(players, gameweeks);
+  const rows = await enrichCanonicalRowsWithOfficialFpl(
+    mapFantaLensPlayers(players, gameweeks),
+  );
 
   // Cross-check the season against the official FPL API when reachable:
   // importing last season's data silently would poison accuracy tracking.
