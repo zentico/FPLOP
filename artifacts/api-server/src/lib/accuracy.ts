@@ -47,14 +47,78 @@ export interface AccuracyMiss {
   error: number;
 }
 
-export function sourceKeyOf(meta: ProjectionMeta): string {
+/**
+ * A blend's recipe: its components' underlying sources and normalized
+ * weights, aggregated per source (two snapshots of the same source merge).
+ * Weights are rounded to 0.1% so re-captures of the same recipe compare as
+ * one source, while genuinely different mixes stay distinct.
+ */
+function blendRecipe(
+  meta: ProjectionMeta,
+  metasById: Map<string, ProjectionMeta>,
+  visited: Set<string>,
+): { key: string; label: string; weight: number }[] {
+  const bySource = new Map<string, { label: string; weight: number }>();
+  for (const c of meta.components ?? []) {
+    const component = metasById.get(c.projectionId);
+    let key: string;
+    let label: string;
+    if (component && !visited.has(component.id)) {
+      key = sourceKeyOf(component, metasById, new Set([...visited, meta.id]));
+      label = sourceLabelOf(
+        component,
+        metasById,
+        new Set([...visited, meta.id]),
+      );
+    } else {
+      // Component snapshot deleted (or cyclic): fall back to its recorded
+      // filename so the recipe stays identifiable.
+      key = /^FFH(?: predictions)? /.test(c.filename)
+        ? "ffh"
+        : c.filename.replace(/\.csv$/i, "");
+      label = key === "ffh" ? "Fantasy Football Hub" : key;
+    }
+    const cur = bySource.get(key) ?? { label, weight: 0 };
+    cur.weight += c.weight;
+    bySource.set(key, cur);
+  }
+  return [...bySource.entries()]
+    .map(([key, { label, weight }]) => ({
+      key,
+      label,
+      weight: Math.round(weight * 1000) / 1000,
+    }))
+    .sort((a, b) => b.weight - a.weight || a.key.localeCompare(b.key));
+}
+
+export function sourceKeyOf(
+  meta: ProjectionMeta,
+  metasById?: Map<string, ProjectionMeta>,
+  visited: Set<string> = new Set(),
+): string {
+  if (meta.source === "blend" && meta.components?.length) {
+    const recipe = blendRecipe(meta, metasById ?? new Map(), visited);
+    return `blend:${recipe
+      .map((r) => `${Math.round(r.weight * 1000)}x${r.key}`)
+      .join("+")}`;
+  }
   if (meta.source) return meta.source;
   // Legacy metas predate source tracking; recognize our own import filenames.
   if (/^FFH(?: predictions)? /.test(meta.filename)) return "ffh";
   return "upload";
 }
 
-export function sourceLabelOf(meta: ProjectionMeta): string {
+export function sourceLabelOf(
+  meta: ProjectionMeta,
+  metasById?: Map<string, ProjectionMeta>,
+  visited: Set<string> = new Set(),
+): string {
+  if (meta.source === "blend" && meta.components?.length) {
+    const recipe = blendRecipe(meta, metasById ?? new Map(), visited);
+    return `Blend: ${recipe
+      .map((r) => `${Math.round(r.weight * 1000) / 10}% ${r.label}`)
+      .join(" + ")}`;
+  }
   if (meta.sourceLabel) return meta.sourceLabel;
   const key = sourceKeyOf(meta);
   if (key === "ffh") return "Fantasy Football Hub";
@@ -73,6 +137,7 @@ export function selectSnapshots(
   season?: string,
 ): Map<string, ProjectionMeta> {
   const deadlineMs = Date.parse(deadline);
+  const metasById = new Map(metas.map((m) => [m.id, m]));
   const best = new Map<string, ProjectionMeta>();
   for (const m of metas) {
     if (!m.gameweeks.includes(gameweek)) continue;
@@ -81,7 +146,7 @@ export function selectSnapshots(
     if (season && m.season && m.season !== season) continue;
     const at = Date.parse(m.uploadedAt);
     if (!Number.isFinite(at) || at >= deadlineMs) continue;
-    const key = sourceKeyOf(m);
+    const key = sourceKeyOf(m, metasById);
     const cur = best.get(key);
     if (!cur || at > Date.parse(cur.uploadedAt)) best.set(key, m);
   }
@@ -285,11 +350,12 @@ function entryFor(
   meta: ProjectionMeta,
   archive: ResultArchive,
   metrics: MetricResult,
+  metasById: Map<string, ProjectionMeta>,
 ): AccuracyEntry {
   const played = archive.players.filter((p) => p.minutes > 0).length;
   return {
-    source: sourceKeyOf(meta),
-    sourceLabel: sourceLabelOf(meta),
+    source: sourceKeyOf(meta, metasById),
+    sourceLabel: sourceLabelOf(meta, metasById),
     season: archive.season,
     gameweek: archive.gameweek,
     projectionId: meta.id,
@@ -319,6 +385,7 @@ function loadCsv(id: string): string | null {
 /** Accuracy of every source against every archived gameweek result. */
 export function computeAccuracy(): AccuracyEntry[] {
   const metas = listProjectionMetas();
+  const metasById = new Map(metas.map((m) => [m.id, m]));
   const entries: AccuracyEntry[] = [];
   for (const archive of listResultArchives()) {
     const snapshots = selectSnapshots(
@@ -335,7 +402,7 @@ export function computeAccuracy(): AccuracyEntry[] {
         archive.players,
       );
       if (!metrics) continue;
-      entries.push(entryFor(meta, archive, metrics));
+      entries.push(entryFor(meta, archive, metrics, metasById));
     }
   }
   return entries.sort(

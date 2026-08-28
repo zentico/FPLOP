@@ -71,6 +71,68 @@ describe("selectSnapshots", () => {
     expect(best.get("upload")?.id).toBe("legacy-no-season");
   });
 
+  it("keys blend snapshots by recipe so distinct mixes stay separate", () => {
+    const ffh = meta({ id: "ffh1", source: "ffh", sourceLabel: "Fantasy Football Hub" });
+    const dh = meta({ id: "dh1", source: "drafthound", sourceLabel: "DraftHound" });
+    const blendA = meta({
+      id: "b1",
+      source: "blend",
+      sourceLabel: "Weighted blend",
+      uploadedAt: "2026-08-21T10:00:00Z",
+      components: [
+        { projectionId: "ffh1", filename: "ffh.csv", weight: 0.6 },
+        { projectionId: "dh1", filename: "dh.csv", weight: 0.4 },
+      ],
+    });
+    // Same recipe, captured later from re-imported components — same key.
+    const blendA2 = meta({
+      id: "b2",
+      source: "blend",
+      sourceLabel: "Weighted blend",
+      uploadedAt: "2026-08-22T10:00:00Z",
+      components: [
+        { projectionId: "ffh1", filename: "ffh.csv", weight: 0.6 },
+        { projectionId: "dh1", filename: "dh.csv", weight: 0.4 },
+      ],
+    });
+    // Different weights — different key.
+    const blendB = meta({
+      id: "b3",
+      source: "blend",
+      sourceLabel: "Weighted blend",
+      uploadedAt: "2026-08-21T12:00:00Z",
+      components: [
+        { projectionId: "ffh1", filename: "ffh.csv", weight: 0.5 },
+        { projectionId: "dh1", filename: "dh.csv", weight: 0.5 },
+      ],
+    });
+    const metas = [ffh, dh, blendA, blendA2, blendB];
+    const metasById = new Map(metas.map((m) => [m.id as string, m]));
+    const keyA = sourceKeyOf(blendA as never, metasById as never);
+    expect(keyA).toBe(sourceKeyOf(blendA2 as never, metasById as never));
+    expect(keyA).not.toBe(sourceKeyOf(blendB as never, metasById as never));
+    expect(sourceLabelOf(blendA as never, metasById as never)).toBe(
+      "Blend: 60% Fantasy Football Hub + 40% DraftHound",
+    );
+    const best = selectSnapshots(metas as never, 2, deadline);
+    // ffh, drafthound, and two distinct blend recipes = 4 sources.
+    expect(best.size).toBe(4);
+    expect(best.get(keyA)?.id).toBe("b2"); // latest capture of the recipe wins
+  });
+
+  it("labels blends by filename when a component was deleted", () => {
+    const blend = meta({
+      id: "b9",
+      source: "blend",
+      components: [
+        { projectionId: "gone", filename: "FFH predictions 2026.csv", weight: 1 },
+      ],
+    });
+    expect(sourceLabelOf(blend as never, new Map() as never)).toBe(
+      "Blend: 100% Fantasy Football Hub",
+    );
+  });
+
   it("treats legacy metas without a source as uploads", () => {
     const m = meta({ id: "legacy" });
     expect(sourceKeyOf(m as never)).toBe("upload");
