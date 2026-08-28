@@ -1333,11 +1333,18 @@ components:
         baseExpectedPoints:
           type: ["number", "null"]
           description: Gameweek total using unadjusted projections, when a differential factor was applied
+        bankBefore:
+          type: ["number", "null"]
+          description: Bank balance available before this gameweek's transfers
         bank:
           type: ["number", "null"]
+          description: Bank balance remaining after this gameweek's transfers
         freeTransfers:
           type: ["number", "null"]
           description: Free transfers available going into this gameweek
+        freeTransfersAfter:
+          type: ["number", "null"]
+          description: Free transfers carried into the following gameweek after this game's moves
         lineup:
           type: array
           items:

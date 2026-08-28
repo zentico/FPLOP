@@ -152,9 +152,14 @@ export interface GameweekPlan {
   chip?: string | null;
   expectedPoints: number;
   baseExpectedPoints?: number | null;
+  /** Bank balance available before this gameweek's transfers. */
+  bankBefore?: number | null;
+  /** Bank balance remaining after this gameweek's transfers. */
   bank?: number | null;
   /** Free transfers available going into this gameweek (from the solver's ft column). */
   freeTransfers?: number | null;
+  /** Free transfers carried into the following gameweek after this week's moves. */
+  freeTransfersAfter?: number | null;
   lineup: PickPlayer[];
   bench: PickPlayer[];
   transfersIn: string[];

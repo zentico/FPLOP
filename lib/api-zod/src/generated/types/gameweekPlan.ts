@@ -21,13 +21,26 @@ export interface GameweekPlan {
      * @nullable
      */
   baseExpectedPoints?: number | null;
-  /** @nullable */
+  /**
+     * Bank balance available before this gameweek's transfers
+     * @nullable
+     */
+  bankBefore?: number | null;
+  /**
+     * Bank balance remaining after this gameweek's transfers
+     * @nullable
+     */
   bank?: number | null;
   /**
      * Free transfers available going into this gameweek
      * @nullable
      */
   freeTransfers?: number | null;
+  /**
+     * Free transfers carried into the following gameweek after this game's moves
+     * @nullable
+     */
+  freeTransfersAfter?: number | null;
   lineup: PickPlayer[];
   bench: PickPlayer[];
   transfersIn: string[];

@@ -325,6 +325,21 @@ interface PickRow {
   ft: string;
 }
 
+export function calculateEndingFreeTransfers(
+  starting: number,
+  transfersMade: number,
+  chipCode: string,
+): number {
+  const chipUsesTransferCarry = chipCode === "WC" || chipCode === "FH";
+  return Math.max(
+    1,
+    Math.min(
+      5,
+      starting - transfersMade + 1 - (chipUsesTransferCarry ? 1 : 0),
+    ),
+  );
+}
+
 function parseResultCsv(
   csvContent: string,
   prices: Map<string, number>,
@@ -410,6 +425,7 @@ function parseIterPlan(
       (r) => Number(r.lineup) === 1 || Number(r.bench) >= 0,
     );
 
+    const bankBefore = runningBank;
     let bank: number | null = null;
     if (runningBank != null) {
       const sold = wr
@@ -422,6 +438,19 @@ function parseIterPlan(
       // Free Hit squads revert after the week, so its spending doesn't carry.
       if (chipCode !== "FH") runningBank = bank;
     }
+
+    const freeTransfers = Number.isFinite(Number(wr[0]?.ft))
+      ? Math.round(Number(wr[0]!.ft))
+      : null;
+    const transferCount = wr.filter((r) => Number(r.transfer_in) === 1).length;
+    const freeTransfersAfter =
+      freeTransfers == null
+        ? null
+        : calculateEndingFreeTransfers(
+            freeTransfers,
+            transferCount,
+            chipCode,
+          );
 
     return {
       gameweek: week,
@@ -438,10 +467,10 @@ function parseIterPlan(
             ) * 100,
           ) / 100
         : null,
+      bankBefore,
       bank,
-      freeTransfers: Number.isFinite(Number(wr[0]?.ft))
-        ? Math.round(Number(wr[0]!.ft))
-        : null,
+      freeTransfers,
+      freeTransfersAfter,
       lineup,
       bench,
       transfersIn: wr

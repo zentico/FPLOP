@@ -667,12 +667,20 @@ function GameweekView({
               <div className="text-right space-y-3">
                 <div>
                   <div className="text-sm text-muted-foreground font-medium mb-1">Bank</div>
-                  <div className="text-xl font-bold font-mono">£{(plan.bank || 0).toFixed(1)}</div>
+                    <div className="text-xl font-bold font-mono">
+                      {plan.bankBefore != null
+                        ? `£${plan.bankBefore.toFixed(1)} → £${(plan.bank ?? 0).toFixed(1)}`
+                        : `£${(plan.bank ?? 0).toFixed(1)}`}
+                    </div>
                 </div>
                 {plan.freeTransfers != null && (
                   <div>
                     <div className="text-sm text-muted-foreground font-medium mb-1">Free transfers</div>
-                    <div className="text-xl font-bold font-mono">{plan.freeTransfers}</div>
+                    <div className="text-xl font-bold font-mono">
+                      {plan.freeTransfersAfter != null
+                        ? `${plan.freeTransfers} → ${plan.freeTransfersAfter}`
+                        : plan.freeTransfers}
+                    </div>
                   </div>
                 )}
               </div>
