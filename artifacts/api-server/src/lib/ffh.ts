@@ -222,9 +222,9 @@ export async function importFfhProjection(
     // Season labelling is best-effort.
   }
 
-  const date = new Date().toISOString().slice(0, 10);
+  const date = new Date().toISOString().slice(2, 10);
   return saveProjectionSnapshot({
-    filename: `FFH predictions ${date} (GW${minGameweek}-${maxGameweek})`,
+    filename: `FFH ${date} (GW${minGameweek}-${maxGameweek})`,
     csv: buildCanonicalCsv(rows, gameweeks),
     playerCount: rows.length,
     gameweeks,

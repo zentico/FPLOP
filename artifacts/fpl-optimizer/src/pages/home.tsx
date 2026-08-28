@@ -13,10 +13,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "@/components/ui/switch";
 import { useLocation } from "wouter";
-import { AlertCircle, UploadCloud, DownloadCloud, Download, Trash2, Database, ShieldAlert, Volleyball, Trophy, Banknote, Users, LineChart } from "lucide-react";
+import { AlertCircle, UploadCloud, DownloadCloud, Download, Trash2, Database, ShieldAlert, Sparkles, Trophy, Banknote, Users, LineChart } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+
+function projectionDisplayName(filename: string): string {
+  return filename.replace(
+    /^FFH predictions \d{2}(\d{2}-\d{2}-\d{2})(.*)$/,
+    "FFH $1$2",
+  );
+}
 
 function AdvField({ label, placeholder, hint, value, onChange }: {
   label: string;
@@ -495,7 +502,7 @@ export default function Home() {
                             <RadioGroupItem value={p.id} id={p.id} />
                             <Label htmlFor={p.id} className="flex flex-col cursor-pointer">
                               <span className="font-semibold flex items-center gap-2">
-                                {p.filename}
+                                {projectionDisplayName(p.filename)}
                                 {p.sourceLabel && (
                                   <Badge variant="secondary" className="text-[10px] font-normal">{p.sourceLabel}</Badge>
                                 )}
@@ -686,7 +693,7 @@ export default function Home() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Volleyball className="h-5 w-5 text-primary" />
+                <Sparkles className="h-5 w-5 text-primary" />
                 Solver Settings
               </CardTitle>
             </CardHeader>

@@ -45,7 +45,7 @@ export interface AccuracyMiss {
 export function sourceKeyOf(meta: ProjectionMeta): string {
   if (meta.source) return meta.source;
   // Legacy metas predate source tracking; recognize our own import filenames.
-  if (/^FFH predictions /.test(meta.filename)) return "ffh";
+  if (/^FFH(?: predictions)? /.test(meta.filename)) return "ffh";
   return "upload";
 }
 

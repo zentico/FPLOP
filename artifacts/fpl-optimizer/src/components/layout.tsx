@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { Link } from "wouter";
-import { Activity, History, LineChart, Target, Volleyball } from "lucide-react";
+import { Activity, History, LineChart, Sparkles, Target } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -11,7 +11,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="container flex h-16 items-center justify-between px-4 md:px-8 max-w-7xl mx-auto">
           <div className="flex items-center gap-2">
             <div className="bg-primary text-primary-foreground p-1.5 rounded-md flex items-center justify-center">
-              <Volleyball className="h-5 w-5" />
+              <Sparkles className="h-5 w-5" />
             </div>
             <Link href="/" className="font-bold text-base sm:text-xl tracking-tight whitespace-nowrap cursor-pointer hover:text-primary/80 transition-colors">
               FPL Optimizer <span className="hidden sm:inline text-primary/60">(FPLOP)</span>
