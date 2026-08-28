@@ -30,6 +30,11 @@ export interface AccuracyEntry {
    * full official player population. Lower is better.
    */
   arpm: number;
+  /**
+   * 100 × mean absolute difference between cubed inverse percentile ranks.
+   * This disproportionately weights misses among highly ranked players.
+   */
+  crpm: number;
 }
 
 export interface AccuracyMiss {
@@ -130,6 +135,7 @@ export interface MetricResult {
   bias: number;
   correlation: number | null;
   arpm: number;
+  crpm: number;
   misses: AccuracyMiss[];
 }
 
@@ -166,6 +172,17 @@ export function percentileRanks<T>(
     start = end;
   }
   return out;
+}
+
+export function cubedRankingPercentileMiss(
+  predictedPercentile: number,
+  actualPercentile: number,
+): number {
+  const predictedTopPercentile = 1 - predictedPercentile;
+  const actualTopPercentile = 1 - actualPercentile;
+  return Math.abs(
+    predictedTopPercentile ** 3 - actualTopPercentile ** 3,
+  );
 }
 
 /** Compare predictions to actuals for players present in both datasets. */
@@ -227,6 +244,18 @@ export function computeMetrics(
       0,
     ) /
       n);
+  const crpm =
+    100 *
+    (pairs.reduce(
+      (sum, { row }) =>
+        sum +
+        cubedRankingPercentileMiss(
+          predictedPercentiles.get(row.playerId)!,
+          actualPercentiles.get(row.playerId)!,
+        ),
+      0,
+    ) /
+      n);
   const misses = pairs
     .map(({ row, actual }) => ({
       playerId: row.playerId,
@@ -246,6 +275,7 @@ export function computeMetrics(
     bias: sumErr / n,
     correlation,
     arpm,
+    crpm,
     misses,
   };
 }
@@ -277,6 +307,7 @@ function entryFor(
     correlation:
       metrics.correlation == null ? null : round(metrics.correlation),
     arpm: round(metrics.arpm),
+    crpm: round(metrics.crpm),
   };
 }
 

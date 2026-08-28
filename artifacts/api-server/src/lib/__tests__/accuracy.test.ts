@@ -10,6 +10,7 @@ process.env.FPLOP_STORE_DIR = fs.mkdtempSync(
 
 const {
   computeMetrics,
+  cubedRankingPercentileMiss,
   percentileRanks,
   readPredictions,
   selectSnapshots,
@@ -127,6 +128,7 @@ describe("computeMetrics", () => {
     // Predicted universe has 3 players while actuals has 3 different players,
     // so missing coverage changes the percentile comparison.
     expect(m.arpm).toBeCloseTo(25);
+    expect(m.crpm).toBeCloseTo(43.75);
     expect(m.misses[0]!.playerId).toBe(1); // biggest absolute error first
   });
 
@@ -154,7 +156,7 @@ describe("computeMetrics", () => {
   });
 });
 
-describe("ARPM percentile ranks", () => {
+describe("rank percentile metrics", () => {
   it("gives tied players their average occupied rank", () => {
     const ranks = percentileRanks(
       [
@@ -184,6 +186,7 @@ describe("ARPM percentile ranks", () => {
       { id: 3, points: 0 },
     ];
     expect(computeMetrics(predictions, actuals)!.arpm).toBeCloseTo(0);
+    expect(computeMetrics(predictions, actuals)!.crpm).toBeCloseTo(0);
   });
 
   it("penalizes an incomplete prediction set against all official players", () => {
@@ -200,6 +203,15 @@ describe("ARPM percentile ranks", () => {
     // Player 2 is bottom of the two-player prediction set (100th percentile)
     // but only rank 2/4 in actuals (33.3rd), creating a 66.7-point miss.
     expect(computeMetrics(predictions, actuals)!.arpm).toBeCloseTo(100 / 3);
+    expect(computeMetrics(predictions, actuals)!.crpm).toBeCloseTo(400 / 27);
+  });
+
+  it("weights misses among top-ranked players more heavily", () => {
+    const highRankMiss = cubedRankingPercentileMiss(0.003, 0.374);
+    const lowRankMiss = cubedRankingPercentileMiss(0.503, 0.874);
+    expect(highRankMiss).toBeCloseTo(0.997 ** 3 - 0.626 ** 3);
+    expect(lowRankMiss).toBeCloseTo(0.497 ** 3 - 0.126 ** 3);
+    expect(highRankMiss).toBeGreaterThan(lowRankMiss * 6);
   });
 });
 

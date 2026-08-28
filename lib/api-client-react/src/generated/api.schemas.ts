@@ -48,7 +48,7 @@ export interface FfhSessionInput {
 }
 
 export interface ImportProjectionInput {
-  /** External source id, "ffh" (Fantasy Football Hub), "drafthound" (DraftHound), "pundit" (Fantasy Football Pundit assume-starting points), or "pundit-ffh" (Pundit points × FFH expected minutes hybrid). */
+  /** External source id, "ffh" (Fantasy Football Hub), "drafthound" (DraftHound), "pundit" (Fantasy Football Pundit assume-starting points), "pundit-ffh" (Pundit points × FFH expected minutes hybrid), or "fantalens" (FantaLens public expected points and minutes). */
   source: string;
   /**
      * How many upcoming whole gameweeks to import (default 10, clamped to 1-38)
@@ -94,6 +94,8 @@ export interface AccuracyEntry {
   correlation?: number | null;
   /** 100 times the mean absolute predicted-vs-actual percentile-rank miss; lower is better */
   arpm: number;
+  /** 100 times the mean absolute difference between cubed inverse predicted and actual percentile ranks; lower is better and misses among highly ranked players receive greater weight */
+  crpm: number;
 }
 
 export interface AccuracyMiss {
@@ -579,3 +581,4 @@ export interface MegaRun {
   chipWindow: number[];
   scenarios: MegaScenario[];
 }
+

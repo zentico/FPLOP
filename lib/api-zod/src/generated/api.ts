@@ -53,7 +53,8 @@ export const GetAccuracyResponseItem = zod.object({
   "rmse": zod.number(),
   "bias": zod.number().describe('Mean of predicted minus actual; positive means over-prediction'),
   "correlation": zod.number().nullish().describe('Pearson correlation between predicted and actual points'),
-  "arpm": zod.number().describe('100 times the mean absolute predicted-vs-actual percentile-rank miss; lower is better')
+  "arpm": zod.number().describe('100 times the mean absolute predicted-vs-actual percentile-rank miss; lower is better'),
+  "crpm": zod.number().describe('100 times the mean absolute difference between cubed inverse predicted and actual percentile ranks; lower is better and misses among highly ranked players receive greater weight')
 })
 export const GetAccuracyResponse = zod.array(GetAccuracyResponseItem)
 
@@ -133,8 +134,9 @@ export const UploadProjectionResponse = zod.object({
 export const importProjectionBodyMaxGameweeksMax = 38;
 
 
+
 export const ImportProjectionBody = zod.object({
-  "source": zod.string().describe('External source id, \"ffh\" (Fantasy Football Hub), \"drafthound\" (DraftHound), \"pundit\" (Fantasy Football Pundit assume-starting points), or \"pundit-ffh\" (Pundit points × FFH expected minutes hybrid).'),
+  "source": zod.string().describe('External source id, \"ffh\" (Fantasy Football Hub), \"drafthound\" (DraftHound), \"pundit\" (Fantasy Football Pundit assume-starting points), \"pundit-ffh\" (Pundit points × FFH expected minutes hybrid), or \"fantalens\" (FantaLens public expected points and minutes).'),
   "maxGameweeks": zod.number().min(1).max(importProjectionBodyMaxGameweeksMax).optional().describe('How many upcoming whole gameweeks to import (default 10, clamped to 1-38)')
 })
 
@@ -1019,4 +1021,5 @@ export const DeleteSolveParams = zod.object({
 })
 
 export const DeleteSolveResponse = zod.void()
+
 

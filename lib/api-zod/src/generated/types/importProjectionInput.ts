@@ -7,7 +7,7 @@
  */
 
 export interface ImportProjectionInput {
-  /** External source id, "ffh" (Fantasy Football Hub), "drafthound" (DraftHound), "pundit" (Fantasy Football Pundit assume-starting points), or "pundit-ffh" (Pundit points × FFH expected minutes hybrid). */
+  /** External source id, "ffh" (Fantasy Football Hub), "drafthound" (DraftHound), "pundit" (Fantasy Football Pundit assume-starting points), "pundit-ffh" (Pundit points × FFH expected minutes hybrid), or "fantalens" (FantaLens public expected points and minutes). */
   source: string;
   /**
      * How many upcoming whole gameweeks to import (default 10, clamped to 1-38)

@@ -27,4 +27,6 @@ export interface AccuracyEntry {
   correlation?: number | null;
   /** 100 times the mean absolute predicted-vs-actual percentile-rank miss; lower is better */
   arpm: number;
+  /** 100 times the mean absolute difference between cubed inverse predicted and actual percentile ranks; lower is better and misses among highly ranked players receive greater weight */
+  crpm: number;
 }

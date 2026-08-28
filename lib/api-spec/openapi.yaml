@@ -654,7 +654,7 @@ components:
     AccuracyEntry:
       type: object
       required:
-        [source, sourceLabel, season, gameweek, projectionId, projectionFilename, snapshotAt, sampleSize, coverage, mae, rmse, bias, arpm]
+        [source, sourceLabel, season, gameweek, projectionId, projectionFilename, snapshotAt, sampleSize, coverage, mae, rmse, bias, arpm, crpm]
       properties:
         source:
           type: string
@@ -691,6 +691,9 @@ components:
         arpm:
           type: number
           description: 100 times the mean absolute predicted-vs-actual percentile-rank miss; lower is better
+        crpm:
+          type: number
+          description: 100 times the mean absolute difference between cubed inverse predicted and actual percentile ranks; lower is better and misses among highly ranked players receive greater weight
     AccuracyMiss:
       type: object
       required: [playerId, name, team, position, predicted, actual, error]
