@@ -1,6 +1,7 @@
 import { getSeasonName } from "./fpl";
 import {
   buildCanonicalCsv,
+  importedProjectionFilename,
   saveProjectionSnapshot,
   type CanonicalPlayerRow,
 } from "./projections";
@@ -401,7 +402,7 @@ export async function importFantaLensProjection(): Promise<ProjectionMeta> {
   const first = gameweeks[0]!;
   const last = gameweeks[gameweeks.length - 1]!;
   return saveProjectionSnapshot({
-    filename: `FantaLens predictions ${fetchedAt.slice(0, 10)} (GW${first}-${last})`,
+    filename: importedProjectionFilename("FantaLens", fetchedAt, first, last),
     csv: buildCanonicalCsv(rows, gameweeks),
     playerCount: rows.length,
     gameweeks,

@@ -54,7 +54,7 @@ export const GetAccuracyResponseItem = zod.object({
   "bias": zod.number().describe('Mean of predicted minus actual; positive means over-prediction'),
   "correlation": zod.number().nullish().describe('Pearson correlation between predicted and actual points'),
   "arpm": zod.number().describe('100 times the mean absolute predicted-vs-actual percentile-rank miss; lower is better'),
-  "crpm": zod.number().describe('100 times the mean absolute difference between cubed inverse predicted and actual percentile ranks; lower is better and misses among highly ranked players receive greater weight')
+  "crpm": zod.number().describe('Sum across all matched players of the absolute difference between cubed inverse predicted and actual percentile ranks; lower is better and misses among highly ranked players receive greater weight')
 })
 export const GetAccuracyResponse = zod.array(GetAccuracyResponseItem)
 
@@ -101,7 +101,12 @@ export const ListProjectionsResponseItem = zod.object({
   "sourceLabel": zod.string().optional().describe('Human-readable source name'),
   "sourceUpdatedAt": zod.string().optional().describe('When the source reported its data was last updated (ISO)'),
   "season": zod.string().optional().describe('Season the snapshot belongs to, e.g. \"2026\/27\"'),
-  "sourcePlayerCount": zod.number().optional().describe('Players in the upstream feed before FPL identity matching (sources that match players only); playerCount\/sourcePlayerCount is the match coverage')
+  "sourcePlayerCount": zod.number().optional().describe('Players in the upstream feed before FPL identity matching (sources that match players only); playerCount\/sourcePlayerCount is the match coverage'),
+  "components": zod.array(zod.object({
+  "projectionId": zod.string(),
+  "filename": zod.string(),
+  "weight": zod.number().describe('Normalized weight (all components sum to 1)')
+})).optional().describe('For blended snapshots (source \"blend\"), the component snapshots and their normalized weights')
 })
 export const ListProjectionsResponse = zod.array(ListProjectionsResponseItem)
 
@@ -124,7 +129,12 @@ export const UploadProjectionResponse = zod.object({
   "sourceLabel": zod.string().optional().describe('Human-readable source name'),
   "sourceUpdatedAt": zod.string().optional().describe('When the source reported its data was last updated (ISO)'),
   "season": zod.string().optional().describe('Season the snapshot belongs to, e.g. \"2026\/27\"'),
-  "sourcePlayerCount": zod.number().optional().describe('Players in the upstream feed before FPL identity matching (sources that match players only); playerCount\/sourcePlayerCount is the match coverage')
+  "sourcePlayerCount": zod.number().optional().describe('Players in the upstream feed before FPL identity matching (sources that match players only); playerCount\/sourcePlayerCount is the match coverage'),
+  "components": zod.array(zod.object({
+  "projectionId": zod.string(),
+  "filename": zod.string(),
+  "weight": zod.number().describe('Normalized weight (all components sum to 1)')
+})).optional().describe('For blended snapshots (source \"blend\"), the component snapshots and their normalized weights')
 })
 
 
@@ -150,7 +160,58 @@ export const ImportProjectionResponse = zod.object({
   "sourceLabel": zod.string().optional().describe('Human-readable source name'),
   "sourceUpdatedAt": zod.string().optional().describe('When the source reported its data was last updated (ISO)'),
   "season": zod.string().optional().describe('Season the snapshot belongs to, e.g. \"2026\/27\"'),
-  "sourcePlayerCount": zod.number().optional().describe('Players in the upstream feed before FPL identity matching (sources that match players only); playerCount\/sourcePlayerCount is the match coverage')
+  "sourcePlayerCount": zod.number().optional().describe('Players in the upstream feed before FPL identity matching (sources that match players only); playerCount\/sourcePlayerCount is the match coverage'),
+  "components": zod.array(zod.object({
+  "projectionId": zod.string(),
+  "filename": zod.string(),
+  "weight": zod.number().describe('Normalized weight (all components sum to 1)')
+})).optional().describe('For blended snapshots (source \"blend\"), the component snapshots and their normalized weights')
+})
+
+
+/**
+ * @summary Preview a weighted blend of saved projections without saving it
+ */
+export const previewProjectionBlendBodySourcesItemWeightMin = 0;
+
+
+
+export const PreviewProjectionBlendBody = zod.object({
+  "sources": zod.array(zod.object({
+  "projectionId": zod.string().describe('Saved projection snapshot id'),
+  "weight": zod.number().min(previewProjectionBlendBodySourcesItemWeightMin).describe('Non-negative source weight; weights are normalized globally across all sources')
+})).describe('Projections to blend with their raw (unnormalized) weights')
+})
+
+export const PreviewProjectionBlendResponse = zod.object({
+  "gameweeks": zod.array(zod.number()).describe('Consecutive gameweeks covered by every component (the blend\'s horizon)'),
+  "playerCount": zod.number().describe('Players in the blended projection (union of component players)'),
+  "hasOwnership": zod.boolean().describe('True when every component has ownership data (differential factor usable)'),
+  "components": zod.array(zod.object({
+  "projectionId": zod.string(),
+  "filename": zod.string(),
+  "weight": zod.number().describe('Normalized weight (all components sum to 1)')
+})),
+  "players": zod.array(zod.object({
+  "name": zod.string(),
+  "team": zod.string(),
+  "position": zod.string().describe('One of G, D, M, F'),
+  "price": zod.number(),
+  "totalPoints": zod.number().describe('Sum of projected points across the horizon'),
+  "pointsPerGameweek": zod.array(zod.object({
+  "gameweek": zod.number(),
+  "points": zod.number()
+})).optional()
+})).describe('Top blended players by total projected points'),
+  "poolStats": zod.array(zod.object({
+  "id": zod.number().describe('FPL player id'),
+  "name": zod.string(),
+  "position": zod.string().describe('One of G, D, M, F'),
+  "team": zod.string().describe('Short team name from the projection'),
+  "price": zod.number(),
+  "ppm": zod.number().describe('Points per match (total projected points \/ gameweeks in the projection)'),
+  "gwPoints": zod.array(zod.number()).describe('Per-gameweek projected points, in ascending gameweek order')
+})).describe('Per-player pool stats computed from the blended values')
 })
 
 
@@ -286,6 +347,10 @@ export const GetFplTeamResponse = zod.object({
 /**
  * @summary List optimization runs, most recent first
  */
+export const listSolvesResponseRequestSourcesItemWeightMin = 0;
+
+
+
 export const ListSolvesResponseItem = zod.object({
   "id": zod.string(),
   "status": zod.string().describe('One of queued, running, completed, failed'),
@@ -294,6 +359,10 @@ export const ListSolvesResponseItem = zod.object({
   "error": zod.string().nullish(),
   "request": zod.object({
   "projectionId": zod.string(),
+  "sources": zod.array(zod.object({
+  "projectionId": zod.string().describe('Saved projection snapshot id'),
+  "weight": zod.number().min(listSolvesResponseRequestSourcesItemWeightMin).describe('Non-negative source weight; weights are normalized globally across all sources')
+})).optional().describe('Weighted blend of saved snapshots. With two or more sources the server materializes an immutable blended snapshot when the solve starts and solves against it; projectionId is rewritten to the blended snapshot\'s id and the normalized weights are recorded. With zero or one source the solve behaves exactly as before.\n'),
   "firstGameweek": zod.boolean().describe('True when there is no existing team and a full squad is optimized from scratch'),
   "teamId": zod.number().nullish().describe('FPL team code, required when firstGameweek is false'),
   "horizon": zod.number().optional().describe('Number of gameweeks to optimize over (default 5)'),
@@ -461,8 +530,16 @@ export const DeleteAllSolvesResponse = zod.void()
 /**
  * @summary Start an optimization run
  */
+export const createSolveBodySourcesItemWeightMin = 0;
+
+
+
 export const CreateSolveBody = zod.object({
   "projectionId": zod.string(),
+  "sources": zod.array(zod.object({
+  "projectionId": zod.string().describe('Saved projection snapshot id'),
+  "weight": zod.number().min(createSolveBodySourcesItemWeightMin).describe('Non-negative source weight; weights are normalized globally across all sources')
+})).optional().describe('Weighted blend of saved snapshots. With two or more sources the server materializes an immutable blended snapshot when the solve starts and solves against it; projectionId is rewritten to the blended snapshot\'s id and the normalized weights are recorded. With zero or one source the solve behaves exactly as before.\n'),
   "firstGameweek": zod.boolean().describe('True when there is no existing team and a full squad is optimized from scratch'),
   "teamId": zod.number().nullish().describe('FPL team code, required when firstGameweek is false'),
   "horizon": zod.number().optional().describe('Number of gameweeks to optimize over (default 5)'),
@@ -510,6 +587,10 @@ export const CreateSolveBody = zod.object({
 }).describe('Advanced solver settings, mirroring open-fpl-solver config keys'),zod.null()]).optional()
 })
 
+export const createSolveResponseRequestSourcesItemWeightMin = 0;
+
+
+
 export const CreateSolveResponse = zod.object({
   "id": zod.string(),
   "status": zod.string().describe('One of queued, running, completed, failed'),
@@ -518,6 +599,10 @@ export const CreateSolveResponse = zod.object({
   "error": zod.string().nullish(),
   "request": zod.object({
   "projectionId": zod.string(),
+  "sources": zod.array(zod.object({
+  "projectionId": zod.string().describe('Saved projection snapshot id'),
+  "weight": zod.number().min(createSolveResponseRequestSourcesItemWeightMin).describe('Non-negative source weight; weights are normalized globally across all sources')
+})).optional().describe('Weighted blend of saved snapshots. With two or more sources the server materializes an immutable blended snapshot when the solve starts and solves against it; projectionId is rewritten to the blended snapshot\'s id and the normalized weights are recorded. With zero or one source the solve behaves exactly as before.\n'),
   "firstGameweek": zod.boolean().describe('True when there is no existing team and a full squad is optimized from scratch'),
   "teamId": zod.number().nullish().describe('FPL team code, required when firstGameweek is false'),
   "horizon": zod.number().optional().describe('Number of gameweeks to optimize over (default 5)'),
@@ -713,8 +798,16 @@ export const ListMegaSolvesResponse = zod.array(ListMegaSolvesResponseItem)
 /**
  * @summary Start a chip-strategy analysis (6 sequential solves)
  */
+export const createMegaSolveBodySourcesItemWeightMin = 0;
+
+
+
 export const CreateMegaSolveBody = zod.object({
   "projectionId": zod.string(),
+  "sources": zod.array(zod.object({
+  "projectionId": zod.string().describe('Saved projection snapshot id'),
+  "weight": zod.number().min(createMegaSolveBodySourcesItemWeightMin).describe('Non-negative source weight; weights are normalized globally across all sources')
+})).optional().describe('Weighted blend of saved snapshots. With two or more sources the server materializes an immutable blended snapshot when the solve starts and solves against it; projectionId is rewritten to the blended snapshot\'s id and the normalized weights are recorded. With zero or one source the solve behaves exactly as before.\n'),
   "firstGameweek": zod.boolean().describe('True when there is no existing team and a full squad is optimized from scratch'),
   "teamId": zod.number().nullish().describe('FPL team code, required when firstGameweek is false'),
   "horizon": zod.number().optional().describe('Number of gameweeks to optimize over (default 5)'),
@@ -848,6 +941,10 @@ export const GetSolveParams = zod.object({
   "id": zod.coerce.string()
 })
 
+export const getSolveResponseRequestSourcesItemWeightMin = 0;
+
+
+
 export const GetSolveResponse = zod.object({
   "id": zod.string(),
   "status": zod.string().describe('One of queued, running, completed, failed'),
@@ -856,6 +953,10 @@ export const GetSolveResponse = zod.object({
   "error": zod.string().nullish(),
   "request": zod.object({
   "projectionId": zod.string(),
+  "sources": zod.array(zod.object({
+  "projectionId": zod.string().describe('Saved projection snapshot id'),
+  "weight": zod.number().min(getSolveResponseRequestSourcesItemWeightMin).describe('Non-negative source weight; weights are normalized globally across all sources')
+})).optional().describe('Weighted blend of saved snapshots. With two or more sources the server materializes an immutable blended snapshot when the solve starts and solves against it; projectionId is rewritten to the blended snapshot\'s id and the normalized weights are recorded. With zero or one source the solve behaves exactly as before.\n'),
   "firstGameweek": zod.boolean().describe('True when there is no existing team and a full squad is optimized from scratch'),
   "teamId": zod.number().nullish().describe('FPL team code, required when firstGameweek is false'),
   "horizon": zod.number().optional().describe('Number of gameweeks to optimize over (default 5)'),

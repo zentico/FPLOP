@@ -4,6 +4,7 @@ import {
   listProjectionMetas,
   newId,
   saveProjectionMetas,
+  type BlendComponentRef,
   type ProjectionMeta,
 } from "./store";
 
@@ -25,18 +26,51 @@ export interface CanonicalPlayerRow {
   byGameweek: Map<number, { points: number; minutes: number }>;
 }
 
+/** Consistent imported-dataset name: "Source YY-MM-DD (GWx-y)". */
+export function importedProjectionFilename(
+  source: string,
+  date: Date | string,
+  firstGameweek: number,
+  lastGameweek: number,
+): string {
+  const iso = date instanceof Date ? date.toISOString() : date;
+  const compactDate = iso.slice(0, 10).slice(2);
+  return `${source} ${compactDate} (GW${firstGameweek}-${lastGameweek})`;
+}
+
+/** Normalize names from snapshots created before the compact convention. */
+export function normalizeImportedProjectionFilename(filename: string): string {
+  return filename
+    .replace(
+      /^(FFH|DraftHound|Pundit|FantaLens) predictions \d{2}(\d{2}-\d{2}-\d{2})(.*)$/,
+      "$1 $2$3",
+    )
+    .replace(
+      /^(DraftHound|Pundit|FantaLens) predictions (\d{4})-(\d{2})-(\d{2})(.*)$/,
+      (_, source: string, year: string, month: string, day: string, rest: string) =>
+        `${source} ${year.slice(2)}-${month}-${day}${rest}`,
+    )
+    .replace(
+      /^Pundit×FFH hybrid (\d{4})-(\d{2})-(\d{2})(.*)$/,
+      (_, year: string, month: string, day: string, rest: string) =>
+        `Pundit×FFH ${year.slice(2)}-${month}-${day}${rest}`,
+    );
+}
+
 /** Serialize canonical player rows to the solver's projection CSV format. */
 export function buildCanonicalCsv(
   rows: CanonicalPlayerRow[],
   gameweeks: number[],
+  options: { includeOwnership?: boolean } = {},
 ): string {
+  const includeOwnership = options.includeOwnership ?? true;
   const header = [
     "ID",
     "Name",
     "Pos",
     "Team",
     "Value",
-    "Ownership",
+    ...(includeOwnership ? ["Ownership"] : []),
     ...gameweeks.flatMap((gw) => [`${gw}_Pts`, `${gw}_xMins`]),
   ];
   const lines = [header.join(",")];
@@ -47,7 +81,7 @@ export function buildCanonicalCsv(
       r.position,
       csvEscape(r.team),
       String(r.price),
-      String(r.ownership),
+      ...(includeOwnership ? [String(r.ownership)] : []),
       ...gameweeks.flatMap((gw) => {
         const f = r.byGameweek.get(gw);
         return [
@@ -76,6 +110,7 @@ export function saveProjectionSnapshot(args: {
   sourceUpdatedAt?: string | null;
   season?: string | null;
   sourcePlayerCount?: number | null;
+  components?: BlendComponentRef[] | null;
 }): ProjectionMeta {
   const id = newId();
   fs.writeFileSync(projectionCsvPath(id), args.csv);
@@ -96,6 +131,7 @@ export function saveProjectionSnapshot(args: {
     ...(args.sourcePlayerCount != null
       ? { sourcePlayerCount: args.sourcePlayerCount }
       : {}),
+    ...(args.components != null ? { components: args.components } : {}),
   };
   const metas = listProjectionMetas();
   metas.unshift(meta);

@@ -22,6 +22,8 @@ import type {
 import type {
   AccuracyEntry,
   AccuracyMiss,
+  BlendPreview,
+  BlendPreviewInput,
   ErrorMessage,
   FfhSessionInput,
   FfhSessionStatus,
@@ -670,6 +672,77 @@ export const useImportProjection = <TError = ErrorType<ErrorMessage>,
         TContext
       > => {
       return useMutation(getImportProjectionMutationOptions(options));
+    }
+
+export const getPreviewProjectionBlendUrl = () => {
+
+
+
+
+  return `/api/projections/blend/preview`
+}
+
+/**
+ * @summary Preview a weighted blend of saved projections without saving it
+ */
+export const previewProjectionBlend = async (blendPreviewInput: BlendPreviewInput, options?: Parameters<typeof customFetch>[1]): Promise<BlendPreview> => {
+
+  return customFetch<BlendPreview>(getPreviewProjectionBlendUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(blendPreviewInput)
+  }
+);}
+
+
+
+
+
+export const getPreviewProjectionBlendMutationOptions = <TError = ErrorType<ErrorMessage>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewProjectionBlend>>, TError,{data: BodyType<BlendPreviewInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof previewProjectionBlend>>, TError,{data: BodyType<BlendPreviewInput>}, TContext> => {
+
+const mutationKey = ['previewProjectionBlend'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewProjectionBlend>>, {data: BodyType<BlendPreviewInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  previewProjectionBlend(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PreviewProjectionBlendMutationResult = NonNullable<Awaited<ReturnType<typeof previewProjectionBlend>>>
+    export type PreviewProjectionBlendMutationBody = BodyType<BlendPreviewInput>
+    export type PreviewProjectionBlendMutationError = ErrorType<ErrorMessage>
+
+    /**
+ * @summary Preview a weighted blend of saved projections without saving it
+ */
+export const usePreviewProjectionBlend = <TError = ErrorType<ErrorMessage>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewProjectionBlend>>, TError,{data: BodyType<BlendPreviewInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof previewProjectionBlend>>,
+        TError,
+        {data: BodyType<BlendPreviewInput>},
+        TContext
+      > => {
+      return useMutation(getPreviewProjectionBlendMutationOptions(options));
     }
 
 export const getListFixturesUrl = () => {

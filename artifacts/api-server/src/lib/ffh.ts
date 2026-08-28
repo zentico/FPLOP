@@ -4,6 +4,7 @@ import { getSeasonName } from "./fpl";
 import { STORE_DIR } from "./paths";
 import {
   buildCanonicalCsv,
+  importedProjectionFilename,
   saveProjectionSnapshot,
   type CanonicalPlayerRow,
 } from "./projections";
@@ -222,9 +223,8 @@ export async function importFfhProjection(
     // Season labelling is best-effort.
   }
 
-  const date = new Date().toISOString().slice(2, 10);
   return saveProjectionSnapshot({
-    filename: `FFH ${date} (GW${minGameweek}-${maxGameweek})`,
+    filename: importedProjectionFilename("FFH", new Date(), minGameweek, maxGameweek),
     csv: buildCanonicalCsv(rows, gameweeks),
     playerCount: rows.length,
     gameweeks,

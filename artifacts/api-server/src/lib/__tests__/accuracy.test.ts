@@ -128,7 +128,7 @@ describe("computeMetrics", () => {
     // Predicted universe has 3 players while actuals has 3 different players,
     // so missing coverage changes the percentile comparison.
     expect(m.arpm).toBeCloseTo(25);
-    expect(m.crpm).toBeCloseTo(43.75);
+    expect(m.crpm).toBeCloseTo(0.875);
     expect(m.misses[0]!.playerId).toBe(1); // biggest absolute error first
   });
 
@@ -203,7 +203,7 @@ describe("rank percentile metrics", () => {
     // Player 2 is bottom of the two-player prediction set (100th percentile)
     // but only rank 2/4 in actuals (33.3rd), creating a 66.7-point miss.
     expect(computeMetrics(predictions, actuals)!.arpm).toBeCloseTo(100 / 3);
-    expect(computeMetrics(predictions, actuals)!.crpm).toBeCloseTo(400 / 27);
+    expect(computeMetrics(predictions, actuals)!.crpm).toBeCloseTo(8 / 27);
   });
 
   it("weights misses among top-ranked players more heavily", () => {

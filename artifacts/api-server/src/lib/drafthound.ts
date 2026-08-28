@@ -1,6 +1,7 @@
 import { getSeasonName } from "./fpl";
 import {
   buildCanonicalCsv,
+  importedProjectionFilename,
   saveProjectionSnapshot,
   type CanonicalPlayerRow,
 } from "./projections";
@@ -181,11 +182,10 @@ export async function importDraftHoundProjection(): Promise<ProjectionMeta> {
     // Season labelling is best-effort; the snapshot is still valid without it.
   }
 
-  const date = new Date().toISOString().slice(0, 10);
   const first = gameweeks[0]!;
   const last = gameweeks[gameweeks.length - 1]!;
   return saveProjectionSnapshot({
-    filename: `DraftHound predictions ${date} (GW${first}-${last})`,
+    filename: importedProjectionFilename("DraftHound", new Date(), first, last),
     csv: buildCanonicalCsv(rows, gameweeks),
     playerCount: rows.length,
     gameweeks,

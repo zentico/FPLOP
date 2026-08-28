@@ -244,18 +244,15 @@ export function computeMetrics(
       0,
     ) /
       n);
-  const crpm =
-    100 *
-    (pairs.reduce(
-      (sum, { row }) =>
-        sum +
-        cubedRankingPercentileMiss(
-          predictedPercentiles.get(row.playerId)!,
-          actualPercentiles.get(row.playerId)!,
-        ),
-      0,
-    ) /
-      n);
+  const crpm = pairs.reduce(
+    (sum, { row }) =>
+      sum +
+      cubedRankingPercentileMiss(
+        predictedPercentiles.get(row.playerId)!,
+        actualPercentiles.get(row.playerId)!,
+      ),
+    0,
+  );
   const misses = pairs
     .map(({ row, actual }) => ({
       playerId: row.playerId,

@@ -5,4 +5,5 @@
 - [Pundit feed](pundit-feed.md) — site is captcha-blocked; use its published Google Sheet CSV; GW2..GW6 columns are horizon-relative; validate via NextKGWsStart cumulatives.
 - [FFH predictions import](ffh-import.md) — password login is captcha-blocked; use user's appSession cookie → /auth/access-token → public-api /league/players (paginate with `after`, limit≤100).
 - [FantaLens feed](fantalens-feed.md) — Inertia JSON protocol (version handshake), dash-separated `gw` param, per_page≤100, null expected_minutes = 0; projection metas must omit (not null) absent optional fields.
+- [Weighted projection blends](blend-projections.md) — blends materialize as immutable snapshots; previews must round like the canonical CSV; missing players = zero, never reweighted.
 - [CRPM accuracy metric](crpm-accuracy.md) — CRPM is 100 × mean absolute cubed inverse-percentile miss, using the same prediction and full-official-player rank populations as ARPM.

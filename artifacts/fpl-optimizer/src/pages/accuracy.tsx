@@ -66,7 +66,9 @@ export default function AccuracyPage() {
       (gwFilter === "all" || e.gameweek === Number(gwFilter)),
   );
 
-  // Per-source summary over the filtered gameweeks (weighted by sample size).
+  // Per-source summary over the filtered gameweeks. Average-based metrics are
+  // weighted by sample size; CRPM is already a player-level sum, so gameweek
+  // CRPM totals are added directly.
   const summary = React.useMemo(() => {
     const by = new Map<
       string,
@@ -81,7 +83,7 @@ export default function AccuracyPage() {
       s.rmse2 += e.rmse * e.rmse * e.sampleSize;
       s.bias += e.bias * e.sampleSize;
       s.arpm += e.arpm * e.sampleSize;
-      s.crpm += e.crpm * e.sampleSize;
+      s.crpm += e.crpm;
       s.gws.add(e.gameweek);
       by.set(e.source, s);
     }
@@ -95,7 +97,7 @@ export default function AccuracyPage() {
         rmse: s.n ? Math.sqrt(s.rmse2 / s.n) : 0,
         bias: s.n ? s.bias / s.n : 0,
         arpm: s.n ? s.arpm / s.n : 0,
-        crpm: s.n ? s.crpm / s.n : 0,
+        crpm: s.crpm,
       }))
       .sort((a, b) => a.arpm - b.arpm);
   }, [filtered]);
@@ -177,11 +179,12 @@ export default function AccuracyPage() {
                 Source Summary
               </CardTitle>
               <CardDescription>
-                 Sample-weighted averages over the selected gameweeks. Lower ARPM, CRPM, MAE, and RMSE
+                 Sample-weighted averages over the selected gameweeks (CRPM is summed). Lower ARPM, CRPM, MAE, and RMSE
                 are better; bias &gt; 0 means the source over-predicts. ARPM is 100 × the average
                 absolute percentile-rank miss, with actual ranks taken across every official FPL
-                 player so incomplete prediction sets are penalized. CRPM cubes inverse percentiles
-                 before comparing them, giving misses among the highest-ranked players more weight.
+                 player so incomplete prediction sets are penalized. CRPM is the straight sum of
+                 player misses after cubing inverse percentiles, giving misses among the
+                 highest-ranked players more weight.
               </CardDescription>
             </CardHeader>
             <CardContent>

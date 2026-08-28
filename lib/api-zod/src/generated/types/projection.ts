@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { BlendComponent } from './blendComponent';
 
 export interface Projection {
   id: string;
@@ -23,4 +24,6 @@ export interface Projection {
   season?: string;
   /** Players in the upstream feed before FPL identity matching (sources that match players only); playerCount/sourcePlayerCount is the match coverage */
   sourcePlayerCount?: number;
+  /** For blended snapshots (source "blend"), the component snapshots and their normalized weights */
+  components?: BlendComponent[];
 }

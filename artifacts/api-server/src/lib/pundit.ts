@@ -3,6 +3,7 @@ import { getBootstrap, getGameweekInfo, getSeasonName, type Bootstrap } from "./
 import { fetchFfhRows } from "./ffh";
 import {
   buildCanonicalCsv,
+  importedProjectionFilename,
   saveProjectionSnapshot,
   type CanonicalPlayerRow,
 } from "./projections";
@@ -488,7 +489,7 @@ export async function importPunditProjection(): Promise<ProjectionMeta> {
   const first = gameweeks[0]!;
   const last = gameweeks[gameweeks.length - 1]!;
   return saveProjectionSnapshot({
-    filename: `Pundit predictions ${fetchedAt.slice(0, 10)} (GW${first}-${last})`,
+    filename: importedProjectionFilename("Pundit", fetchedAt, first, last),
     csv: buildCanonicalCsv(canonical, gameweeks),
     playerCount: canonical.length,
     gameweeks,
@@ -525,7 +526,7 @@ export async function importPunditFfhHybrid(): Promise<ProjectionMeta> {
   }
   const fetchedAt = new Date().toISOString();
   return saveProjectionSnapshot({
-    filename: `Pundit×FFH hybrid ${fetchedAt.slice(0, 10)} (GW${first}-${last})`,
+    filename: importedProjectionFilename("Pundit×FFH", fetchedAt, first, last),
     csv: buildCanonicalCsv(rows, gameweeks),
     playerCount: rows.length,
     gameweeks,

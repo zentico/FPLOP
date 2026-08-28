@@ -182,6 +182,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorMessage"
+  /projections/blend/preview:
+    post:
+      operationId: previewProjectionBlend
+      tags: [projections]
+      summary: Preview a weighted blend of saved projections without saving it
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlendPreviewInput"
+      responses:
+        "200":
+          description: Blended preview (same values a solve would use)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlendPreview"
+        "400":
+          description: Invalid weights or no shared consecutive gameweeks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+        "404":
+          description: A component projection was not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
   /fixtures:
     get:
       operationId: listFixtures
@@ -589,6 +619,71 @@ components:
         sourcePlayerCount:
           type: number
           description: Players in the upstream feed before FPL identity matching (sources that match players only); playerCount/sourcePlayerCount is the match coverage
+        components:
+          type: array
+          items:
+            $ref: "#/components/schemas/BlendComponent"
+          description: For blended snapshots (source "blend"), the component snapshots and their normalized weights
+    BlendSource:
+      type: object
+      required: [projectionId, weight]
+      properties:
+        projectionId:
+          type: string
+          description: Saved projection snapshot id
+        weight:
+          type: number
+          minimum: 0
+          description: Non-negative source weight; weights are normalized globally across all sources
+    BlendComponent:
+      type: object
+      required: [projectionId, filename, weight]
+      properties:
+        projectionId:
+          type: string
+        filename:
+          type: string
+        weight:
+          type: number
+          description: Normalized weight (all components sum to 1)
+    BlendPreviewInput:
+      type: object
+      required: [sources]
+      properties:
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/BlendSource"
+          description: Projections to blend with their raw (unnormalized) weights
+    BlendPreview:
+      type: object
+      required: [gameweeks, playerCount, hasOwnership, components, players, poolStats]
+      properties:
+        gameweeks:
+          type: array
+          items:
+            type: number
+          description: Consecutive gameweeks covered by every component (the blend's horizon)
+        playerCount:
+          type: number
+          description: Players in the blended projection (union of component players)
+        hasOwnership:
+          type: boolean
+          description: True when every component has ownership data (differential factor usable)
+        components:
+          type: array
+          items:
+            $ref: "#/components/schemas/BlendComponent"
+        players:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProjectedPlayer"
+          description: Top blended players by total projected points
+        poolStats:
+          type: array
+          items:
+            $ref: "#/components/schemas/PoolPlayerStat"
+          description: Per-player pool stats computed from the blended values
     ProjectionInput:
       type: object
       required: [filename, content]
@@ -693,7 +788,7 @@ components:
           description: 100 times the mean absolute predicted-vs-actual percentile-rank miss; lower is better
         crpm:
           type: number
-          description: 100 times the mean absolute difference between cubed inverse predicted and actual percentile ranks; lower is better and misses among highly ranked players receive greater weight
+          description: Sum across all matched players of the absolute difference between cubed inverse predicted and actual percentile ranks; lower is better and misses among highly ranked players receive greater weight
     AccuracyMiss:
       type: object
       required: [playerId, name, team, position, predicted, actual, error]
@@ -805,6 +900,16 @@ components:
       properties:
         projectionId:
           type: string
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/BlendSource"
+          description: >
+            Weighted blend of saved snapshots. With two or more sources the
+            server materializes an immutable blended snapshot when the solve
+            starts and solves against it; projectionId is rewritten to the
+            blended snapshot's id and the normalized weights are recorded.
+            With zero or one source the solve behaves exactly as before.
         firstGameweek:
           type: boolean
           description: True when there is no existing team and a full squad is optimized from scratch

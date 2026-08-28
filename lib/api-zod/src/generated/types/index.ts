@@ -8,6 +8,10 @@
 
 export * from './accuracyEntry';
 export * from './accuracyMiss';
+export * from './blendComponent';
+export * from './blendPreview';
+export * from './blendPreviewInput';
+export * from './blendSource';
 export * from './bookedTransfer';
 export * from './chipAssignment';
 export * from './chipEval';

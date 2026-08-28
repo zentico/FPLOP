@@ -5,12 +5,15 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { BlendSource } from './blendSource';
 import type { ChipAssignment } from './chipAssignment';
 import type { PoolFilter } from './poolFilter';
 import type { SolveOptions } from './solveOptions';
 
 export interface SolveInput {
   projectionId: string;
+  /** Weighted blend of saved snapshots. With two or more sources the server materializes an immutable blended snapshot when the solve starts and solves against it; projectionId is rewritten to the blended snapshot's id and the normalized weights are recorded. With zero or one source the solve behaves exactly as before. */
+  sources?: BlendSource[];
   /** True when there is no existing team and a full squad is optimized from scratch */
   firstGameweek: boolean;
   /**

@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import { Router, type IRouter } from "express";
 import {
+  PreviewProjectionBlendBody,
+  PreviewProjectionBlendResponse,
   DeleteProjectionParams,
   GetFfhSessionStatusResponse,
   GetProjectionPlayersParams,
@@ -39,6 +41,7 @@ import {
   importFantaLensProjection,
 } from "../lib/fantalens";
 import { getGameweekInfo, getSeasonName } from "../lib/fpl";
+import { BlendError, buildBlend } from "../lib/blend";
 import { saveProjectionSnapshot } from "../lib/projections";
 import { computePoolStats, projectionCsvPath } from "../lib/solver";
 import { listProjectionMetas, saveProjectionMetas } from "../lib/store";
@@ -192,6 +195,77 @@ router.post("/projections/import", async (req, res): Promise<void> => {
         error: `Import failed: ${err instanceof Error ? err.message : String(err)}`,
       });
     }
+  }
+});
+
+router.post("/projections/blend/preview", async (req, res): Promise<void> => {
+  const parsed = PreviewProjectionBlendBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  try {
+    const blend = buildBlend(parsed.data.sources);
+    const round2 = (x: number) => Math.round(x * 100) / 100;
+    const players = blend.rows
+      .map((r) => {
+        const pointsPerGameweek = blend.gameweeks.map((gw) => ({
+          gameweek: gw,
+          points: r.byGameweek.get(gw)?.points ?? 0,
+        }));
+        return {
+          name: r.name,
+          team: r.team,
+          position: r.position,
+          price: r.price,
+          totalPoints: round2(
+            pointsPerGameweek.reduce((s, p) => s + p.points, 0),
+          ),
+          pointsPerGameweek,
+        };
+      })
+      .filter((p) => p.name)
+      .sort((a, b) => b.totalPoints - a.totalPoints)
+      .slice(0, 25);
+    const poolStats = blend.rows
+      .map((r) => {
+        const gwPoints = blend.gameweeks.map(
+          (gw) => r.byGameweek.get(gw)?.points ?? 0,
+        );
+        return {
+          id: r.fplId,
+          name: r.name,
+          position: r.position,
+          team: r.team,
+          price: r.price,
+          ppm:
+            gwPoints.length > 0
+              ? gwPoints.reduce((s, p) => s + p, 0) / gwPoints.length
+              : 0,
+          gwPoints,
+        };
+      })
+      .filter((p) => p.name);
+    res.json(
+      PreviewProjectionBlendResponse.parse({
+        gameweeks: blend.gameweeks,
+        playerCount: blend.rows.length,
+        hasOwnership: blend.hasOwnership,
+        components: blend.components.map((c) => ({
+          projectionId: c.projectionId,
+          filename: c.filename,
+          weight: c.weight,
+        })),
+        players,
+        poolStats,
+      }),
+    );
+  } catch (err) {
+    if (err instanceof BlendError) {
+      res.status(err.status).json({ error: err.message });
+      return;
+    }
+    throw err;
   }
 });
 

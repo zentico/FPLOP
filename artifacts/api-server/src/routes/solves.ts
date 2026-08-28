@@ -27,6 +27,7 @@ import {
   saveRunMetas,
 } from "../lib/store";
 import { ALL_CHIPS, availableChipsFrom, createMegaRun } from "../lib/mega";
+import { BlendError, createBlendSnapshot } from "../lib/blend";
 import { getGameweekInfo, getTeamChipsPlayed } from "../lib/fpl";
 
 const router: IRouter = Router();
@@ -79,6 +80,42 @@ router.get("/solves", async (_req, res): Promise<void> => {
 });
 
 type SolveRequestInput = ReturnType<typeof CreateSolveBody.parse>;
+
+/**
+ * When the request blends two or more sources, materialize the blend as an
+ * immutable snapshot and rewrite the request to solve against it. The
+ * normalized weights stay on the request for provenance, and the horizon is
+ * capped at the blend's shared consecutive coverage. A single (or absent)
+ * source leaves the request untouched — identical to today's behavior.
+ */
+function materializeBlendSources(
+  request: SolveRequestInput,
+): { error: string; status: number } | null {
+  const sources = request.sources ?? [];
+  if (sources.length === 0) return null;
+  if (sources.length === 1) {
+    request.projectionId = sources[0]!.projectionId;
+    request.sources = undefined;
+    return null;
+  }
+  try {
+    const meta = createBlendSnapshot(sources);
+    request.projectionId = meta.id;
+    request.sources = (meta.components ?? []).map((c) => ({
+      projectionId: c.projectionId,
+      weight: c.weight,
+    }));
+    if (request.horizon != null && request.horizon > meta.gameweeks.length) {
+      request.horizon = meta.gameweeks.length;
+    }
+    return null;
+  } catch (err) {
+    if (err instanceof BlendError) {
+      return { error: err.message, status: err.status };
+    }
+    throw err;
+  }
+}
 
 /**
  * Full semantic validation shared by the solve and mega-solve endpoints.
@@ -239,6 +276,11 @@ router.post("/solves", async (req, res): Promise<void> => {
     return;
   }
   const request = parsed.data;
+  const blendError = materializeBlendSources(request);
+  if (blendError) {
+    res.status(blendError.status).json({ error: blendError.error });
+    return;
+  }
   const validated = validateSolveRequest(request);
   if ("error" in validated) {
     res.status(400).json({ error: validated.error });
@@ -362,6 +404,11 @@ router.post("/solves/mega", async (req, res): Promise<void> => {
     return;
   }
   const request = parsed.data;
+  const blendError = materializeBlendSources(request);
+  if (blendError) {
+    res.status(blendError.status).json({ error: blendError.error });
+    return;
+  }
   const validated = validateSolveRequest(request);
   if ("error" in validated) {
     res.status(400).json({ error: validated.error });

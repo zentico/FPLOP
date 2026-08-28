@@ -1,11 +1,11 @@
 import React from "react";
-import { useUploadProjection, useImportProjection, useGetFfhSessionStatus, useUpdateFfhSession, useListProjections, useDeleteProjection, useGetProjectionPlayers, useGetProjectionPoolStats, useGetGameweekInfo, useGetFplTeam, useCreateSolve, useCreateMegaSolve, getGetFplTeamQueryKey, getGetProjectionPlayersQueryKey, getGetProjectionPoolStatsQueryKey, getListProjectionsQueryKey } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useUploadProjection, useImportProjection, useGetFfhSessionStatus, useUpdateFfhSession, useListProjections, useDeleteProjection, useGetProjectionPlayers, useGetProjectionPoolStats, useGetGameweekInfo, useGetFplTeam, useCreateSolve, useCreateMegaSolve, getGetFplTeamQueryKey, getGetProjectionPlayersQueryKey, getGetProjectionPoolStatsQueryKey, getListProjectionsQueryKey, previewProjectionBlend } from "@workspace/api-client-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,10 +19,22 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 function projectionDisplayName(filename: string): string {
-  return filename.replace(
-    /^FFH predictions \d{2}(\d{2}-\d{2}-\d{2})(.*)$/,
-    "FFH $1$2",
-  );
+  // Keep older saved snapshots readable under the current convention too.
+  return filename
+    .replace(
+      /^(FFH|DraftHound|Pundit|FantaLens) predictions \d{2}(\d{2}-\d{2}-\d{2})(.*)$/,
+      "$1 $2$3",
+    )
+    .replace(
+      /^(DraftHound|Pundit|FantaLens) predictions (\d{4})-(\d{2})-(\d{2})(.*)$/,
+      (_, source, year, month, day, rest) =>
+        `${source} ${year.slice(2)}-${month}-${day}${rest}`,
+    )
+    .replace(
+      /^Pundit×FFH hybrid (\d{4})-(\d{2})-(\d{2})(.*)$/,
+      (_, year, month, day, rest) =>
+        `Pundit×FFH ${year.slice(2)}-${month}-${day}${rest}`,
+    );
 }
 
 function AdvField({ label, placeholder, hint, value, onChange }: {
@@ -46,7 +58,34 @@ export default function Home() {
   const [, setLocation] = useLocation();
 
   // State
-  const [projectionId, setProjectionId] = React.useState<string>("");
+  // Selected projection snapshots, in selection order. One selection solves
+  // that snapshot directly; two or more form a weighted blend.
+  const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
+  // Raw (unnormalized) weight text per projection id; blends normalize globally.
+  const [blendWeights, setBlendWeights] = React.useState<Record<string, string>>({});
+  const isBlend = selectedIds.length > 1;
+  const projectionId = selectedIds.length === 1 ? selectedIds[0]! : "";
+  const setProjectionId = React.useCallback((id: string) => {
+    setSelectedIds(id ? [id] : []);
+  }, []);
+  const toggleProjection = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+    // New multi-source selections start with equal weights (1 each).
+    setBlendWeights((w) => (w[id] != null ? w : { ...w, [id]: "1" }));
+  };
+  const blendSources = selectedIds.map((id) => ({
+    projectionId: id,
+    weight: Number((blendWeights[id] ?? "1").trim() || NaN),
+  }));
+  const blendTotalWeight = blendSources.reduce(
+    (s, x) => s + (Number.isFinite(x.weight) && x.weight > 0 ? x.weight : 0),
+    0,
+  );
+  const blendWeightsValid =
+    blendSources.every((s) => Number.isFinite(s.weight) && s.weight >= 0) &&
+    blendSources.some((s) => s.weight > 0);
   const [firstGameweek, setFirstGameweek] = React.useState<boolean>(false);
   // Remembered across visits: defaults to the last team ID used.
   const [teamIdStr, setTeamIdStr] = React.useState<string>(
@@ -95,12 +134,32 @@ export default function Home() {
     { query: { enabled: !!isTeamIdValid && !firstGameweek, retry: false, queryKey: getGetFplTeamQueryKey(isTeamIdValid ? teamIdNum : 0) } }
   );
 
-  const { data: topPlayers } = useGetProjectionPlayers(projectionId, {
+  const { data: singleTopPlayers } = useGetProjectionPlayers(projectionId, {
     query: { enabled: !!projectionId, queryKey: getGetProjectionPlayersQueryKey(projectionId) }
   });
-  const { data: poolStats } = useGetProjectionPoolStats(projectionId, {
+  const { data: singlePoolStats } = useGetProjectionPoolStats(projectionId, {
     query: { enabled: !!projectionId && poolEnabled, queryKey: getGetProjectionPoolStatsQueryKey(projectionId) }
   });
+
+  // Blended preview — the server computes the exact values a blended solve
+  // would use, so top players, pool stats and horizon all match the solver input.
+  const {
+    data: blendPreview,
+    error: blendPreviewError,
+    isFetching: blendPreviewLoading,
+  } = useQuery({
+    queryKey: [
+      "blendPreview",
+      selectedIds.join(","),
+      selectedIds.map((id) => blendWeights[id] ?? "1").join(","),
+    ],
+    queryFn: () => previewProjectionBlend({ sources: blendSources }),
+    enabled: isBlend && blendWeightsValid,
+    retry: false,
+  });
+
+  const topPlayers = isBlend ? blendPreview?.players : singleTopPlayers;
+  const poolStats = isBlend ? blendPreview?.poolStats : singlePoolStats;
 
   // Parsed pool counts; NaN when a field is not a valid number.
   const poolNums = {
@@ -283,7 +342,7 @@ export default function Home() {
   const handleDeleteProjection = (id: string) => {
     deleteMutation.mutate({ id }, {
       onSuccess: () => {
-        if (projectionId === id) setProjectionId("");
+        setSelectedIds((prev) => prev.filter((x) => x !== id));
         queryClient.invalidateQueries({ queryKey: getListProjectionsQueryKey() });
         toast({ title: "Projection deleted" });
       }
@@ -291,8 +350,24 @@ export default function Home() {
   };
 
   const buildSolveRequest = () => {
-    if (!projectionId) {
+    if (selectedIds.length === 0) {
       toast({ title: "Missing projection", description: "Please select or upload a projection.", variant: "destructive" });
+      return null;
+    }
+    if (isBlend && !blendWeightsValid) {
+      toast({
+        title: "Invalid blend weights",
+        description: "All weights must be non-negative numbers and at least one must be positive.",
+        variant: "destructive",
+      });
+      return null;
+    }
+    if (isBlend && !blendPreview) {
+      toast({
+        title: "Blend not ready",
+        description: (blendPreviewError as any)?.error || "The blended projection could not be built. Check the selected sources.",
+        variant: "destructive",
+      });
       return null;
     }
     if (!firstGameweek && !isTeamIdValid) {
@@ -390,7 +465,8 @@ export default function Home() {
     const hasOptions = Object.values(options).some((v) => v !== undefined);
 
     return {
-      projectionId,
+      projectionId: selectedIds[0]!,
+      sources: isBlend ? blendSources : undefined,
       firstGameweek,
       teamId: firstGameweek ? null : teamIdNum,
       horizon,
@@ -438,24 +514,27 @@ export default function Home() {
   const currentGw = gameweekInfo?.nextGameweek || 1;
   const chipOptions = ["wildcard", "bench_boost", "free_hit", "triple_captain"];
 
-  // Allow optimizing over every gameweek covered by the selected projection,
+  // Allow optimizing over every gameweek covered by the selected projection
+  // (or, for a blend, the consecutive gameweeks covered by every source),
   // counting only the contiguous run starting at the next gameweek.
   const selectedProjection = projections?.find((p) => p.id === projectionId);
+  const coveredGws = isBlend ? blendPreview?.gameweeks : selectedProjection?.gameweeks;
   const contiguousGws = React.useMemo(() => {
-    const gws = selectedProjection?.gameweeks;
+    const gws = coveredGws;
     if (!gws?.length) return 8;
     const start = gws.includes(currentGw) ? currentGw : gws[0];
     let n = 0;
     while (gws.includes(start + n)) n++;
     return n;
-  }, [selectedProjection, currentGw]);
+  }, [coveredGws, currentGw]);
   const maxHorizon = Math.max(1, contiguousGws);
   const minHorizon = Math.min(2, maxHorizon);
   // Default the horizon to everything the selected dataset covers; manual
   // slider changes stick until the dataset (and thus its coverage) changes.
+  const selectionKey = selectedIds.join(",");
   React.useEffect(() => {
     setHorizon(maxHorizon);
-  }, [projectionId, maxHorizon]);
+  }, [selectionKey, maxHorizon]);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -495,11 +574,23 @@ export default function Home() {
                       <p className="text-sm">No projections available. Upload one.</p>
                     </div>
                   ) : (
-                    <RadioGroup value={projectionId} onValueChange={setProjectionId} className="space-y-3">
-                      {projections.map((p) => (
-                        <div key={p.id} className={`flex items-center justify-between border rounded-lg p-4 transition-colors ${projectionId === p.id ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'}`}>
+                    <div className="space-y-3">
+                      <p className="text-xs text-muted-foreground">
+                        Select one projection, or several to blend them with weights.
+                      </p>
+                      {projections.map((p) => {
+                        const selected = selectedIds.includes(p.id);
+                        const rawWeight = blendWeights[p.id] ?? "1";
+                        const w = Number(rawWeight.trim() || NaN);
+                        const weightOk = Number.isFinite(w) && w >= 0;
+                        const share =
+                          weightOk && blendTotalWeight > 0
+                            ? Math.round((w / blendTotalWeight) * 1000) / 10
+                            : 0;
+                        return (
+                        <div key={p.id} className={`flex items-center justify-between border rounded-lg p-4 transition-colors ${selected ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'}`}>
                           <div className="flex items-center space-x-3">
-                            <RadioGroupItem value={p.id} id={p.id} />
+                            <Checkbox id={p.id} checked={selected} onCheckedChange={() => toggleProjection(p.id)} />
                             <Label htmlFor={p.id} className="flex flex-col cursor-pointer">
                               <span className="font-semibold flex items-center gap-2">
                                 {projectionDisplayName(p.filename)}
@@ -508,12 +599,32 @@ export default function Home() {
                                 )}
                               </span>
                               <span className="text-xs text-muted-foreground font-mono mt-1">
-                                {p.playerCount} players • GWs: {p.gameweeks.join(", ")}
-                                {p.sourceUpdatedAt ? ` • source updated ${new Date(p.sourceUpdatedAt).toLocaleString()}` : ""}
+                                {p.playerCount} players *{" "}
+                                {new Date(
+                                  p.sourceUpdatedAt ?? p.uploadedAt,
+                                )
+                                  .toLocaleString()
+                                  .replace(",", "")}
                               </span>
                             </Label>
                           </div>
                           <div className="flex items-center gap-1">
+                            {selected && isBlend && (
+                              <div className="flex items-center gap-2 mr-2">
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  value={rawWeight}
+                                  onChange={(e) => setBlendWeights((prev) => ({ ...prev, [p.id]: e.target.value }))}
+                                  className={`h-8 w-20 text-right font-mono text-sm ${weightOk ? "" : "border-destructive"}`}
+                                  aria-label={`Weight for ${projectionDisplayName(p.filename)}`}
+                                />
+                                <span className="text-xs font-mono text-muted-foreground w-12 text-right">
+                                  {weightOk && blendTotalWeight > 0 ? `${share}%` : "—"}
+                                </span>
+                              </div>
+                            )}
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" asChild>
                               <a href={`${import.meta.env.BASE_URL}api/projections/${p.id}/csv`} download title="Download CSV">
                                 <Download className="h-4 w-4" />
@@ -524,8 +635,42 @@ export default function Home() {
                             </Button>
                           </div>
                         </div>
-                      ))}
-                    </RadioGroup>
+                        );
+                      })}
+                      {isBlend && (
+                        <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 text-xs space-y-1">
+                          {!blendWeightsValid ? (
+                            <p className="text-destructive font-medium">
+                              Weights must be non-negative numbers and at least one must be positive.
+                            </p>
+                          ) : blendPreviewError ? (
+                            <p className="text-destructive font-medium">
+                              {(blendPreviewError as any)?.error || "Couldn't build this blend. Check that the sources share gameweeks."}
+                            </p>
+                          ) : blendPreview ? (
+                            <>
+                              <p className="font-medium">
+                                Blending {selectedIds.length} sources •{" "}
+                                {blendPreview.playerCount} players • horizon limited to shared GWs{" "}
+                                {blendPreview.gameweeks[0]}–{blendPreview.gameweeks[blendPreview.gameweeks.length - 1]}
+                              </p>
+                              <p className="text-muted-foreground font-mono">
+                                {blendPreview.components
+                                  .map((c) => `${Math.round(c.weight * 1000) / 10}% ${projectionDisplayName(c.filename)}`)
+                                  .join(" + ")}
+                              </p>
+                              {!blendPreview.hasOwnership && (
+                                <p className="text-muted-foreground">
+                                  Ownership data isn't available in every source, so the differential adjustment is disabled for this blend.
+                                </p>
+                              )}
+                            </>
+                          ) : blendPreviewLoading ? (
+                            <p className="text-muted-foreground animate-pulse">Building blend preview…</p>
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </TabsContent>
                 

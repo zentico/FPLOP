@@ -22,6 +22,18 @@ export interface ProjectionMeta {
    * match coverage.
    */
   sourcePlayerCount?: number | null;
+  /**
+   * For blended snapshots (source "blend"): the component snapshots and
+   * their normalized weights (sum to 1) — immutable provenance.
+   */
+  components?: BlendComponentRef[] | null;
+}
+
+export interface BlendComponentRef {
+  projectionId: string;
+  filename: string;
+  /** Normalized weight, 0-1. */
+  weight: number;
 }
 
 export interface ChipAssignment {
@@ -78,6 +90,13 @@ export interface PoolFilter {
 
 export interface SolveRequest {
   projectionId: string;
+  /**
+   * Weighted blend of saved snapshots. When two or more sources are given,
+   * the server materializes an immutable blended snapshot at solve start and
+   * rewrites projectionId to point at it; the normalized weights are kept
+   * here for provenance.
+   */
+  sources?: { projectionId: string; weight: number }[] | null;
   firstGameweek: boolean;
   teamId?: number | null;
   horizon?: number;
@@ -225,6 +244,7 @@ export function listProjectionMetas(): ProjectionMeta[] {
       "sourceUpdatedAt",
       "season",
       "sourcePlayerCount",
+      "components",
     ] as const) {
       if (m[k] === null) delete m[k];
     }

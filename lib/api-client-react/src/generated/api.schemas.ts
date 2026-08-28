@@ -13,6 +13,13 @@ export interface ErrorMessage {
   error: string;
 }
 
+export interface BlendComponent {
+  projectionId: string;
+  filename: string;
+  /** Normalized weight (all components sum to 1) */
+  weight: number;
+}
+
 export interface Projection {
   id: string;
   filename: string;
@@ -30,6 +37,68 @@ export interface Projection {
   season?: string;
   /** Players in the upstream feed before FPL identity matching (sources that match players only); playerCount/sourcePlayerCount is the match coverage */
   sourcePlayerCount?: number;
+  /** For blended snapshots (source "blend"), the component snapshots and their normalized weights */
+  components?: BlendComponent[];
+}
+
+export interface BlendSource {
+  /** Saved projection snapshot id */
+  projectionId: string;
+  /**
+     * Non-negative source weight; weights are normalized globally across all sources
+     * @minimum 0
+     */
+  weight: number;
+}
+
+export interface BlendPreviewInput {
+  /** Projections to blend with their raw (unnormalized) weights */
+  sources: BlendSource[];
+}
+
+export interface GameweekPoints {
+  gameweek: number;
+  points: number;
+}
+
+export interface ProjectedPlayer {
+  name: string;
+  team: string;
+  /** One of G, D, M, F */
+  position: string;
+  price: number;
+  /** Sum of projected points across the horizon */
+  totalPoints: number;
+  pointsPerGameweek?: GameweekPoints[];
+}
+
+export interface PoolPlayerStat {
+  /** FPL player id */
+  id: number;
+  name: string;
+  /** One of G, D, M, F */
+  position: string;
+  /** Short team name from the projection */
+  team: string;
+  price: number;
+  /** Points per match (total projected points / gameweeks in the projection) */
+  ppm: number;
+  /** Per-gameweek projected points, in ascending gameweek order */
+  gwPoints: number[];
+}
+
+export interface BlendPreview {
+  /** Consecutive gameweeks covered by every component (the blend's horizon) */
+  gameweeks: number[];
+  /** Players in the blended projection (union of component players) */
+  playerCount: number;
+  /** True when every component has ownership data (differential factor usable) */
+  hasOwnership: boolean;
+  components: BlendComponent[];
+  /** Top blended players by total projected points */
+  players: ProjectedPlayer[];
+  /** Per-player pool stats computed from the blended values */
+  poolStats: PoolPlayerStat[];
 }
 
 export interface ProjectionInput {
@@ -94,7 +163,7 @@ export interface AccuracyEntry {
   correlation?: number | null;
   /** 100 times the mean absolute predicted-vs-actual percentile-rank miss; lower is better */
   arpm: number;
-  /** 100 times the mean absolute difference between cubed inverse predicted and actual percentile ranks; lower is better and misses among highly ranked players receive greater weight */
+  /** Sum across all matched players of the absolute difference between cubed inverse predicted and actual percentile ranks; lower is better and misses among highly ranked players receive greater weight */
   crpm: number;
 }
 
@@ -107,22 +176,6 @@ export interface AccuracyMiss {
   actual: number;
   /** Predicted minus actual */
   error: number;
-}
-
-export interface GameweekPoints {
-  gameweek: number;
-  points: number;
-}
-
-export interface ProjectedPlayer {
-  name: string;
-  team: string;
-  /** One of G, D, M, F */
-  position: string;
-  price: number;
-  /** Sum of projected points across the horizon */
-  totalPoints: number;
-  pointsPerGameweek?: GameweekPoints[];
 }
 
 export interface GameweekInfo {
@@ -313,6 +366,8 @@ export interface SolveOptions {
 
 export interface SolveInput {
   projectionId: string;
+  /** Weighted blend of saved snapshots. With two or more sources the server materializes an immutable blended snapshot when the solve starts and solves against it; projectionId is rewritten to the blended snapshot's id and the normalized weights are recorded. With zero or one source the solve behaves exactly as before. */
+  sources?: BlendSource[];
   /** True when there is no existing team and a full squad is optimized from scratch */
   firstGameweek: boolean;
   /**
@@ -327,21 +382,6 @@ export interface SolveInput {
   poolFilter?: PoolFilter | null;
   chips?: ChipAssignment[];
   options?: SolveOptions | null;
-}
-
-export interface PoolPlayerStat {
-  /** FPL player id */
-  id: number;
-  name: string;
-  /** One of G, D, M, F */
-  position: string;
-  /** Short team name from the projection */
-  team: string;
-  price: number;
-  /** Points per match (total projected points / gameweeks in the projection) */
-  ppm: number;
-  /** Per-gameweek projected points, in ascending gameweek order */
-  gwPoints: number[];
 }
 
 /**
