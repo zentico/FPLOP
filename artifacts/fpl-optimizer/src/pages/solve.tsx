@@ -43,7 +43,7 @@ export default function SolveDetail() {
     query: {
       enabled:
         !!projectionId &&
-        (hasNumericRef || (!!solve?.result && !solve.request.firstGameweek)),
+        (hasNumericRef || !!solve?.result),
       queryKey: getGetProjectionPoolStatsQueryKey(projectionId!),
     },
   });
@@ -299,7 +299,12 @@ export default function SolveDetail() {
 
             {(plan?.gameweeks ?? []).map(gw => (
               <TabsContent key={gw.gameweek} value={`gw-${gw.gameweek}`} className="mt-6 focus-visible:outline-none">
-                <GameweekView plan={gw} booked={bookedByGw.get(gw.gameweek)} opposingPlay={solve.request.options?.opposingPlay ?? null} />
+                <GameweekView
+                  plan={gw}
+                  booked={bookedByGw.get(gw.gameweek)}
+                  opposingPlay={solve.request.options?.opposingPlay ?? null}
+                  playerStats={poolStats}
+                />
               </TabsContent>
             ))}
           </Tabs>
@@ -559,9 +564,58 @@ function BookedBadge() {
   );
 }
 
-function GameweekView({ plan, booked, opposingPlay }: { plan: GameweekPlan; booked?: { in: Set<string>; out: Set<string> }; opposingPlay: string | null }) {
+function normalizedPlayerName(name: string): string {
+  return name
+    .normalize("NFKD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function playerNameAliases(name: string): string[] {
+  const parts = name
+    .normalize("NFKD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .match(/[a-z0-9]+/g) ?? [];
+  const full = parts.join("");
+  if (parts.length < 2) return [full];
+  const last = parts.at(-1)!;
+  return [full, last, `${parts[0]![0]}${last}`];
+}
+
+function GameweekView({
+  plan,
+  booked,
+  opposingPlay,
+  playerStats,
+}: {
+  plan: GameweekPlan;
+  booked?: { in: Set<string>; out: Set<string> };
+  opposingPlay: string | null;
+  playerStats?: PoolPlayerStat[];
+}) {
   const isBookedIn = (name: string) => booked?.in.has(name.toLowerCase()) ?? false;
   const isBookedOut = (name: string) => booked?.out.has(name.toLowerCase()) ?? false;
+  const pricesByName = React.useMemo(() => {
+    const candidates = new Map<string, number[]>();
+    for (const player of playerStats ?? []) {
+      for (const alias of playerNameAliases(player.name)) {
+        const prices = candidates.get(alias) ?? [];
+        prices.push(player.price);
+        candidates.set(alias, prices);
+      }
+    }
+    const prices = new Map<string, number>();
+    for (const [alias, matches] of candidates) {
+      if (matches.length === 1) prices.set(alias, matches[0]!);
+    }
+    for (const player of [...plan.lineup, ...plan.bench]) {
+      prices.set(normalizedPlayerName(player.name), player.price);
+    }
+    return prices;
+  }, [plan.lineup, plan.bench, playerStats]);
+  const transferPrice = (name: string) => pricesByName.get(normalizedPlayerName(name));
   const { opponents, fixturesLoading, fixturesError } = useOpponents(plan.gameweek);
   const zeroSumClashes = useZeroSumClashes(plan.gameweek, plan.lineup);
   const transfersInSet = React.useMemo(
@@ -640,7 +694,12 @@ function GameweekView({ plan, booked, opposingPlay }: { plan: GameweekPlan; book
                       {plan.transfersOut.map((name, i) => (
                         <li key={i} className={`flex items-center justify-between text-sm px-3 py-2 rounded border ${isBookedOut(name) ? "bg-violet-100/60 dark:bg-violet-900/25 border-violet-300 dark:border-violet-800" : "bg-destructive/5 border-destructive/10"}`}>
                           <span className="font-medium text-destructive">{name}</span>
-                          {isBookedOut(name) && <BookedBadge />}
+                          <span className="flex items-center gap-2">
+                            <span className="font-mono text-muted-foreground">
+                              {transferPrice(name) != null ? `£${transferPrice(name)!.toFixed(1)}` : "£—"}
+                            </span>
+                            {isBookedOut(name) && <BookedBadge />}
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -654,7 +713,12 @@ function GameweekView({ plan, booked, opposingPlay }: { plan: GameweekPlan; book
                       {plan.transfersIn.map((name, i) => (
                         <li key={i} className={`flex items-center justify-between text-sm px-3 py-2 rounded border ${isBookedIn(name) ? "bg-violet-100/60 dark:bg-violet-900/25 border-violet-300 dark:border-violet-800" : "bg-primary/5 border-primary/20"}`}>
                           <span className="font-medium text-primary">{name}</span>
-                          {isBookedIn(name) && <BookedBadge />}
+                          <span className="flex items-center gap-2">
+                            <span className="font-mono text-muted-foreground">
+                              {transferPrice(name) != null ? `£${transferPrice(name)!.toFixed(1)}` : "£—"}
+                            </span>
+                            {isBookedIn(name) && <BookedBadge />}
+                          </span>
                         </li>
                       ))}
                     </ul>
