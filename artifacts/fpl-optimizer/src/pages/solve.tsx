@@ -179,6 +179,7 @@ export default function SolveDetail() {
                   formatChipStrategy(solve.request.chips),
                   formatDifferentialFactor(solve.request.differentialFactor),
                   formatPool(solve.poolKept, solve.poolTotal),
+                  formatOpposingPlay(solve.request.options?.opposingPlay),
                 ]
                   .filter(Boolean)
                   .join(" · ") || "No chips · k 0%"}
@@ -199,7 +200,7 @@ export default function SolveDetail() {
                   ? solve.objective.toFixed(2)
                   : plan
                     ? plan.gameweeks
-                        .reduce((sum, gw, i) => sum + gw.expectedPoints * Math.pow(decayBase, i), 0)
+                        .reduce((sum, gw, i) => sum + (gw.expectedPoints - (gw.opposingPenalty ?? 0)) * Math.pow(decayBase, i), 0)
                         .toFixed(2)
                     : "-"}
               </div>
@@ -298,7 +299,7 @@ export default function SolveDetail() {
 
             {(plan?.gameweeks ?? []).map(gw => (
               <TabsContent key={gw.gameweek} value={`gw-${gw.gameweek}`} className="mt-6 focus-visible:outline-none">
-                <GameweekView plan={gw} booked={bookedByGw.get(gw.gameweek)} />
+                <GameweekView plan={gw} booked={bookedByGw.get(gw.gameweek)} opposingPlay={solve.request.options?.opposingPlay ?? null} />
               </TabsContent>
             ))}
           </Tabs>
@@ -535,6 +536,13 @@ export function formatPool(
   return `Pool ${kept}/${total}`;
 }
 
+/** How the solve handled zero-sum matchups (own GK/DEF vs own MID/FWD). */
+export function formatOpposingPlay(mode?: string | null): string {
+  if (mode === "penalty") return "Zero-sum penalised";
+  if (mode === "forbid") return "Zero-sum forbidden";
+  return "Zero-sum allowed";
+}
+
 /** e.g. "k 20%" when a differential factor was applied. */
 export function formatDifferentialFactor(
   k: number | null | undefined,
@@ -551,7 +559,7 @@ function BookedBadge() {
   );
 }
 
-function GameweekView({ plan, booked }: { plan: GameweekPlan; booked?: { in: Set<string>; out: Set<string> } }) {
+function GameweekView({ plan, booked, opposingPlay }: { plan: GameweekPlan; booked?: { in: Set<string>; out: Set<string> }; opposingPlay: string | null }) {
   const isBookedIn = (name: string) => booked?.in.has(name.toLowerCase()) ?? false;
   const isBookedOut = (name: string) => booked?.out.has(name.toLowerCase()) ?? false;
   const { opponents, fixturesLoading, fixturesError } = useOpponents(plan.gameweek);
@@ -579,6 +587,12 @@ function GameweekView({ plan, booked }: { plan: GameweekPlan; booked?: { in: Set
                 {plan.baseExpectedPoints != null && (
                   <div className="text-sm font-mono text-muted-foreground mt-1">
                     adjusted {plan.expectedPoints.toFixed(2)}
+                  </div>
+                )}
+                {plan.opposingPenalty != null && plan.opposingPenalty > 0 && (
+                  <div className="text-sm font-mono text-amber-700 dark:text-amber-400 mt-1">
+                    clash penalty −{plan.opposingPenalty.toFixed(2)} → objective{" "}
+                    {(plan.expectedPoints - plan.opposingPenalty).toFixed(2)}
                   </div>
                 )}
               </div>
@@ -721,6 +735,40 @@ function GameweekView({ plan, booked }: { plan: GameweekPlan; booked?: { in: Set
             </Table>
           </CardContent>
         </Card>
+
+        {(opposingPlay === "penalty" || opposingPlay === "forbid") && (
+          <div className={`border rounded-lg p-4 text-sm ${(plan.opposingClashes?.length ?? 0) > 0 ? "border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30" : "border bg-muted/20"}`}>
+            <div className="font-semibold flex items-center gap-2 mb-1">
+              <AlertTriangle className={`h-4 w-4 ${(plan.opposingClashes?.length ?? 0) > 0 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"}`} />
+              {opposingPlay === "forbid"
+                ? "Zero-sum matchups: forbidden"
+                : "Zero-sum matchups: discouraged"}
+            </div>
+            {opposingPlay === "forbid" ? (
+              <p className="text-muted-foreground">
+                This solve banned starting a GK/DEF against one of your own starting MID/FWD, so no clashes appear in this XI.
+              </p>
+            ) : (plan.opposingClashes?.length ?? 0) > 0 ? (
+              <div className="space-y-2">
+                <ul className="space-y-1">
+                  {plan.opposingClashes!.map((c, i) => (
+                    <li key={i} className="font-mono text-amber-800 dark:text-amber-300">
+                      {c.defender} ({c.defenderTeam}) vs {c.attacker} ({c.attackerTeam}) · −{c.penalty.toFixed(2)} pts
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-xs text-muted-foreground">
+                  These defender-attacker pairings face each other this gameweek. The penalty is charged once in the optimizer's objective
+                  (adjusted {plan.expectedPoints.toFixed(2)} − {plan.opposingPenalty!.toFixed(2)} = {(plan.expectedPoints - plan.opposingPenalty!).toFixed(2)}) — it does not change any player's Adj xPts. The solver kept these players because they beat the alternatives even after paying the penalty.
+                </p>
+              </div>
+            ) : (
+              <p className="text-muted-foreground">
+                A −0.50 pt objective penalty applied to each starting GK/DEF facing one of your own starting MID/FWD. No clashes were kept in this XI.
+              </p>
+            )}
+          </div>
+        )}
 
         <Card>
           <CardHeader className="border-b bg-muted/10 py-3">

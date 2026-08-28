@@ -463,7 +463,15 @@ export const ListSolvesResponseItem = zod.object({
   "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "transfersIn": zod.array(zod.string()),
-  "transfersOut": zod.array(zod.string())
+  "transfersOut": zod.array(zod.string()),
+  "opposingPenalty": zod.number().nullish().describe('Total points deducted from this gameweek\'s objective for discouraged zero-sum matchups (only set when the solve ran with opposingPlay \"penalty\" and clashes were kept in the XI)'),
+  "opposingClashes": zod.array(zod.object({
+  "defender": zod.string().describe('Starting GK\/DEF caught in the clash'),
+  "defenderTeam": zod.string(),
+  "attacker": zod.string().describe('Starting MID\/FWD facing the defender\'s team'),
+  "attackerTeam": zod.string(),
+  "penalty": zod.number().describe('Points deducted from the objective for this pairing')
+})).optional().describe('Zero-sum starting-XI matchups (own GK\/DEF facing own MID\/FWD) that were penalised in the objective this gameweek')
 })),
   "alternatives": zod.array(zod.object({
   "totalExpectedPoints": zod.number(),
@@ -502,7 +510,15 @@ export const ListSolvesResponseItem = zod.object({
   "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "transfersIn": zod.array(zod.string()),
-  "transfersOut": zod.array(zod.string())
+  "transfersOut": zod.array(zod.string()),
+  "opposingPenalty": zod.number().nullish().describe('Total points deducted from this gameweek\'s objective for discouraged zero-sum matchups (only set when the solve ran with opposingPlay \"penalty\" and clashes were kept in the XI)'),
+  "opposingClashes": zod.array(zod.object({
+  "defender": zod.string().describe('Starting GK\/DEF caught in the clash'),
+  "defenderTeam": zod.string(),
+  "attacker": zod.string().describe('Starting MID\/FWD facing the defender\'s team'),
+  "attackerTeam": zod.string(),
+  "penalty": zod.number().describe('Points deducted from the objective for this pairing')
+})).optional().describe('Zero-sum starting-XI matchups (own GK\/DEF facing own MID\/FWD) that were penalised in the objective this gameweek')
 }))
 })).nullish().describe('Alternative plans from multi-iteration solves (the main plan is not repeated)')
 }),zod.null()]).optional(),
@@ -703,7 +719,15 @@ export const CreateSolveResponse = zod.object({
   "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "transfersIn": zod.array(zod.string()),
-  "transfersOut": zod.array(zod.string())
+  "transfersOut": zod.array(zod.string()),
+  "opposingPenalty": zod.number().nullish().describe('Total points deducted from this gameweek\'s objective for discouraged zero-sum matchups (only set when the solve ran with opposingPlay \"penalty\" and clashes were kept in the XI)'),
+  "opposingClashes": zod.array(zod.object({
+  "defender": zod.string().describe('Starting GK\/DEF caught in the clash'),
+  "defenderTeam": zod.string(),
+  "attacker": zod.string().describe('Starting MID\/FWD facing the defender\'s team'),
+  "attackerTeam": zod.string(),
+  "penalty": zod.number().describe('Points deducted from the objective for this pairing')
+})).optional().describe('Zero-sum starting-XI matchups (own GK\/DEF facing own MID\/FWD) that were penalised in the objective this gameweek')
 })),
   "alternatives": zod.array(zod.object({
   "totalExpectedPoints": zod.number(),
@@ -742,7 +766,15 @@ export const CreateSolveResponse = zod.object({
   "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "transfersIn": zod.array(zod.string()),
-  "transfersOut": zod.array(zod.string())
+  "transfersOut": zod.array(zod.string()),
+  "opposingPenalty": zod.number().nullish().describe('Total points deducted from this gameweek\'s objective for discouraged zero-sum matchups (only set when the solve ran with opposingPlay \"penalty\" and clashes were kept in the XI)'),
+  "opposingClashes": zod.array(zod.object({
+  "defender": zod.string().describe('Starting GK\/DEF caught in the clash'),
+  "defenderTeam": zod.string(),
+  "attacker": zod.string().describe('Starting MID\/FWD facing the defender\'s team'),
+  "attackerTeam": zod.string(),
+  "penalty": zod.number().describe('Points deducted from the objective for this pairing')
+})).optional().describe('Zero-sum starting-XI matchups (own GK\/DEF facing own MID\/FWD) that were penalised in the objective this gameweek')
 }))
 })).nullish().describe('Alternative plans from multi-iteration solves (the main plan is not repeated)')
 }),zod.null()]).optional(),
@@ -1057,7 +1089,15 @@ export const GetSolveResponse = zod.object({
   "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "transfersIn": zod.array(zod.string()),
-  "transfersOut": zod.array(zod.string())
+  "transfersOut": zod.array(zod.string()),
+  "opposingPenalty": zod.number().nullish().describe('Total points deducted from this gameweek\'s objective for discouraged zero-sum matchups (only set when the solve ran with opposingPlay \"penalty\" and clashes were kept in the XI)'),
+  "opposingClashes": zod.array(zod.object({
+  "defender": zod.string().describe('Starting GK\/DEF caught in the clash'),
+  "defenderTeam": zod.string(),
+  "attacker": zod.string().describe('Starting MID\/FWD facing the defender\'s team'),
+  "attackerTeam": zod.string(),
+  "penalty": zod.number().describe('Points deducted from the objective for this pairing')
+})).optional().describe('Zero-sum starting-XI matchups (own GK\/DEF facing own MID\/FWD) that were penalised in the objective this gameweek')
 })),
   "alternatives": zod.array(zod.object({
   "totalExpectedPoints": zod.number(),
@@ -1096,7 +1136,15 @@ export const GetSolveResponse = zod.object({
   "ownership": zod.number().nullish().describe('Ownership percentage from the projection file, when available')
 })),
   "transfersIn": zod.array(zod.string()),
-  "transfersOut": zod.array(zod.string())
+  "transfersOut": zod.array(zod.string()),
+  "opposingPenalty": zod.number().nullish().describe('Total points deducted from this gameweek\'s objective for discouraged zero-sum matchups (only set when the solve ran with opposingPlay \"penalty\" and clashes were kept in the XI)'),
+  "opposingClashes": zod.array(zod.object({
+  "defender": zod.string().describe('Starting GK\/DEF caught in the clash'),
+  "defenderTeam": zod.string(),
+  "attacker": zod.string().describe('Starting MID\/FWD facing the defender\'s team'),
+  "attackerTeam": zod.string(),
+  "penalty": zod.number().describe('Points deducted from the objective for this pairing')
+})).optional().describe('Zero-sum starting-XI matchups (own GK\/DEF facing own MID\/FWD) that were penalised in the objective this gameweek')
 }))
 })).nullish().describe('Alternative plans from multi-iteration solves (the main plan is not repeated)')
 }),zod.null()]).optional(),

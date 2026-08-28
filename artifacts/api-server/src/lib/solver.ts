@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { logger } from "./logger";
 import { parseCsv } from "./csv";
-import { getFplTeam } from "./fpl";
+import { getFplTeam, getFixtures, type FixtureInfo } from "./fpl";
 import {
   RUNS_DIR,
   SOLVER_DATA_DIR,
@@ -677,6 +677,73 @@ export function applyOpposingPlay(
   }
 }
 
+/**
+ * Objective cost of one kept defender-attacker clash under opposingPlay
+ * "penalty": the solver charges opposing_play_penalty (0.25) for each of the
+ * two directed forms of the pair, so one real clash costs 0.5 points.
+ */
+export const OPPOSING_CLASH_PENALTY = 0.5;
+
+/**
+ * Annotate each gameweek of a plan with the zero-sum matchups (own starting
+ * GK/DEF facing own starting MID/FWD in the same gameweek) that the solver
+ * penalised in its objective, and the total deduction. Team names from the
+ * solver CSV may be short codes or full names, so fixtures are matched on
+ * both.
+ */
+export function annotateOpposingClashes(
+  plan: SolvePlan,
+  fixtures: FixtureInfo[],
+): void {
+  const canonByGw = new Map<number, Map<string, string>>();
+  const pairsByGw = new Map<number, Set<string>>();
+  for (const f of fixtures) {
+    if (f.gameweek == null) continue;
+    let canon = canonByGw.get(f.gameweek);
+    let pairs = pairsByGw.get(f.gameweek);
+    if (!canon) canonByGw.set(f.gameweek, (canon = new Map()));
+    if (!pairs) pairsByGw.set(f.gameweek, (pairs = new Set()));
+    canon.set(f.home, f.home);
+    canon.set(f.away, f.away);
+    canon.set(f.homeName, f.home);
+    canon.set(f.awayName, f.away);
+    pairs.add(`${f.home}|${f.away}`);
+    pairs.add(`${f.away}|${f.home}`);
+  }
+  for (const gw of plan.gameweeks) {
+    const canon = canonByGw.get(gw.gameweek);
+    const pairs = pairsByGw.get(gw.gameweek);
+    if (!canon || !pairs) continue;
+    const defenders = gw.lineup.filter(
+      (p) => p.position === "G" || p.position === "D",
+    );
+    const attackers = gw.lineup.filter(
+      (p) => p.position === "M" || p.position === "F",
+    );
+    const clashes = [];
+    for (const d of defenders) {
+      for (const a of attackers) {
+        const dt = canon.get(d.team);
+        const at = canon.get(a.team);
+        if (dt && at && pairs.has(`${dt}|${at}`)) {
+          clashes.push({
+            defender: d.name,
+            defenderTeam: d.team,
+            attacker: a.name,
+            attackerTeam: a.team,
+            penalty: OPPOSING_CLASH_PENALTY,
+          });
+        }
+      }
+    }
+    if (clashes.length > 0) {
+      gw.opposingClashes = clashes;
+      gw.opposingPenalty =
+        Math.round(clashes.length * OPPOSING_CLASH_PENALTY * 100) / 100;
+    }
+  }
+}
+
 const MAX_SOLVE_SECS = 30 * 60;
 
 /** Child-process timeout: the solver's own (capped) time limit plus headroom. */
@@ -864,6 +931,20 @@ export async function startSolve(
       if (request.firstGameweek) {
         for (const p of [result, ...(result.alternatives ?? [])]) {
           if (p.gameweeks.length > 0) p.gameweeks[0]!.transfersIn = [];
+        }
+      }
+
+      // With opposingPlay "penalty", surface any zero-sum matchups the
+      // solver kept (and paid for) so the UI can explain the deduction.
+      if (request.options?.opposingPlay === "penalty") {
+        try {
+          const fixtures = await getFixtures();
+          for (const p of [result, ...(result.alternatives ?? [])]) {
+            annotateOpposingClashes(p, fixtures);
+          }
+        } catch (err) {
+          // FPL unreachable — skip the annotation rather than fail the run.
+          logger.warn({ err, runId }, "Could not annotate opposing clashes");
         }
       }
 

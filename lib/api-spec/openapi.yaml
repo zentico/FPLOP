@@ -1354,6 +1354,36 @@ components:
           type: array
           items:
             type: string
+        opposingPenalty:
+          type: ["number", "null"]
+          description: >-
+            Total points deducted from this gameweek's objective for
+            discouraged zero-sum matchups (only set when the solve ran with
+            opposingPlay "penalty" and clashes were kept in the XI)
+        opposingClashes:
+          type: array
+          items:
+            $ref: "#/components/schemas/OpposingClash"
+          description: >-
+            Zero-sum starting-XI matchups (own GK/DEF facing own MID/FWD)
+            that were penalised in the objective this gameweek
+    OpposingClash:
+      type: object
+      required: [defender, defenderTeam, attacker, attackerTeam, penalty]
+      properties:
+        defender:
+          type: string
+          description: Starting GK/DEF caught in the clash
+        defenderTeam:
+          type: string
+        attacker:
+          type: string
+          description: Starting MID/FWD facing the defender's team
+        attackerTeam:
+          type: string
+        penalty:
+          type: number
+          description: Points deducted from the objective for this pairing
     PickPlayer:
       type: object
       required: [name, team, position, price, expectedPoints, isCaptain, isViceCaptain]

@@ -137,6 +137,16 @@ export interface PickPlayer {
   ownership?: number | null;
 }
 
+/** A penalised zero-sum matchup: own GK/DEF facing own starting MID/FWD. */
+export interface OpposingClash {
+  defender: string;
+  defenderTeam: string;
+  attacker: string;
+  attackerTeam: string;
+  /** Points deducted from the objective for this pairing. */
+  penalty: number;
+}
+
 export interface GameweekPlan {
   gameweek: number;
   chip?: string | null;
@@ -149,6 +159,14 @@ export interface GameweekPlan {
   bench: PickPlayer[];
   transfersIn: string[];
   transfersOut: string[];
+  /**
+   * Total objective deduction for discouraged zero-sum matchups this
+   * gameweek. Only set when the solve ran with opposingPlay "penalty" and
+   * clashes were kept in the XI; omitted otherwise.
+   */
+  opposingPenalty?: number | null;
+  /** The penalised matchups behind opposingPenalty. */
+  opposingClashes?: OpposingClash[];
 }
 
 export interface SolvePlan {

@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { OpposingClash } from './opposingClash';
 import type { PickPlayer } from './pickPlayer';
 
 export interface GameweekPlan {
@@ -31,4 +32,11 @@ export interface GameweekPlan {
   bench: PickPlayer[];
   transfersIn: string[];
   transfersOut: string[];
+  /**
+     * Total points deducted from this gameweek's objective for discouraged zero-sum matchups (only set when the solve ran with opposingPlay "penalty" and clashes were kept in the XI)
+     * @nullable
+     */
+  opposingPenalty?: number | null;
+  /** Zero-sum starting-XI matchups (own GK/DEF facing own MID/FWD) that were penalised in the objective this gameweek */
+  opposingClashes?: OpposingClash[];
 }

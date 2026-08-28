@@ -447,6 +447,17 @@ export interface PickPlayer {
   ownership?: number | null;
 }
 
+export interface OpposingClash {
+  /** Starting GK/DEF caught in the clash */
+  defender: string;
+  defenderTeam: string;
+  /** Starting MID/FWD facing the defender's team */
+  attacker: string;
+  attackerTeam: string;
+  /** Points deducted from the objective for this pairing */
+  penalty: number;
+}
+
 export interface GameweekPlan {
   gameweek: number;
   /**
@@ -471,6 +482,13 @@ export interface GameweekPlan {
   bench: PickPlayer[];
   transfersIn: string[];
   transfersOut: string[];
+  /**
+     * Total points deducted from this gameweek's objective for discouraged zero-sum matchups (only set when the solve ran with opposingPlay "penalty" and clashes were kept in the XI)
+     * @nullable
+     */
+  opposingPenalty?: number | null;
+  /** Zero-sum starting-XI matchups (own GK/DEF facing own MID/FWD) that were penalised in the objective this gameweek */
+  opposingClashes?: OpposingClash[];
 }
 
 export interface SolvePlan {

@@ -28,6 +28,7 @@ export * from './healthStatus';
 export * from './importProjectionInput';
 export * from './megaRun';
 export * from './megaScenario';
+export * from './opposingClash';
 export * from './pickPlayer';
 export * from './playedChip';
 export * from './poolFilter';
