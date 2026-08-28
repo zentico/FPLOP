@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { getSeasonName } from "./fpl";
+import { getBootstrap, getSeasonName } from "./fpl";
 import { STORE_DIR } from "./paths";
 import {
   buildCanonicalCsv,
@@ -17,6 +17,19 @@ const UA =
 
 export class FfhSessionError extends Error {}
 export class FfhUpstreamError extends Error {}
+
+/** FFH may report effective ownership (>100%); always prefer official FPL selection %. */
+export function ffhImportOwnership(
+  _ffhOwnership: number | null,
+  officialOwnership: number | undefined,
+): number {
+  return officialOwnership != null &&
+    Number.isFinite(officialOwnership) &&
+    officialOwnership >= 0 &&
+    officialOwnership <= 100
+    ? officialOwnership
+    : 0;
+}
 
 const POS_MAP: Record<string, string> = {
   GK: "G",
@@ -170,7 +183,21 @@ export async function fetchFfhRows(
     );
   }
   const token = await fetchAccessToken(cookie);
-  const players = await fetchAllPlayers(token, minGameweek, maxGameweek);
+  const [players, bootstrap] = await Promise.all([
+    fetchAllPlayers(token, minGameweek, maxGameweek),
+    getBootstrap(),
+  ]);
+  // FFH's ownership field can be effective ownership, which includes
+  // captaincy and can exceed 100%. The optimizer's differential adjustment
+  // needs ordinary squad ownership, so use official FPL selection percentage.
+  const officialOwnership = new Map(
+    bootstrap.elements.map((p) => [
+      p.id,
+      Number.isFinite(Number(p.selected_by_percent))
+        ? Number(p.selected_by_percent)
+        : 0,
+    ]),
+  );
 
   const rows: CanonicalPlayerRow[] = [];
   const seen = new Set<number>();
@@ -195,7 +222,10 @@ export async function fetchFfhRows(
       position: pos,
       team: p.team?.shortName ?? "",
       price: p.price ?? 0,
-      ownership: p.ownership ?? 0,
+      ownership: ffhImportOwnership(
+        p.ownership,
+        officialOwnership.get(fplId),
+      ),
       byGameweek: byGw,
     });
   }

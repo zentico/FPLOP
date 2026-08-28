@@ -5,6 +5,7 @@ interface BootstrapElement {
   web_name: string;
   first_name?: string;
   second_name?: string;
+  selected_by_percent: string;
   team: number;
   element_type: number;
   now_cost: number;
