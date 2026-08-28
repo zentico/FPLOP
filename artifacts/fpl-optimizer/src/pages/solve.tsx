@@ -445,11 +445,17 @@ function useOpponents(gameweek: number): { opponents: Map<string, FixtureChip[]>
 }
 
 /**
- * Names of starting-XI players caught in a "zero-sum" matchup this gameweek:
- * a GK/DEF whose team faces the team of one of your own starting MID/FWD.
- * Points one side earns (goals) directly cost the other side (clean sheet).
+ * Actual starting-XI zero-sum clashes plus bench players who would create one
+ * against a current starter if brought into the XI.
  */
-function useZeroSumClashes(gameweek: number, lineup: PickPlayer[]): Set<string> {
+function useZeroSumClashes(
+  gameweek: number,
+  lineup: PickPlayer[],
+  bench: PickPlayer[],
+): {
+  lineupClashes: Set<string>;
+  benchClashes: Map<string, string[]>;
+} {
   const { data: fixtures } = useListFixtures();
   return React.useMemo(() => {
     const canon = new Map<string, string>();
@@ -463,21 +469,41 @@ function useZeroSumClashes(gameweek: number, lineup: PickPlayer[]): Set<string> 
       pairs.add(`${f.home}|${f.away}`);
       pairs.add(`${f.away}|${f.home}`);
     }
-    const clashes = new Set<string>();
+    const lineupClashes = new Set<string>();
+    const benchClashes = new Map<string, string[]>();
     const defenders = lineup.filter((p) => p.position === "G" || p.position === "D");
     const attackers = lineup.filter((p) => p.position === "M" || p.position === "F");
+    const teamsFaceEachOther = (first: PickPlayer, second: PickPlayer) => {
+      const firstTeam = canon.get(first.team);
+      const secondTeam = canon.get(second.team);
+      return !!(
+        firstTeam &&
+        secondTeam &&
+        pairs.has(`${firstTeam}|${secondTeam}`)
+      );
+    };
     for (const d of defenders) {
       for (const a of attackers) {
-        const dt = canon.get(d.team);
-        const at = canon.get(a.team);
-        if (dt && at && pairs.has(`${dt}|${at}`)) {
-          clashes.add(d.name);
-          clashes.add(a.name);
+        if (teamsFaceEachOther(d, a)) {
+          lineupClashes.add(d.name);
+          lineupClashes.add(a.name);
         }
       }
     }
-    return clashes;
-  }, [fixtures, gameweek, lineup]);
+    for (const player of bench) {
+      const opposingStarters =
+        player.position === "G" || player.position === "D"
+          ? attackers.filter((starter) => teamsFaceEachOther(player, starter))
+          : defenders.filter((starter) => teamsFaceEachOther(player, starter));
+      if (opposingStarters.length > 0) {
+        benchClashes.set(
+          player.name,
+          opposingStarters.map((starter) => starter.name),
+        );
+      }
+    }
+    return { lineupClashes, benchClashes };
+  }, [fixtures, gameweek, lineup, bench]);
 }
 
 function FixtureCell({ chips, fixturesLoading, fixturesError }: {
@@ -631,7 +657,11 @@ function GameweekView({
   const transferStats = (name: string) =>
     transferStatsByName.get(normalizedPlayerName(name));
   const { opponents, fixturesLoading, fixturesError } = useOpponents(plan.gameweek);
-  const zeroSumClashes = useZeroSumClashes(plan.gameweek, plan.lineup);
+  const { lineupClashes, benchClashes } = useZeroSumClashes(
+    plan.gameweek,
+    plan.lineup,
+    plan.bench,
+  );
   const transfersInSet = React.useMemo(
     () => new Set(plan.transfersIn),
     [plan.transfersIn],
@@ -782,7 +812,7 @@ function GameweekView({
                   const players = plan.lineup.filter(p => p.position === pos);
                   return players.map((player, idx) => {
                     const isTransferIn = transfersInSet.has(player.name);
-                    const isClash = zeroSumClashes.has(player.name);
+                    const isClash = lineupClashes.has(player.name);
                     const isBooked = isBookedIn(player.name);
                     return (
                       <TableRow key={`${pos}-${idx}`} className={`group hover:bg-muted/30 ${isBooked ? "bg-violet-100/60 dark:bg-violet-900/25" : isClash ? "bg-amber-100/60 dark:bg-amber-900/25" : isTransferIn ? "bg-primary/8 dark:bg-primary/12" : ""}`}>
@@ -887,8 +917,10 @@ function GameweekView({
                 {[...plan.bench].sort((a, b) => (a.benchOrder ?? 99) - (b.benchOrder ?? 99)).map((player) => {
                   const isTransferIn = transfersInSet.has(player.name);
                   const isBooked = isBookedIn(player.name);
+                  const clashingStarters = benchClashes.get(player.name);
+                  const isClash = !!clashingStarters;
                   return (
-                    <TableRow key={player.name} className={`transition-opacity hover:opacity-100 ${isBooked ? "opacity-90 bg-violet-100/60 dark:bg-violet-900/25" : isTransferIn ? "opacity-90 bg-primary/8 dark:bg-primary/12" : "opacity-70"}`}>
+                    <TableRow key={player.name} className={`transition-opacity hover:opacity-100 ${isBooked ? "opacity-90 bg-violet-100/60 dark:bg-violet-900/25" : isClash ? "opacity-90 bg-amber-100/60 dark:bg-amber-900/25" : isTransferIn ? "opacity-90 bg-primary/8 dark:bg-primary/12" : "opacity-70"}`}>
                       <TableCell className="w-12 text-center font-mono text-xs border-r bg-muted/10">
                         {player.benchOrder === 0 ? 'GK' : player.benchOrder}
                       </TableCell>
@@ -898,6 +930,15 @@ function GameweekView({
                           {player.name}
                           {isBooked && <BookedBadge />}
                           {isTransferIn && <Badge className="px-1.5 py-0 h-5 text-[10px] bg-primary/20 text-primary border border-primary/30" variant="outline">IN</Badge>}
+                          {isClash && (
+                            <Badge
+                              variant="outline"
+                              className="px-1.5 py-0 h-5 text-[10px] border-amber-500 text-amber-700 dark:text-amber-400"
+                              title={`Would create a zero-sum matchup with ${clashingStarters!.join(", ")} if started`}
+                            >
+                              zero-sum
+                            </Badge>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{player.team}</TableCell>
