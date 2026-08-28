@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { useLocation, useParams } from "wouter";
-import { useGetSolve, useDeleteSolve, useListFixtures, useGetProjectionPoolStats, getGetProjectionPoolStatsQueryKey } from "@workspace/api-client-react";
+import { useGetSolve, useDeleteSolve, useListFixtures, useGetProjectionPoolStats, getGetProjectionPoolStatsQueryKey, useListProjections } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,9 @@ export default function SolveDetail() {
     (bt) => (bt.in && /^\d+$/.test(bt.in.trim())) || (bt.out && /^\d+$/.test(bt.out.trim())),
   );
   const projectionId = solve?.request?.projectionId;
+  const { data: projections } = useListProjections();
+  const projectionGameweeks =
+    projections?.find((projection) => projection.id === projectionId)?.gameweeks ?? [];
   const { data: poolStats } = useGetProjectionPoolStats(projectionId!, {
     query: {
       enabled:
@@ -304,6 +307,7 @@ export default function SolveDetail() {
                   booked={bookedByGw.get(gw.gameweek)}
                   opposingPlay={solve.request.options?.opposingPlay ?? null}
                   playerStats={poolStats}
+                  projectionGameweeks={projectionGameweeks}
                 />
               </TabsContent>
             ))}
@@ -589,33 +593,43 @@ function GameweekView({
   booked,
   opposingPlay,
   playerStats,
+  projectionGameweeks,
 }: {
   plan: GameweekPlan;
   booked?: { in: Set<string>; out: Set<string> };
   opposingPlay: string | null;
   playerStats?: PoolPlayerStat[];
+  projectionGameweeks: number[];
 }) {
   const isBookedIn = (name: string) => booked?.in.has(name.toLowerCase()) ?? false;
   const isBookedOut = (name: string) => booked?.out.has(name.toLowerCase()) ?? false;
-  const pricesByName = React.useMemo(() => {
-    const candidates = new Map<string, number[]>();
+  const transferStatsByName = React.useMemo(() => {
+    const gameweekIndex = projectionGameweeks.indexOf(plan.gameweek);
+    const candidates = new Map<string, { price: number; basePoints?: number }[]>();
     for (const player of playerStats ?? []) {
       for (const alias of playerNameAliases(player.name)) {
-        const prices = candidates.get(alias) ?? [];
-        prices.push(player.price);
-        candidates.set(alias, prices);
+        const matches = candidates.get(alias) ?? [];
+        matches.push({
+          price: player.price,
+          basePoints: gameweekIndex >= 0 ? player.gwPoints[gameweekIndex] : undefined,
+        });
+        candidates.set(alias, matches);
       }
     }
-    const prices = new Map<string, number>();
+    const stats = new Map<string, { price: number; basePoints?: number }>();
     for (const [alias, matches] of candidates) {
-      if (matches.length === 1) prices.set(alias, matches[0]!);
+      if (matches.length === 1) stats.set(alias, matches[0]!);
     }
     for (const player of [...plan.lineup, ...plan.bench]) {
-      prices.set(normalizedPlayerName(player.name), player.price);
+      stats.set(normalizedPlayerName(player.name), {
+        price: player.price,
+        basePoints: player.basePoints ?? player.expectedPoints,
+      });
     }
-    return prices;
-  }, [plan.lineup, plan.bench, playerStats]);
-  const transferPrice = (name: string) => pricesByName.get(normalizedPlayerName(name));
+    return stats;
+  }, [plan.gameweek, plan.lineup, plan.bench, playerStats, projectionGameweeks]);
+  const transferStats = (name: string) =>
+    transferStatsByName.get(normalizedPlayerName(name));
   const { opponents, fixturesLoading, fixturesError } = useOpponents(plan.gameweek);
   const zeroSumClashes = useZeroSumClashes(plan.gameweek, plan.lineup);
   const transfersInSet = React.useMemo(
@@ -696,7 +710,9 @@ function GameweekView({
                           <span className="font-medium text-destructive">{name}</span>
                           <span className="flex items-center gap-2">
                             <span className="font-mono text-muted-foreground">
-                              {transferPrice(name) != null ? `£${transferPrice(name)!.toFixed(1)}` : "£—"}
+                              {transferStats(name)
+                                ? `£${transferStats(name)!.price.toFixed(1)} · ${transferStats(name)!.basePoints?.toFixed(2) ?? "—"} xPts`
+                                : "£— · — xPts"}
                             </span>
                             {isBookedOut(name) && <BookedBadge />}
                           </span>
@@ -715,7 +731,9 @@ function GameweekView({
                           <span className="font-medium text-primary">{name}</span>
                           <span className="flex items-center gap-2">
                             <span className="font-mono text-muted-foreground">
-                              {transferPrice(name) != null ? `£${transferPrice(name)!.toFixed(1)}` : "£—"}
+                              {transferStats(name)
+                                ? `£${transferStats(name)!.price.toFixed(1)} · ${transferStats(name)!.basePoints?.toFixed(2) ?? "—"} xPts`
+                                : "£— · — xPts"}
                             </span>
                             {isBookedIn(name) && <BookedBadge />}
                           </span>
