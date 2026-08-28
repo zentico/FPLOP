@@ -47,3 +47,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Runtime projection/session data (may contain authenticated provider sessions)
+/solver/store/
