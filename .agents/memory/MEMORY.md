@@ -4,3 +4,4 @@
 - [Orval param naming](orval-param-naming.md) — mixing path+query params on one operation makes orval emit two `<Op>Params` exports and codegen fails; use path params instead.
 - [Pundit feed](pundit-feed.md) — site is captcha-blocked; use its published Google Sheet CSV; GW2..GW6 columns are horizon-relative; validate via NextKGWsStart cumulatives.
 - [FFH predictions import](ffh-import.md) — password login is captcha-blocked; use user's appSession cookie → /auth/access-token → public-api /league/players (paginate with `after`, limit≤100).
+- [FantaLens feed](fantalens-feed.md) — Inertia JSON protocol (version handshake), dash-separated `gw` param, per_page≤100, null expected_minutes = 0; projection metas must omit (not null) absent optional fields.

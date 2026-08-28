@@ -617,7 +617,7 @@ components:
       properties:
         source:
           type: string
-          description: External source id, "ffh" (Fantasy Football Hub), "drafthound" (DraftHound), "pundit" (Fantasy Football Pundit assume-starting points), or "pundit-ffh" (Pundit points × FFH expected minutes hybrid).
+          description: External source id, "ffh" (Fantasy Football Hub), "drafthound" (DraftHound), "pundit" (Fantasy Football Pundit assume-starting points), "pundit-ffh" (Pundit points × FFH expected minutes hybrid), or "fantalens" (FantaLens public expected points and minutes).
         maxGameweeks:
           type: number
           minimum: 1

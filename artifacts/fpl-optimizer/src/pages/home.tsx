@@ -235,7 +235,7 @@ export default function Home() {
     reader.readAsText(file);
   };
 
-  const handleImport = (source: "ffh" | "drafthound" | "pundit" | "pundit-ffh") => {
+  const handleImport = (source: "ffh" | "drafthound" | "pundit" | "pundit-ffh" | "fantalens") => {
     importMutation.mutate({ data: { source } }, {
       onSuccess: (data) => {
         queryClient.invalidateQueries({ queryKey: getListProjectionsQueryKey() });
@@ -576,6 +576,18 @@ export default function Home() {
                     </div>
                     <Button className="w-full sm:w-auto shrink-0" onClick={() => handleImport("pundit")} disabled={importMutation.isPending} variant="secondary">
                       {importMutation.isPending ? "Importing…" : "Import Pundit predictions"}
+                    </Button>
+                  </div>
+                  <div className="border-2 border-dashed border-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-muted/30 transition-colors">
+                    <DownloadCloud className="h-8 w-8 shrink-0 text-primary" />
+                    <div className="min-w-0 flex-1 text-left">
+                      <p className="text-sm font-medium mb-1">FantaLens</p>
+                      <p className="text-xs text-muted-foreground">
+                        Import FantaLens' free public expected points and expected minutes for its full published horizon. Uses official FPL player ids directly; double-gameweek fixtures are summed. No account needed.
+                      </p>
+                    </div>
+                    <Button className="w-full sm:w-auto shrink-0" onClick={() => handleImport("fantalens")} disabled={importMutation.isPending} variant="secondary">
+                      {importMutation.isPending ? "Importing…" : "Import FantaLens predictions"}
                     </Button>
                   </div>
                   <div className="border-2 border-dashed border-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-muted/30 transition-colors">

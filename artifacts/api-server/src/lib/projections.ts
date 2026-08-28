@@ -79,6 +79,8 @@ export function saveProjectionSnapshot(args: {
 }): ProjectionMeta {
   const id = newId();
   fs.writeFileSync(projectionCsvPath(id), args.csv);
+  // Absent optional fields are omitted (not stored as null): the API's
+  // response schemas treat them as optional, and null would fail validation.
   const meta: ProjectionMeta = {
     id,
     filename: args.filename,
@@ -87,9 +89,13 @@ export function saveProjectionSnapshot(args: {
     gameweeks: args.gameweeks,
     source: args.source,
     sourceLabel: args.sourceLabel,
-    sourceUpdatedAt: args.sourceUpdatedAt ?? null,
-    season: args.season ?? null,
-    sourcePlayerCount: args.sourcePlayerCount ?? null,
+    ...(args.sourceUpdatedAt != null
+      ? { sourceUpdatedAt: args.sourceUpdatedAt }
+      : {}),
+    ...(args.season != null ? { season: args.season } : {}),
+    ...(args.sourcePlayerCount != null
+      ? { sourcePlayerCount: args.sourcePlayerCount }
+      : {}),
   };
   const metas = listProjectionMetas();
   metas.unshift(meta);

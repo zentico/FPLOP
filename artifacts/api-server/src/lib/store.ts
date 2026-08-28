@@ -215,7 +215,21 @@ function writeJson(file: string, data: unknown): void {
 }
 
 export function listProjectionMetas(): ProjectionMeta[] {
-  return readJson<ProjectionMeta[]>(PROJECTIONS_FILE, []);
+  const metas = readJson<ProjectionMeta[]>(PROJECTIONS_FILE, []);
+  // Legacy metas stored absent optional fields as null; the API's response
+  // schemas expect them to be omitted instead, so strip nulls on read.
+  for (const m of metas) {
+    for (const k of [
+      "source",
+      "sourceLabel",
+      "sourceUpdatedAt",
+      "season",
+      "sourcePlayerCount",
+    ] as const) {
+      if (m[k] === null) delete m[k];
+    }
+  }
+  return metas;
 }
 
 export function saveProjectionMetas(metas: ProjectionMeta[]): void {
