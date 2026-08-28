@@ -651,7 +651,7 @@ components:
     AccuracyEntry:
       type: object
       required:
-        [source, sourceLabel, season, gameweek, projectionId, projectionFilename, snapshotAt, sampleSize, coverage, mae, rmse, bias]
+        [source, sourceLabel, season, gameweek, projectionId, projectionFilename, snapshotAt, sampleSize, coverage, mae, rmse, bias, arpm]
       properties:
         source:
           type: string
@@ -685,6 +685,9 @@ components:
           type: number
           nullable: true
           description: Pearson correlation between predicted and actual points
+        arpm:
+          type: number
+          description: 100 times the mean absolute predicted-vs-actual percentile-rank miss; lower is better
     AccuracyMiss:
       type: object
       required: [playerId, name, team, position, predicted, actual, error]

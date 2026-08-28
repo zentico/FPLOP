@@ -70,16 +70,17 @@ export default function AccuracyPage() {
   const summary = React.useMemo(() => {
     const by = new Map<
       string,
-      { label: string; n: number; mae: number; rmse2: number; bias: number; gws: Set<number> }
+      { label: string; n: number; mae: number; rmse2: number; bias: number; arpm: number; gws: Set<number> }
     >();
     for (const e of filtered) {
       const s = by.get(e.source) ?? {
-        label: e.sourceLabel, n: 0, mae: 0, rmse2: 0, bias: 0, gws: new Set<number>(),
+        label: e.sourceLabel, n: 0, mae: 0, rmse2: 0, bias: 0, arpm: 0, gws: new Set<number>(),
       };
       s.n += e.sampleSize;
       s.mae += e.mae * e.sampleSize;
       s.rmse2 += e.rmse * e.rmse * e.sampleSize;
       s.bias += e.bias * e.sampleSize;
+      s.arpm += e.arpm * e.sampleSize;
       s.gws.add(e.gameweek);
       by.set(e.source, s);
     }
@@ -92,8 +93,9 @@ export default function AccuracyPage() {
         mae: s.n ? s.mae / s.n : 0,
         rmse: s.n ? Math.sqrt(s.rmse2 / s.n) : 0,
         bias: s.n ? s.bias / s.n : 0,
+        arpm: s.n ? s.arpm / s.n : 0,
       }))
-      .sort((a, b) => a.mae - b.mae);
+      .sort((a, b) => a.arpm - b.arpm);
   }, [filtered]);
 
   const handleRefresh = () => {
@@ -173,8 +175,10 @@ export default function AccuracyPage() {
                 Source Summary
               </CardTitle>
               <CardDescription>
-                Sample-weighted averages over the selected gameweeks. Lower MAE/RMSE is better;
-                bias &gt; 0 means the source over-predicts.
+                Sample-weighted averages over the selected gameweeks. Lower ARPM, MAE, and RMSE
+                are better; bias &gt; 0 means the source over-predicts. ARPM is 100 × the average
+                absolute percentile-rank miss, with actual ranks taken across every official FPL
+                player so incomplete prediction sets are penalized.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -184,6 +188,7 @@ export default function AccuracyPage() {
                     <TableHead>Source</TableHead>
                     <TableHead className="text-right">GWs</TableHead>
                     <TableHead className="text-right">Players</TableHead>
+                    <TableHead className="text-right">ARPM</TableHead>
                     <TableHead className="text-right">MAE</TableHead>
                     <TableHead className="text-right">RMSE</TableHead>
                     <TableHead className="text-right">Bias</TableHead>
@@ -195,6 +200,7 @@ export default function AccuracyPage() {
                       <TableCell className="font-semibold">{s.label}</TableCell>
                       <TableCell className="text-right font-mono">{s.gameweeks}</TableCell>
                       <TableCell className="text-right font-mono">{s.sampleSize}</TableCell>
+                      <TableCell className="text-right font-mono font-semibold">{fmt(s.arpm)}</TableCell>
                       <TableCell className="text-right font-mono">{fmt(s.mae)}</TableCell>
                       <TableCell className="text-right font-mono">{fmt(s.rmse)}</TableCell>
                       <TableCell className="text-right font-mono">{s.bias > 0 ? "+" : ""}{fmt(s.bias)}</TableCell>
@@ -223,6 +229,7 @@ export default function AccuracyPage() {
                     <TableHead>Snapshot</TableHead>
                     <TableHead className="text-right">Players</TableHead>
                     <TableHead className="text-right">Coverage</TableHead>
+                    <TableHead className="text-right">ARPM</TableHead>
                     <TableHead className="text-right">MAE</TableHead>
                     <TableHead className="text-right">RMSE</TableHead>
                     <TableHead className="text-right">Bias</TableHead>
@@ -247,6 +254,7 @@ export default function AccuracyPage() {
                           {(e.coverage * 100).toFixed(0)}%
                         </span>
                       </TableCell>
+                      <TableCell className="text-right font-mono font-semibold">{fmt(e.arpm)}</TableCell>
                       <TableCell className="text-right font-mono">{fmt(e.mae)}</TableCell>
                       <TableCell className="text-right font-mono">{fmt(e.rmse)}</TableCell>
                       <TableCell className="text-right font-mono">{e.bias > 0 ? "+" : ""}{fmt(e.bias)}</TableCell>

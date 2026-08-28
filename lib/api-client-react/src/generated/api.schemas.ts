@@ -90,6 +90,8 @@ export interface AccuracyEntry {
   bias: number;
   /** Pearson correlation between predicted and actual points */
   correlation?: number | null;
+  /** 100 times the mean absolute predicted-vs-actual percentile-rank miss; lower is better */
+  arpm: number;
 }
 
 export interface AccuracyMiss {

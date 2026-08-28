@@ -10,6 +10,7 @@ process.env.FPLOP_STORE_DIR = fs.mkdtempSync(
 
 const {
   computeMetrics,
+  percentileRanks,
   readPredictions,
   selectSnapshots,
   sourceKeyOf,
@@ -114,7 +115,7 @@ describe("computeMetrics", () => {
     const actuals = [
       { id: 1, points: 7, minutes: 90 },
       { id: 2, points: 2, minutes: 0 }, // matched but did not play
-      { id: 99, points: 12, minutes: 90 }, // not predicted
+      { id: 99, points: 5, minutes: 90 }, // not predicted
     ];
     const m = computeMetrics(preds, actuals)!;
     expect(m.sampleSize).toBe(2);
@@ -123,6 +124,9 @@ describe("computeMetrics", () => {
     expect(m.rmse).toBeCloseTo(Math.sqrt((4 + 1) / 2));
     expect(m.bias).toBeCloseTo(-0.5);
     expect(m.correlation).toBeCloseTo(1); // (5,7),(3,2) — perfectly ordered
+    // Predicted universe has 3 players while actuals has 3 different players,
+    // so missing coverage changes the percentile comparison.
+    expect(m.arpm).toBeCloseTo(25);
     expect(m.misses[0]!.playerId).toBe(1); // biggest absolute error first
   });
 
@@ -147,6 +151,55 @@ describe("computeMetrics", () => {
       ],
     )!;
     expect(m.correlation).toBeNull();
+  });
+});
+
+describe("ARPM percentile ranks", () => {
+  it("gives tied players their average occupied rank", () => {
+    const ranks = percentileRanks(
+      [
+        { id: 1, points: 10 },
+        { id: 2, points: 5 },
+        { id: 3, points: 5 },
+        { id: 4, points: 0 },
+      ],
+      (x) => x.id,
+      (x) => x.points,
+    );
+    expect(ranks.get(1)).toBeCloseTo(0);
+    expect(ranks.get(2)).toBeCloseTo(0.5);
+    expect(ranks.get(3)).toBeCloseTo(0.5);
+    expect(ranks.get(4)).toBeCloseTo(1);
+  });
+
+  it("is zero when complete predicted and actual rankings agree", () => {
+    const predictions = [
+      { playerId: 1, name: "A", team: "T", position: "M", points: 9 },
+      { playerId: 2, name: "B", team: "T", position: "M", points: 5 },
+      { playerId: 3, name: "C", team: "T", position: "M", points: 1 },
+    ];
+    const actuals = [
+      { id: 1, points: 12 },
+      { id: 2, points: 6 },
+      { id: 3, points: 0 },
+    ];
+    expect(computeMetrics(predictions, actuals)!.arpm).toBeCloseTo(0);
+  });
+
+  it("penalizes an incomplete prediction set against all official players", () => {
+    const predictions = [
+      { playerId: 1, name: "A", team: "T", position: "M", points: 9 },
+      { playerId: 2, name: "B", team: "T", position: "M", points: 5 },
+    ];
+    const actuals = [
+      { id: 1, points: 12 },
+      { id: 2, points: 6 },
+      { id: 3, points: 3 },
+      { id: 4, points: 0 },
+    ];
+    // Player 2 is bottom of the two-player prediction set (100th percentile)
+    // but only rank 2/4 in actuals (33.3rd), creating a 66.7-point miss.
+    expect(computeMetrics(predictions, actuals)!.arpm).toBeCloseTo(100 / 3);
   });
 });
 

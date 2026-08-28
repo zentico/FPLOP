@@ -52,7 +52,8 @@ export const GetAccuracyResponseItem = zod.object({
   "mae": zod.number(),
   "rmse": zod.number(),
   "bias": zod.number().describe('Mean of predicted minus actual; positive means over-prediction'),
-  "correlation": zod.number().nullish().describe('Pearson correlation between predicted and actual points')
+  "correlation": zod.number().nullish().describe('Pearson correlation between predicted and actual points'),
+  "arpm": zod.number().describe('100 times the mean absolute predicted-vs-actual percentile-rank miss; lower is better')
 })
 export const GetAccuracyResponse = zod.array(GetAccuracyResponseItem)
 

@@ -24,6 +24,12 @@ export interface AccuracyEntry {
   bias: number;
   /** Pearson correlation between predicted and actual points (null if degenerate). */
   correlation: number | null;
+  /**
+   * 100 × mean absolute difference between predicted and actual percentile
+   * ranks. Predicted ranks use the snapshot population; actual ranks use the
+   * full official player population. Lower is better.
+   */
+  arpm: number;
 }
 
 export interface AccuracyMiss {
@@ -123,7 +129,43 @@ export interface MetricResult {
   rmse: number;
   bias: number;
   correlation: number | null;
+  arpm: number;
   misses: AccuracyMiss[];
+}
+
+/**
+ * Rank values descending, assigning ties their average rank, then normalize
+ * ranks to [0, 1] where 0 is best and 1 is worst.
+ */
+export function percentileRanks<T>(
+  rows: T[],
+  idOf: (row: T) => number,
+  valueOf: (row: T) => number,
+): Map<number, number> {
+  const sorted = [...rows].sort((a, b) => valueOf(b) - valueOf(a));
+  const out = new Map<number, number>();
+  if (sorted.length === 0) return out;
+  if (sorted.length === 1) {
+    out.set(idOf(sorted[0]!), 0.5);
+    return out;
+  }
+  for (let start = 0; start < sorted.length; ) {
+    let end = start + 1;
+    while (
+      end < sorted.length &&
+      valueOf(sorted[end]!) === valueOf(sorted[start]!)
+    ) {
+      end++;
+    }
+    // Ranks are one-based; ties receive the average occupied rank.
+    const averageRank = ((start + 1) + end) / 2;
+    const percentile = (averageRank - 1) / (sorted.length - 1);
+    for (let i = start; i < end; i++) {
+      out.set(idOf(sorted[i]!), percentile);
+    }
+    start = end;
+  }
+  return out;
 }
 
 /** Compare predictions to actuals for players present in both datasets. */
@@ -163,6 +205,28 @@ export function computeMetrics(
   }
   const correlation =
     varP > 0 && varA > 0 ? cov / Math.sqrt(varP * varA) : null;
+  const predictedPercentiles = percentileRanks(
+    predictions,
+    (p) => p.playerId,
+    (p) => p.points,
+  );
+  const actualPercentiles = percentileRanks(
+    actuals,
+    (a) => a.id,
+    (a) => a.points,
+  );
+  const arpm =
+    100 *
+    (pairs.reduce(
+      (sum, { row }) =>
+        sum +
+        Math.abs(
+          predictedPercentiles.get(row.playerId)! -
+            actualPercentiles.get(row.playerId)!,
+        ),
+      0,
+    ) /
+      n);
   const misses = pairs
     .map(({ row, actual }) => ({
       playerId: row.playerId,
@@ -181,6 +245,7 @@ export function computeMetrics(
     rmse: Math.sqrt(sumSq / n),
     bias: sumErr / n,
     correlation,
+    arpm,
     misses,
   };
 }
@@ -211,6 +276,7 @@ function entryFor(
     bias: round(metrics.bias),
     correlation:
       metrics.correlation == null ? null : round(metrics.correlation),
+    arpm: round(metrics.arpm),
   };
 }
 
