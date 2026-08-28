@@ -529,9 +529,6 @@ export default function Home() {
   }, [coveredGws, currentGw]);
   const maxHorizon = Math.max(1, contiguousGws);
   const minHorizon = Math.min(2, maxHorizon);
-  const projectionReady =
-    selectedIds.length === 1 ||
-    (isBlend && blendWeightsValid && !!blendPreview);
   // Default the horizon to everything the selected dataset covers; manual
   // slider changes stick until the dataset (and thus its coverage) changes.
   const selectionKey = selectedIds.join(",");
@@ -1188,7 +1185,7 @@ export default function Home() {
             <CardFooter className="bg-muted/30 pt-6 flex-col gap-3">
               <Button 
                 onClick={handleStartSolve} 
-                disabled={createSolveMutation.isPending || createMegaMutation.isPending || !projectionReady || (!firstGameweek && (!isTeamIdValid || !teamData))}
+                disabled={createSolveMutation.isPending || createMegaMutation.isPending}
                 size="lg" 
                 className="w-full font-bold text-lg h-14"
               >
@@ -1197,7 +1194,7 @@ export default function Home() {
               <Button
                 onClick={handleStartMega}
                 variant="outline"
-                disabled={createSolveMutation.isPending || createMegaMutation.isPending || !projectionReady || (!firstGameweek && (!isTeamIdValid || !teamData))}
+                disabled={createSolveMutation.isPending || createMegaMutation.isPending}
                 size="lg"
                 className="w-full font-bold h-12"
               >
