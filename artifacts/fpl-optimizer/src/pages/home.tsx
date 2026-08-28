@@ -115,12 +115,12 @@ export default function Home() {
     itbValue: "0.1",
     noTransferLastGws: "1",
     secs: "900",
-    gap: "0.01",
+    gap: "0.002",
   });
   const [advFlags, setAdvFlags] = React.useState<{ noFutureTransfer: boolean; randomized: boolean }>({ noFutureTransfer: false, randomized: false });
   // Booked transfers: moves the user has already decided on
   const [booked, setBooked] = React.useState<{ gw: string; inP: string; outP: string }[]>([]);
-  const [opposingPlay, setOpposingPlay] = React.useState<"off" | "penalty" | "forbid">("off");
+  const [opposingPlay, setOpposingPlay] = React.useState<"off" | "penalty" | "forbid">("penalty");
 
   // Queries
   const { data: projections, isLoading: isLoadingProjections } = useListProjections();
@@ -1107,7 +1107,7 @@ export default function Home() {
                       <AdvField label="In-the-bank value" placeholder="0.1" hint="Points value per £1.0 left in the bank" value={adv.itbValue || ""} onChange={(v) => setAdv({ ...adv, itbValue: v })} />
                       <AdvField label="Min expected minutes" placeholder="300" hint="Exclude players below this xMins total" value={adv.xminLb || ""} onChange={(v) => setAdv({ ...adv, xminLb: v })} />
                       <AdvField label="Time limit (seconds)" placeholder="900" hint="Stop the solver after this long" value={adv.secs || ""} onChange={(v) => setAdv({ ...adv, secs: v })} />
-                      <AdvField label="Optimality gap" placeholder="0.01" hint="e.g. 0.01 accepts within 1% of optimal; larger is faster" value={adv.gap || ""} onChange={(v) => setAdv({ ...adv, gap: v })} />
+                      <AdvField label="Optimality gap" placeholder="0.002" hint="e.g. 0.002 accepts within 0.2% of optimal; larger is faster" value={adv.gap || ""} onChange={(v) => setAdv({ ...adv, gap: v })} />
                       <AdvField label="Alternative plans" placeholder="1" hint="Solve for up to 5 plans, each with different next-GW transfers (multiplies solve time)" value={adv.numIterations || ""} onChange={(v) => setAdv({ ...adv, numIterations: v })} />
                     </div>
 
