@@ -13,19 +13,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div className="bg-primary text-primary-foreground p-1.5 rounded-md flex items-center justify-center">
               <Volleyball className="h-5 w-5" />
             </div>
-            <Link href="/" className="font-bold text-xl tracking-tight cursor-pointer hover:text-primary/80 transition-colors">
-              FPL Optimizer <span className="text-primary/60">(FPLOP)</span>
+            <Link href="/" className="font-bold text-base sm:text-xl tracking-tight whitespace-nowrap cursor-pointer hover:text-primary/80 transition-colors">
+              FPL Optimizer <span className="hidden sm:inline text-primary/60">(FPLOP)</span>
             </Link>
           </div>
           
-          <nav className="flex items-center space-x-6 text-sm font-medium">
+          <nav className="flex items-center space-x-3 sm:space-x-6 text-sm font-medium">
             <Link 
               href="/" 
               className={`transition-colors hover:text-primary ${location === "/" ? "text-foreground font-semibold" : "text-foreground/60"}`}
             >
               <div className="flex items-center gap-2">
                 <LineChart className="h-4 w-4" />
-                <span>New Solve</span>
+                <span className="hidden md:inline">New Solve</span>
               </div>
             </Link>
             <Link 
@@ -34,7 +34,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             >
               <div className="flex items-center gap-2">
                 <History className="h-4 w-4" />
-                <span>History</span>
+                <span className="hidden md:inline">History</span>
               </div>
             </Link>
             <Link 
@@ -43,7 +43,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             >
               <div className="flex items-center gap-2">
                 <Target className="h-4 w-4" />
-                <span>Accuracy</span>
+                <span className="hidden md:inline">Accuracy</span>
               </div>
             </Link>
           </nav>

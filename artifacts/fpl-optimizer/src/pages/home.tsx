@@ -460,7 +460,7 @@ export default function Home() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Left Column - Form */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 min-w-0 space-y-6">
           
           <Card>
             <CardHeader>
@@ -539,47 +539,55 @@ export default function Home() {
                 </TabsContent>
 
                 <TabsContent value="import" className="mt-4 space-y-4">
-                  <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:bg-muted/30 transition-colors">
-                    <DownloadCloud className="h-10 w-10 mx-auto text-primary mb-4" />
-                    <p className="text-sm font-medium mb-1">Fantasy Football Hub</p>
-                    <p className="text-xs text-muted-foreground mb-4 max-w-md mx-auto">
-                      Pull the latest points predictions, prices and ownership for the upcoming gameweeks directly from your Fantasy Football Hub membership.
-                    </p>
-                    <Button onClick={() => handleImport("ffh")} disabled={importMutation.isPending}>
+                  <div className="border-2 border-dashed border-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-muted/30 transition-colors">
+                    <DownloadCloud className="h-8 w-8 shrink-0 text-primary" />
+                    <div className="min-w-0 flex-1 text-left">
+                      <p className="text-sm font-medium mb-1">Fantasy Football Hub</p>
+                      <p className="text-xs text-muted-foreground">
+                        Pull the latest points predictions, prices and ownership for the upcoming gameweeks directly from your Fantasy Football Hub membership.
+                      </p>
+                      {importMutation.isPending && (
+                        <p className="text-xs text-primary mt-2 font-medium animate-pulse">Downloading predictions… this can take up to a minute.</p>
+                      )}
+                    </div>
+                    <Button className="w-full sm:w-auto shrink-0" onClick={() => handleImport("ffh")} disabled={importMutation.isPending}>
                       {importMutation.isPending ? "Importing…" : "Import latest predictions"}
                     </Button>
-                    {importMutation.isPending && (
-                      <p className="text-sm text-primary mt-4 font-medium animate-pulse">Downloading predictions… this can take up to a minute.</p>
-                    )}
                   </div>
-                  <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:bg-muted/30 transition-colors">
-                    <DownloadCloud className="h-10 w-10 mx-auto text-primary mb-4" />
-                    <p className="text-sm font-medium mb-1">DraftHound</p>
-                    <p className="text-xs text-muted-foreground mb-4 max-w-md mx-auto">
-                      Import DraftHound's free expected points and minutes for the next five gameweeks. No account needed. Each import is saved as a dated snapshot so accuracy can be tracked over time.
-                    </p>
-                    <Button onClick={() => handleImport("drafthound")} disabled={importMutation.isPending} variant="secondary">
+                  <div className="border-2 border-dashed border-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-muted/30 transition-colors">
+                    <DownloadCloud className="h-8 w-8 shrink-0 text-primary" />
+                    <div className="min-w-0 flex-1 text-left">
+                      <p className="text-sm font-medium mb-1">DraftHound</p>
+                      <p className="text-xs text-muted-foreground">
+                        Import DraftHound's free expected points and minutes for the next five gameweeks. No account needed. Each import is saved as a dated snapshot so accuracy can be tracked over time.
+                      </p>
+                    </div>
+                    <Button className="w-full sm:w-auto shrink-0" onClick={() => handleImport("drafthound")} disabled={importMutation.isPending} variant="secondary">
                       {importMutation.isPending ? "Importing…" : "Import DraftHound predictions"}
                     </Button>
                   </div>
-                  <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:bg-muted/30 transition-colors">
-                    <DownloadCloud className="h-10 w-10 mx-auto text-primary mb-4" />
-                    <p className="text-sm font-medium mb-1">Fantasy Football Pundit</p>
-                    <p className="text-xs text-muted-foreground mb-4 max-w-md mx-auto">
-                      Import Pundit's free published points predictor for the current 6-gameweek horizon. Uses its assume-starting points (not its start-probability-adjusted points). No account needed; players are matched to official FPL ids by team, position and name.
-                    </p>
-                    <Button onClick={() => handleImport("pundit")} disabled={importMutation.isPending} variant="secondary">
+                  <div className="border-2 border-dashed border-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-muted/30 transition-colors">
+                    <DownloadCloud className="h-8 w-8 shrink-0 text-primary" />
+                    <div className="min-w-0 flex-1 text-left">
+                      <p className="text-sm font-medium mb-1">Fantasy Football Pundit</p>
+                      <p className="text-xs text-muted-foreground">
+                        Import Pundit's free published points predictor for the current 6-gameweek horizon. Uses its assume-starting points (not its start-probability-adjusted points). No account needed; players are matched to official FPL ids by team, position and name.
+                      </p>
+                    </div>
+                    <Button className="w-full sm:w-auto shrink-0" onClick={() => handleImport("pundit")} disabled={importMutation.isPending} variant="secondary">
                       {importMutation.isPending ? "Importing…" : "Import Pundit predictions"}
                     </Button>
                   </div>
-                  <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:bg-muted/30 transition-colors">
-                    <DownloadCloud className="h-10 w-10 mx-auto text-primary mb-4" />
-                    <p className="text-sm font-medium mb-1">Pundit + FFH hybrid</p>
-                    <p className="text-xs text-muted-foreground mb-4 max-w-md mx-auto">
-                      Fetches Pundit and Fantasy Football Hub together and combines them: <span className="font-mono">Pundit assume-starting points × clamp(FFH expected minutes ÷ 90, 0, 1)</span>. Saved as its own source so its accuracy is tracked separately.
-                      {!ffhSession?.configured && " Requires a saved Hub session cookie (below)."}
-                    </p>
-                    <Button onClick={() => handleImport("pundit-ffh")} disabled={importMutation.isPending || !ffhSession?.configured} variant="secondary">
+                  <div className="border-2 border-dashed border-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-muted/30 transition-colors">
+                    <DownloadCloud className="h-8 w-8 shrink-0 text-primary" />
+                    <div className="min-w-0 flex-1 text-left">
+                      <p className="text-sm font-medium mb-1">Pundit + FFH hybrid</p>
+                      <p className="text-xs text-muted-foreground">
+                        Fetches Pundit and Fantasy Football Hub together and combines them: <span className="font-mono">Pundit assume-starting points × clamp(FFH expected minutes ÷ 90, 0, 1)</span>. Saved as its own source so its accuracy is tracked separately.
+                        {!ffhSession?.configured && " Requires a saved Hub session cookie (below)."}
+                      </p>
+                    </div>
+                    <Button className="w-full sm:w-auto shrink-0" onClick={() => handleImport("pundit-ffh")} disabled={importMutation.isPending || !ffhSession?.configured} variant="secondary">
                       {importMutation.isPending ? "Importing…" : "Create hybrid snapshot"}
                     </Button>
                   </div>
