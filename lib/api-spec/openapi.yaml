@@ -16,7 +16,86 @@ tags:
     description: Optimization runs
   - name: fpl
     description: Official FPL data
+  - name: accuracy
+    description: Official results archive and projection accuracy
 paths:
+  /results:
+    get:
+      operationId: listResults
+      tags: [accuracy]
+      summary: Archived official gameweek results
+      responses:
+        "200":
+          description: One entry per archived season/gameweek
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ResultArchiveInfo"
+  /results/refresh:
+    post:
+      operationId: refreshResults
+      tags: [accuracy]
+      summary: Archive official results for finished gameweeks not yet stored
+      responses:
+        "200":
+          description: Newly archived gameweeks and the full archive list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RefreshResultsOutput"
+        "502":
+          description: FPL API unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+  /accuracy:
+    get:
+      operationId: getAccuracy
+      tags: [accuracy]
+      summary: Accuracy of each source's pre-deadline snapshot per archived gameweek
+      responses:
+        "200":
+          description: One entry per source and archived gameweek
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccuracyEntry"
+  /accuracy/{projectionId}/detail/{gameweek}:
+    get:
+      operationId: getAccuracyDetail
+      tags: [accuracy]
+      summary: Player-level prediction errors for one snapshot and gameweek
+      parameters:
+        - name: projectionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: gameweek
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Largest misses first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccuracyMiss"
+        "404":
+          description: Projection or archived results not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
   /healthz:
     get:
       operationId: healthCheck
@@ -495,6 +574,18 @@ components:
           description: Gameweek numbers covered by the projection file
           items:
             type: number
+        source:
+          type: string
+          description: Stable source key ("upload", "ffh", "drafthound"); legacy entries omit it
+        sourceLabel:
+          type: string
+          description: Human-readable source name
+        sourceUpdatedAt:
+          type: string
+          description: When the source reported its data was last updated (ISO)
+        season:
+          type: string
+          description: Season the snapshot belongs to, e.g. "2026/27"
     ProjectionInput:
       type: object
       required: [filename, content]
@@ -523,12 +614,96 @@ components:
       properties:
         source:
           type: string
-          description: External source id. Currently only "ffh" (Fantasy Football Hub).
+          description: External source id, "ffh" (Fantasy Football Hub) or "drafthound" (DraftHound).
         maxGameweeks:
           type: number
           minimum: 1
           maximum: 38
           description: How many upcoming whole gameweeks to import (default 10, clamped to 1-38)
+    ResultArchiveInfo:
+      type: object
+      required: [season, gameweek, deadline, fetchedAt, playerCount]
+      properties:
+        season:
+          type: string
+        gameweek:
+          type: number
+        deadline:
+          type: string
+          description: Gameweek deadline (ISO); snapshots must predate this to count
+        fetchedAt:
+          type: string
+        playerCount:
+          type: number
+    RefreshResultsOutput:
+      type: object
+      required: [archived, results]
+      properties:
+        archived:
+          type: array
+          description: Gameweeks newly archived by this refresh
+          items:
+            type: number
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResultArchiveInfo"
+    AccuracyEntry:
+      type: object
+      required:
+        [source, sourceLabel, season, gameweek, projectionId, projectionFilename, snapshotAt, sampleSize, coverage, mae, rmse, bias]
+      properties:
+        source:
+          type: string
+        sourceLabel:
+          type: string
+        season:
+          type: string
+        gameweek:
+          type: number
+        projectionId:
+          type: string
+        projectionFilename:
+          type: string
+        snapshotAt:
+          type: string
+          description: When the winning pre-deadline snapshot was captured
+        sampleSize:
+          type: number
+          description: Players present in both the snapshot and official results
+        coverage:
+          type: number
+          description: Matched players / players who actually played (0-1)
+        mae:
+          type: number
+        rmse:
+          type: number
+        bias:
+          type: number
+          description: Mean of predicted minus actual; positive means over-prediction
+        correlation:
+          type: number
+          nullable: true
+          description: Pearson correlation between predicted and actual points
+    AccuracyMiss:
+      type: object
+      required: [playerId, name, team, position, predicted, actual, error]
+      properties:
+        playerId:
+          type: number
+        name:
+          type: string
+        team:
+          type: string
+        position:
+          type: string
+        predicted:
+          type: number
+        actual:
+          type: number
+        error:
+          type: number
+          description: Predicted minus actual
     ProjectedPlayer:
       type: object
       required: [name, team, position, price, totalPoints]

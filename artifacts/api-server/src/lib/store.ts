@@ -8,6 +8,14 @@ export interface ProjectionMeta {
   uploadedAt: string;
   playerCount: number;
   gameweeks: number[];
+  /** Stable source key: "upload", "ffh", "drafthound". Legacy metas omit it (treated as "upload"). */
+  source?: string | null;
+  /** Human-readable source name for display, e.g. "Fantasy Football Hub". */
+  sourceLabel?: string | null;
+  /** When the source says its data was last updated (ISO), if it reports one. */
+  sourceUpdatedAt?: string | null;
+  /** Season the snapshot belongs to, e.g. "2026/27". */
+  season?: string | null;
 }
 
 export interface ChipAssignment {

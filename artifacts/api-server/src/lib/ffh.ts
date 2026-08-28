@@ -1,13 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
+import { getSeasonName } from "./fpl";
 import { STORE_DIR } from "./paths";
-import { projectionCsvPath } from "./solver";
 import {
-  listProjectionMetas,
-  newId,
-  saveProjectionMetas,
-  type ProjectionMeta,
-} from "./store";
+  buildCanonicalCsv,
+  saveProjectionSnapshot,
+  type CanonicalPlayerRow,
+} from "./projections";
+import type { ProjectionMeta } from "./store";
 
 const WWW_BASE = "https://www.fantasyfootballhub.co.uk";
 const API_BASE = "https://public-api.fantasyfootballhub.co.uk";
@@ -154,10 +154,6 @@ async function fetchAllPlayers(
   return players;
 }
 
-function csvEscape(value: string): string {
-  return /[",\r\n]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
-}
-
 export async function importFfhProjection(
   minGameweek: number,
   maxGameweek: number,
@@ -174,17 +170,7 @@ export async function importFfhProjection(
   const gameweeks: number[] = [];
   for (let gw = minGameweek; gw <= maxGameweek; gw++) gameweeks.push(gw);
 
-  const header = [
-    "ID",
-    "Name",
-    "Pos",
-    "Team",
-    "Value",
-    "Ownership",
-    ...gameweeks.flatMap((gw) => [`${gw}_Pts`, `${gw}_xMins`]),
-  ];
-  const lines = [header.join(",")];
-  let count = 0;
+  const rows: CanonicalPlayerRow[] = [];
   const seen = new Set<number>();
   for (const p of players) {
     const fplId = p.externalIds?.fplId;
@@ -201,44 +187,38 @@ export async function importFfhProjection(
         minutes: (prev?.minutes ?? 0) + (f.predictions?.minutes ?? 0),
       });
     }
-    const cells = [
-      String(fplId),
-      csvEscape(p.displayName),
-      pos,
-      csvEscape(p.team?.shortName ?? ""),
-      String(p.price ?? 0),
-      String(p.ownership ?? 0),
-      ...gameweeks.flatMap((gw) => {
-        const f = byGw.get(gw);
-        return [
-          (f?.points ?? 0).toFixed(2),
-          String(Math.round(f?.minutes ?? 0)),
-        ];
-      }),
-    ];
-    lines.push(cells.join(","));
-    count++;
+    rows.push({
+      fplId,
+      name: p.displayName,
+      position: pos,
+      team: p.team?.shortName ?? "",
+      price: p.price ?? 0,
+      ownership: p.ownership ?? 0,
+      byGameweek: byGw,
+    });
   }
 
-  if (count === 0) {
+  if (rows.length === 0) {
     throw new FfhUpstreamError(
       "Fantasy Football Hub returned no players with FPL ids.",
     );
   }
 
-  const id = newId();
-  fs.writeFileSync(projectionCsvPath(id), lines.join("\n") + "\n");
+  let season: string | null = null;
+  try {
+    season = await getSeasonName();
+  } catch {
+    // Season labelling is best-effort.
+  }
 
   const date = new Date().toISOString().slice(0, 10);
-  const meta: ProjectionMeta = {
-    id,
+  return saveProjectionSnapshot({
     filename: `FFH predictions ${date} (GW${minGameweek}-${maxGameweek})`,
-    uploadedAt: new Date().toISOString(),
-    playerCount: count,
+    csv: buildCanonicalCsv(rows, gameweeks),
+    playerCount: rows.length,
     gameweeks,
-  };
-  const metas = listProjectionMetas();
-  metas.unshift(meta);
-  saveProjectionMetas(metas);
-  return meta;
+    source: "ffh",
+    sourceLabel: "Fantasy Football Hub",
+    season,
+  });
 }

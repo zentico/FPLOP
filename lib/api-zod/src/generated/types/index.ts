@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './accuracyEntry';
+export * from './accuracyMiss';
 export * from './bookedTransfer';
 export * from './chipAssignment';
 export * from './chipEval';
@@ -29,6 +31,8 @@ export * from './poolPlayerStat';
 export * from './projectedPlayer';
 export * from './projection';
 export * from './projectionInput';
+export * from './refreshResultsOutput';
+export * from './resultArchiveInfo';
 export * from './solveInput';
 export * from './solveOptions';
 export * from './solveOptionsOpposingPlay';

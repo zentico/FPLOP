@@ -20,6 +20,14 @@ export interface Projection {
   playerCount: number;
   /** Gameweek numbers covered by the projection file */
   gameweeks: number[];
+  /** Stable source key ("upload", "ffh", "drafthound"); legacy entries omit it */
+  source?: string;
+  /** Human-readable source name */
+  sourceLabel?: string;
+  /** When the source reported its data was last updated (ISO) */
+  sourceUpdatedAt?: string;
+  /** Season the snapshot belongs to, e.g. "2026/27" */
+  season?: string;
 }
 
 export interface ProjectionInput {
@@ -38,7 +46,7 @@ export interface FfhSessionInput {
 }
 
 export interface ImportProjectionInput {
-  /** External source id. Currently only "ffh" (Fantasy Football Hub). */
+  /** External source id, "ffh" (Fantasy Football Hub) or "drafthound" (DraftHound). */
   source: string;
   /**
      * How many upcoming whole gameweeks to import (default 10, clamped to 1-38)
@@ -46,6 +54,53 @@ export interface ImportProjectionInput {
      * @maximum 38
      */
   maxGameweeks?: number;
+}
+
+export interface ResultArchiveInfo {
+  season: string;
+  gameweek: number;
+  /** Gameweek deadline (ISO); snapshots must predate this to count */
+  deadline: string;
+  fetchedAt: string;
+  playerCount: number;
+}
+
+export interface RefreshResultsOutput {
+  /** Gameweeks newly archived by this refresh */
+  archived: number[];
+  results: ResultArchiveInfo[];
+}
+
+export interface AccuracyEntry {
+  source: string;
+  sourceLabel: string;
+  season: string;
+  gameweek: number;
+  projectionId: string;
+  projectionFilename: string;
+  /** When the winning pre-deadline snapshot was captured */
+  snapshotAt: string;
+  /** Players present in both the snapshot and official results */
+  sampleSize: number;
+  /** Matched players / players who actually played (0-1) */
+  coverage: number;
+  mae: number;
+  rmse: number;
+  /** Mean of predicted minus actual; positive means over-prediction */
+  bias: number;
+  /** Pearson correlation between predicted and actual points */
+  correlation?: number | null;
+}
+
+export interface AccuracyMiss {
+  playerId: number;
+  name: string;
+  team: string;
+  position: string;
+  predicted: number;
+  actual: number;
+  /** Predicted minus actual */
+  error: number;
 }
 
 export interface GameweekPoints {

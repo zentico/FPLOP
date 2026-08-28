@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { Link } from "wouter";
-import { Activity, History, LineChart, Volleyball } from "lucide-react";
+import { Activity, History, LineChart, Target, Volleyball } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -35,6 +35,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <div className="flex items-center gap-2">
                 <History className="h-4 w-4" />
                 <span>History</span>
+              </div>
+            </Link>
+            <Link 
+              href="/accuracy" 
+              className={`transition-colors hover:text-primary ${location === "/accuracy" ? "text-foreground font-semibold" : "text-foreground/60"}`}
+            >
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                <span>Accuracy</span>
               </div>
             </Link>
           </nav>

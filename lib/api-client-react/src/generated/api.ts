@@ -20,6 +20,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AccuracyEntry,
+  AccuracyMiss,
   ErrorMessage,
   FfhSessionInput,
   FfhSessionStatus,
@@ -33,6 +35,8 @@ import type {
   ProjectedPlayer,
   Projection,
   ProjectionInput,
+  RefreshResultsOutput,
+  ResultArchiveInfo,
   SolveInput,
   SolveRun
 } from './api.schemas';
@@ -63,6 +67,313 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getListResultsUrl = () => {
+
+
+
+
+  return `/api/results`
+}
+
+/**
+ * @summary Archived official gameweek results
+ */
+export const listResults = async ( options?: Parameters<typeof customFetch>[1]): Promise<ResultArchiveInfo[]> => {
+
+  return customFetch<ResultArchiveInfo[]>(getListResultsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListResultsQueryKey = () => {
+    return [
+    `/api/results`
+    ] as const;
+    }
+
+
+export const getListResultsQueryOptions = <TData = Awaited<ReturnType<typeof listResults>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listResults>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListResultsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listResults>>> = ({ signal }) => listResults({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listResults>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListResultsQueryResult = NonNullable<Awaited<ReturnType<typeof listResults>>>
+export type ListResultsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Archived official gameweek results
+ */
+
+export function useListResults<TData = Awaited<ReturnType<typeof listResults>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listResults>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListResultsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRefreshResultsUrl = () => {
+
+
+
+
+  return `/api/results/refresh`
+}
+
+/**
+ * @summary Archive official results for finished gameweeks not yet stored
+ */
+export const refreshResults = async ( options?: Parameters<typeof customFetch>[1]): Promise<RefreshResultsOutput> => {
+
+  return customFetch<RefreshResultsOutput>(getRefreshResultsUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getRefreshResultsMutationOptions = <TError = ErrorType<ErrorMessage>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshResults>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof refreshResults>>, TError,void, TContext> => {
+
+const mutationKey = ['refreshResults'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof refreshResults>>, void> = () => {
+
+
+          return  refreshResults(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RefreshResultsMutationResult = NonNullable<Awaited<ReturnType<typeof refreshResults>>>
+
+    export type RefreshResultsMutationError = ErrorType<ErrorMessage>
+
+    /**
+ * @summary Archive official results for finished gameweeks not yet stored
+ */
+export const useRefreshResults = <TError = ErrorType<ErrorMessage>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshResults>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof refreshResults>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getRefreshResultsMutationOptions(options));
+    }
+
+export const getGetAccuracyUrl = () => {
+
+
+
+
+  return `/api/accuracy`
+}
+
+/**
+ * @summary Accuracy of each source's pre-deadline snapshot per archived gameweek
+ */
+export const getAccuracy = async ( options?: Parameters<typeof customFetch>[1]): Promise<AccuracyEntry[]> => {
+
+  return customFetch<AccuracyEntry[]>(getGetAccuracyUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAccuracyQueryKey = () => {
+    return [
+    `/api/accuracy`
+    ] as const;
+    }
+
+
+export const getGetAccuracyQueryOptions = <TData = Awaited<ReturnType<typeof getAccuracy>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAccuracy>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAccuracyQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAccuracy>>> = ({ signal }) => getAccuracy({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAccuracy>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAccuracyQueryResult = NonNullable<Awaited<ReturnType<typeof getAccuracy>>>
+export type GetAccuracyQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Accuracy of each source's pre-deadline snapshot per archived gameweek
+ */
+
+export function useGetAccuracy<TData = Awaited<ReturnType<typeof getAccuracy>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAccuracy>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAccuracyQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetAccuracyDetailUrl = (projectionId: string,
+    gameweek: number,) => {
+
+
+
+
+  return `/api/accuracy/${projectionId}/detail/${gameweek}`
+}
+
+/**
+ * @summary Player-level prediction errors for one snapshot and gameweek
+ */
+export const getAccuracyDetail = async (projectionId: string,
+    gameweek: number, options?: Parameters<typeof customFetch>[1]): Promise<AccuracyMiss[]> => {
+
+  return customFetch<AccuracyMiss[]>(getGetAccuracyDetailUrl(projectionId,gameweek),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAccuracyDetailQueryKey = (projectionId: string,
+    gameweek: number,) => {
+    return [
+    `/api/accuracy/${projectionId}/detail/${gameweek}`
+    ] as const;
+    }
+
+
+export const getGetAccuracyDetailQueryOptions = <TData = Awaited<ReturnType<typeof getAccuracyDetail>>, TError = ErrorType<ErrorMessage>>(projectionId: string,
+    gameweek: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAccuracyDetail>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAccuracyDetailQueryKey(projectionId,gameweek);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAccuracyDetail>>> = ({ signal }) => getAccuracyDetail(projectionId,gameweek, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: projectionId !== null && projectionId !== undefined && gameweek !== null && gameweek !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAccuracyDetail>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAccuracyDetailQueryResult = NonNullable<Awaited<ReturnType<typeof getAccuracyDetail>>>
+export type GetAccuracyDetailQueryError = ErrorType<ErrorMessage>
+
+
+/**
+ * @summary Player-level prediction errors for one snapshot and gameweek
+ */
+
+export function useGetAccuracyDetail<TData = Awaited<ReturnType<typeof getAccuracyDetail>>, TError = ErrorType<ErrorMessage>>(
+ projectionId: string,
+    gameweek: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAccuracyDetail>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAccuracyDetailQueryOptions(projectionId,gameweek,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getHealthCheckUrl = () => {
 

@@ -25,13 +25,14 @@ import {
   normalizeCookie,
   saveCookie,
 } from "../lib/ffh";
-import { getGameweekInfo } from "../lib/fpl";
-import { computePoolStats, projectionCsvPath } from "../lib/solver";
 import {
-  listProjectionMetas,
-  newId,
-  saveProjectionMetas,
-} from "../lib/store";
+  DraftHoundUpstreamError,
+  importDraftHoundProjection,
+} from "../lib/drafthound";
+import { getGameweekInfo, getSeasonName } from "../lib/fpl";
+import { saveProjectionSnapshot } from "../lib/projections";
+import { computePoolStats, projectionCsvPath } from "../lib/solver";
+import { listProjectionMetas, saveProjectionMetas } from "../lib/store";
 
 const router: IRouter = Router();
 
@@ -85,19 +86,21 @@ router.post("/projections", async (req, res): Promise<void> => {
     return;
   }
 
-  const id = newId();
-  fs.writeFileSync(projectionCsvPath(id), content);
-
-  const meta = {
-    id,
+  let season: string | null = null;
+  try {
+    season = await getSeasonName();
+  } catch {
+    // Season labelling is best-effort.
+  }
+  const meta = saveProjectionSnapshot({
     filename,
-    uploadedAt: new Date().toISOString(),
+    csv: content,
     playerCount: rows.length,
     gameweeks,
-  };
-  const metas = listProjectionMetas();
-  metas.unshift(meta);
-  saveProjectionMetas(metas);
+    source: "upload",
+    sourceLabel: "Manual upload",
+    season,
+  });
 
   res.status(201).json(UploadProjectionResponse.parse(meta));
 });
@@ -142,21 +145,29 @@ router.post("/projections/import", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  if (parsed.data.source !== "ffh") {
+  if (parsed.data.source !== "ffh" && parsed.data.source !== "drafthound") {
     res.status(400).json({ error: `Unknown source "${parsed.data.source}"` });
     return;
   }
   const span = Math.min(Math.max(parsed.data.maxGameweeks ?? 10, 1), 38);
   try {
-    const { nextGameweek } = await getGameweekInfo();
-    const minGw = nextGameweek;
-    const maxGw = Math.min(minGw + span - 1, 38);
-    const meta = await importFfhProjection(minGw, maxGw);
+    let meta;
+    if (parsed.data.source === "drafthound") {
+      meta = await importDraftHoundProjection();
+    } else {
+      const { nextGameweek } = await getGameweekInfo();
+      const minGw = nextGameweek;
+      const maxGw = Math.min(minGw + span - 1, 38);
+      meta = await importFfhProjection(minGw, maxGw);
+    }
     res.status(201).json(ImportProjectionResponse.parse(meta));
   } catch (err) {
     if (err instanceof FfhSessionError) {
       res.status(401).json({ error: err.message });
-    } else if (err instanceof FfhUpstreamError) {
+    } else if (
+      err instanceof FfhUpstreamError ||
+      err instanceof DraftHoundUpstreamError
+    ) {
       res.status(502).json({ error: err.message });
     } else {
       res.status(502).json({

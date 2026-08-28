@@ -1,4 +1,5 @@
 - [open-fpl-solver integration](solver-integration.md) — vendored git clone must stay pristine; per-run config via --config; results found by datasource prefix; use `type: number` in openapi.yaml (orval/zod-v3 clash).
 - [api-client-react dist staleness](api-client-dist-staleness.md) — project-reference consumers typecheck against stale dist/*.d.ts; rebuild with `tsc -b lib/api-client-react` after codegen; hooks need explicit queryKey.
 - [Solver start gameweek](solver-gw-window.md) — solves start at FPL's next GW even in first-GW mode; never hard-code GW1; baseline re-solves must exclude the primary's result files.
+- [Orval param naming](orval-param-naming.md) — mixing path+query params on one operation makes orval emit two `<Op>Params` exports and codegen fails; use path params instead.
 - [FFH predictions import](ffh-import.md) — password login is captcha-blocked; use user's appSession cookie → /auth/access-token → public-api /league/players (paginate with `after`, limit≤100).

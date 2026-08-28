@@ -235,8 +235,8 @@ export default function Home() {
     reader.readAsText(file);
   };
 
-  const handleImportFfh = () => {
-    importMutation.mutate({ data: { source: "ffh" } }, {
+  const handleImport = (source: "ffh" | "drafthound") => {
+    importMutation.mutate({ data: { source } }, {
       onSuccess: (data) => {
         queryClient.invalidateQueries({ queryKey: getListProjectionsQueryKey() });
         setProjectionId(data.id);
@@ -491,9 +491,15 @@ export default function Home() {
                           <div className="flex items-center space-x-3">
                             <RadioGroupItem value={p.id} id={p.id} />
                             <Label htmlFor={p.id} className="flex flex-col cursor-pointer">
-                              <span className="font-semibold">{p.filename}</span>
+                              <span className="font-semibold flex items-center gap-2">
+                                {p.filename}
+                                {p.sourceLabel && (
+                                  <Badge variant="secondary" className="text-[10px] font-normal">{p.sourceLabel}</Badge>
+                                )}
+                              </span>
                               <span className="text-xs text-muted-foreground font-mono mt-1">
                                 {p.playerCount} players • GWs: {p.gameweeks.join(", ")}
+                                {p.sourceUpdatedAt ? ` • source updated ${new Date(p.sourceUpdatedAt).toLocaleString()}` : ""}
                               </span>
                             </Label>
                           </div>
@@ -529,19 +535,29 @@ export default function Home() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="import" className="mt-4">
+                <TabsContent value="import" className="mt-4 space-y-4">
                   <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:bg-muted/30 transition-colors">
                     <DownloadCloud className="h-10 w-10 mx-auto text-primary mb-4" />
                     <p className="text-sm font-medium mb-1">Fantasy Football Hub</p>
                     <p className="text-xs text-muted-foreground mb-4 max-w-md mx-auto">
                       Pull the latest points predictions, prices and ownership for the upcoming gameweeks directly from your Fantasy Football Hub membership.
                     </p>
-                    <Button onClick={handleImportFfh} disabled={importMutation.isPending}>
+                    <Button onClick={() => handleImport("ffh")} disabled={importMutation.isPending}>
                       {importMutation.isPending ? "Importing…" : "Import latest predictions"}
                     </Button>
                     {importMutation.isPending && (
                       <p className="text-sm text-primary mt-4 font-medium animate-pulse">Downloading predictions… this can take up to a minute.</p>
                     )}
+                  </div>
+                  <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:bg-muted/30 transition-colors">
+                    <DownloadCloud className="h-10 w-10 mx-auto text-primary mb-4" />
+                    <p className="text-sm font-medium mb-1">DraftHound</p>
+                    <p className="text-xs text-muted-foreground mb-4 max-w-md mx-auto">
+                      Import DraftHound's free expected points and minutes for the next five gameweeks. No account needed. Each import is saved as a dated snapshot so accuracy can be tracked over time.
+                    </p>
+                    <Button onClick={() => handleImport("drafthound")} disabled={importMutation.isPending} variant="secondary">
+                      {importMutation.isPending ? "Importing…" : "Import DraftHound predictions"}
+                    </Button>
                   </div>
                   <div className="mt-4 border rounded-lg p-4">
                     <div className="flex items-center justify-between">

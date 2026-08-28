@@ -1,5 +1,22 @@
 [
   {
+    "id": "mtcvpo7d8p758s",
+    "filename": "DraftHound predictions 2026-08-28 (GW2-6)",
+    "uploadedAt": "2026-08-28T11:39:17.834Z",
+    "playerCount": 616,
+    "gameweeks": [
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "source": "drafthound",
+    "sourceLabel": "DraftHound",
+    "sourceUpdatedAt": "2026-08-28T11:39:16.639Z",
+    "season": "2026/27"
+  },
+  {
     "id": "mt2xyxw5i2rley",
     "filename": "FFH predictions 2026-08-21 (GW1-10)",
     "uploadedAt": "2026-08-21T12:44:47.766Z",

@@ -33,7 +33,9 @@ export const RUNS_DIR = path.join(STORE_DIR, "runs");
 // Master copies of projection CSVs live in the persistent store (survives
 // container rebuilds); per-run copies are placed in SOLVER_DATA_DIR to solve.
 export const PROJECTIONS_DIR = path.join(STORE_DIR, "projections");
+// Immutable archive of official FPL per-player results, keyed season/gameweek.
+export const RESULTS_DIR = path.join(STORE_DIR, "results");
 
-for (const d of [STORE_DIR, RUNS_DIR, PROJECTIONS_DIR]) {
+for (const d of [STORE_DIR, RUNS_DIR, PROJECTIONS_DIR, RESULTS_DIR]) {
   fs.mkdirSync(d, { recursive: true });
 }

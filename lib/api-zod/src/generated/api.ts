@@ -9,6 +9,75 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Archived official gameweek results
+ */
+export const ListResultsResponseItem = zod.object({
+  "season": zod.string(),
+  "gameweek": zod.number(),
+  "deadline": zod.string().describe('Gameweek deadline (ISO); snapshots must predate this to count'),
+  "fetchedAt": zod.string(),
+  "playerCount": zod.number()
+})
+export const ListResultsResponse = zod.array(ListResultsResponseItem)
+
+
+/**
+ * @summary Archive official results for finished gameweeks not yet stored
+ */
+export const RefreshResultsResponse = zod.object({
+  "archived": zod.array(zod.number()).describe('Gameweeks newly archived by this refresh'),
+  "results": zod.array(zod.object({
+  "season": zod.string(),
+  "gameweek": zod.number(),
+  "deadline": zod.string().describe('Gameweek deadline (ISO); snapshots must predate this to count'),
+  "fetchedAt": zod.string(),
+  "playerCount": zod.number()
+}))
+})
+
+
+/**
+ * @summary Accuracy of each source's pre-deadline snapshot per archived gameweek
+ */
+export const GetAccuracyResponseItem = zod.object({
+  "source": zod.string(),
+  "sourceLabel": zod.string(),
+  "season": zod.string(),
+  "gameweek": zod.number(),
+  "projectionId": zod.string(),
+  "projectionFilename": zod.string(),
+  "snapshotAt": zod.string().describe('When the winning pre-deadline snapshot was captured'),
+  "sampleSize": zod.number().describe('Players present in both the snapshot and official results'),
+  "coverage": zod.number().describe('Matched players \/ players who actually played (0-1)'),
+  "mae": zod.number(),
+  "rmse": zod.number(),
+  "bias": zod.number().describe('Mean of predicted minus actual; positive means over-prediction'),
+  "correlation": zod.number().nullish().describe('Pearson correlation between predicted and actual points')
+})
+export const GetAccuracyResponse = zod.array(GetAccuracyResponseItem)
+
+
+/**
+ * @summary Player-level prediction errors for one snapshot and gameweek
+ */
+export const GetAccuracyDetailParams = zod.object({
+  "projectionId": zod.coerce.string(),
+  "gameweek": zod.coerce.number()
+})
+
+export const GetAccuracyDetailResponseItem = zod.object({
+  "playerId": zod.number(),
+  "name": zod.string(),
+  "team": zod.string(),
+  "position": zod.string(),
+  "predicted": zod.number(),
+  "actual": zod.number(),
+  "error": zod.number().describe('Predicted minus actual')
+})
+export const GetAccuracyDetailResponse = zod.array(GetAccuracyDetailResponseItem)
+
+
+/**
  * Returns server health status
  * @summary Health check
  */
@@ -25,7 +94,11 @@ export const ListProjectionsResponseItem = zod.object({
   "filename": zod.string(),
   "uploadedAt": zod.string(),
   "playerCount": zod.number(),
-  "gameweeks": zod.array(zod.number()).describe('Gameweek numbers covered by the projection file')
+  "gameweeks": zod.array(zod.number()).describe('Gameweek numbers covered by the projection file'),
+  "source": zod.string().optional().describe('Stable source key (\"upload\", \"ffh\", \"drafthound\"); legacy entries omit it'),
+  "sourceLabel": zod.string().optional().describe('Human-readable source name'),
+  "sourceUpdatedAt": zod.string().optional().describe('When the source reported its data was last updated (ISO)'),
+  "season": zod.string().optional().describe('Season the snapshot belongs to, e.g. \"2026\/27\"')
 })
 export const ListProjectionsResponse = zod.array(ListProjectionsResponseItem)
 
@@ -43,7 +116,11 @@ export const UploadProjectionResponse = zod.object({
   "filename": zod.string(),
   "uploadedAt": zod.string(),
   "playerCount": zod.number(),
-  "gameweeks": zod.array(zod.number()).describe('Gameweek numbers covered by the projection file')
+  "gameweeks": zod.array(zod.number()).describe('Gameweek numbers covered by the projection file'),
+  "source": zod.string().optional().describe('Stable source key (\"upload\", \"ffh\", \"drafthound\"); legacy entries omit it'),
+  "sourceLabel": zod.string().optional().describe('Human-readable source name'),
+  "sourceUpdatedAt": zod.string().optional().describe('When the source reported its data was last updated (ISO)'),
+  "season": zod.string().optional().describe('Season the snapshot belongs to, e.g. \"2026\/27\"')
 })
 
 
@@ -55,7 +132,7 @@ export const importProjectionBodyMaxGameweeksMax = 38;
 
 
 export const ImportProjectionBody = zod.object({
-  "source": zod.string().describe('External source id. Currently only \"ffh\" (Fantasy Football Hub).'),
+  "source": zod.string().describe('External source id, \"ffh\" (Fantasy Football Hub) or \"drafthound\" (DraftHound).'),
   "maxGameweeks": zod.number().min(1).max(importProjectionBodyMaxGameweeksMax).optional().describe('How many upcoming whole gameweeks to import (default 10, clamped to 1-38)')
 })
 
@@ -64,7 +141,11 @@ export const ImportProjectionResponse = zod.object({
   "filename": zod.string(),
   "uploadedAt": zod.string(),
   "playerCount": zod.number(),
-  "gameweeks": zod.array(zod.number()).describe('Gameweek numbers covered by the projection file')
+  "gameweeks": zod.array(zod.number()).describe('Gameweek numbers covered by the projection file'),
+  "source": zod.string().optional().describe('Stable source key (\"upload\", \"ffh\", \"drafthound\"); legacy entries omit it'),
+  "sourceLabel": zod.string().optional().describe('Human-readable source name'),
+  "sourceUpdatedAt": zod.string().optional().describe('When the source reported its data was last updated (ISO)'),
+  "season": zod.string().optional().describe('Season the snapshot belongs to, e.g. \"2026\/27\"')
 })
 
 

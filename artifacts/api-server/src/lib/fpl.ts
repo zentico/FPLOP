@@ -97,6 +97,51 @@ export async function getFixtures(): Promise<FixtureInfo[]> {
   return data;
 }
 
+/** Season name derived from event deadlines, e.g. "2026/27". */
+export async function getSeasonName(): Promise<string> {
+  const bootstrap = await getBootstrap();
+  const first = bootstrap.events[0];
+  if (!first?.deadline_time) {
+    throw new Error("FPL bootstrap has no event deadlines to derive the season from");
+  }
+  const y = new Date(first.deadline_time).getUTCFullYear();
+  return `${y}/${String((y + 1) % 100).padStart(2, "0")}`;
+}
+
+/** All gameweek events with deadlines and finished flags. */
+export async function getEvents(): Promise<
+  { id: number; finished: boolean; deadline: string }[]
+> {
+  const bootstrap = await getBootstrap();
+  return bootstrap.events.map((e) => ({
+    id: e.id,
+    finished: e.finished,
+    deadline: e.deadline_time,
+  }));
+}
+
+interface EventLiveElement {
+  id: number;
+  stats: { total_points: number; minutes: number };
+}
+
+/** Official per-player results for a gameweek from the event-live endpoint. */
+export async function getEventLive(
+  gameweek: number,
+): Promise<{ id: number; points: number; minutes: number }[]> {
+  const body = await fplFetch<{ elements: EventLiveElement[] }>(
+    `/event/${gameweek}/live/`,
+  );
+  if (!Array.isArray(body.elements)) {
+    throw new Error(`FPL event-live for GW${gameweek} had no elements array`);
+  }
+  return body.elements.map((e) => ({
+    id: e.id,
+    points: e.stats?.total_points ?? 0,
+    minutes: e.stats?.minutes ?? 0,
+  }));
+}
+
 export async function getGameweekInfo(): Promise<{
   nextGameweek: number;
   isFirstGameweek: boolean;

@@ -13,4 +13,12 @@ export interface Projection {
   playerCount: number;
   /** Gameweek numbers covered by the projection file */
   gameweeks: number[];
+  /** Stable source key ("upload", "ffh", "drafthound"); legacy entries omit it */
+  source?: string;
+  /** Human-readable source name */
+  sourceLabel?: string;
+  /** When the source reported its data was last updated (ISO) */
+  sourceUpdatedAt?: string;
+  /** Season the snapshot belongs to, e.g. "2026/27" */
+  season?: string;
 }
