@@ -586,6 +586,9 @@ components:
         season:
           type: string
           description: Season the snapshot belongs to, e.g. "2026/27"
+        sourcePlayerCount:
+          type: number
+          description: Players in the upstream feed before FPL identity matching (sources that match players only); playerCount/sourcePlayerCount is the match coverage
     ProjectionInput:
       type: object
       required: [filename, content]
@@ -614,7 +617,7 @@ components:
       properties:
         source:
           type: string
-          description: External source id, "ffh" (Fantasy Football Hub) or "drafthound" (DraftHound).
+          description: External source id, "ffh" (Fantasy Football Hub), "drafthound" (DraftHound), "pundit" (Fantasy Football Pundit assume-starting points), or "pundit-ffh" (Pundit points × FFH expected minutes hybrid).
         maxGameweeks:
           type: number
           minimum: 1

@@ -21,4 +21,6 @@ export interface Projection {
   sourceUpdatedAt?: string;
   /** Season the snapshot belongs to, e.g. "2026/27" */
   season?: string;
+  /** Players in the upstream feed before FPL identity matching (sources that match players only); playerCount/sourcePlayerCount is the match coverage */
+  sourcePlayerCount?: number;
 }

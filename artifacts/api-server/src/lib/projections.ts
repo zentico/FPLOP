@@ -75,6 +75,7 @@ export function saveProjectionSnapshot(args: {
   sourceLabel: string;
   sourceUpdatedAt?: string | null;
   season?: string | null;
+  sourcePlayerCount?: number | null;
 }): ProjectionMeta {
   const id = newId();
   fs.writeFileSync(projectionCsvPath(id), args.csv);
@@ -88,6 +89,7 @@ export function saveProjectionSnapshot(args: {
     sourceLabel: args.sourceLabel,
     sourceUpdatedAt: args.sourceUpdatedAt ?? null,
     season: args.season ?? null,
+    sourcePlayerCount: args.sourcePlayerCount ?? null,
   };
   const metas = listProjectionMetas();
   metas.unshift(meta);

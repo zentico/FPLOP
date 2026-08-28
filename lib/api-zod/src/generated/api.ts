@@ -99,7 +99,8 @@ export const ListProjectionsResponseItem = zod.object({
   "source": zod.string().optional().describe('Stable source key (\"upload\", \"ffh\", \"drafthound\"); legacy entries omit it'),
   "sourceLabel": zod.string().optional().describe('Human-readable source name'),
   "sourceUpdatedAt": zod.string().optional().describe('When the source reported its data was last updated (ISO)'),
-  "season": zod.string().optional().describe('Season the snapshot belongs to, e.g. \"2026\/27\"')
+  "season": zod.string().optional().describe('Season the snapshot belongs to, e.g. \"2026\/27\"'),
+  "sourcePlayerCount": zod.number().optional().describe('Players in the upstream feed before FPL identity matching (sources that match players only); playerCount\/sourcePlayerCount is the match coverage')
 })
 export const ListProjectionsResponse = zod.array(ListProjectionsResponseItem)
 
@@ -121,7 +122,8 @@ export const UploadProjectionResponse = zod.object({
   "source": zod.string().optional().describe('Stable source key (\"upload\", \"ffh\", \"drafthound\"); legacy entries omit it'),
   "sourceLabel": zod.string().optional().describe('Human-readable source name'),
   "sourceUpdatedAt": zod.string().optional().describe('When the source reported its data was last updated (ISO)'),
-  "season": zod.string().optional().describe('Season the snapshot belongs to, e.g. \"2026\/27\"')
+  "season": zod.string().optional().describe('Season the snapshot belongs to, e.g. \"2026\/27\"'),
+  "sourcePlayerCount": zod.number().optional().describe('Players in the upstream feed before FPL identity matching (sources that match players only); playerCount\/sourcePlayerCount is the match coverage')
 })
 
 
@@ -131,9 +133,8 @@ export const UploadProjectionResponse = zod.object({
 export const importProjectionBodyMaxGameweeksMax = 38;
 
 
-
 export const ImportProjectionBody = zod.object({
-  "source": zod.string().describe('External source id, \"ffh\" (Fantasy Football Hub) or \"drafthound\" (DraftHound).'),
+  "source": zod.string().describe('External source id, \"ffh\" (Fantasy Football Hub), \"drafthound\" (DraftHound), \"pundit\" (Fantasy Football Pundit assume-starting points), or \"pundit-ffh\" (Pundit points × FFH expected minutes hybrid).'),
   "maxGameweeks": zod.number().min(1).max(importProjectionBodyMaxGameweeksMax).optional().describe('How many upcoming whole gameweeks to import (default 10, clamped to 1-38)')
 })
 
@@ -146,7 +147,8 @@ export const ImportProjectionResponse = zod.object({
   "source": zod.string().optional().describe('Stable source key (\"upload\", \"ffh\", \"drafthound\"); legacy entries omit it'),
   "sourceLabel": zod.string().optional().describe('Human-readable source name'),
   "sourceUpdatedAt": zod.string().optional().describe('When the source reported its data was last updated (ISO)'),
-  "season": zod.string().optional().describe('Season the snapshot belongs to, e.g. \"2026\/27\"')
+  "season": zod.string().optional().describe('Season the snapshot belongs to, e.g. \"2026\/27\"'),
+  "sourcePlayerCount": zod.number().optional().describe('Players in the upstream feed before FPL identity matching (sources that match players only); playerCount\/sourcePlayerCount is the match coverage')
 })
 
 
@@ -1017,5 +1019,4 @@ export const DeleteSolveParams = zod.object({
 })
 
 export const DeleteSolveResponse = zod.void()
-
 

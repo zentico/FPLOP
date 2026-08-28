@@ -3,6 +3,8 @@ const BASE_URL = "https://fantasy.premierleague.com/api";
 interface BootstrapElement {
   id: number;
   web_name: string;
+  first_name?: string;
+  second_name?: string;
   team: number;
   element_type: number;
   now_cost: number;

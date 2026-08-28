@@ -16,6 +16,12 @@ export interface ProjectionMeta {
   sourceUpdatedAt?: string | null;
   /** Season the snapshot belongs to, e.g. "2026/27". */
   season?: string | null;
+  /**
+   * Players in the upstream feed before FPL identity matching, for sources
+   * that need matching (e.g. Pundit). playerCount / sourcePlayerCount is the
+   * match coverage.
+   */
+  sourcePlayerCount?: number | null;
 }
 
 export interface ChipAssignment {

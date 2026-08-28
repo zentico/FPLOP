@@ -28,6 +28,8 @@ export interface Projection {
   sourceUpdatedAt?: string;
   /** Season the snapshot belongs to, e.g. "2026/27" */
   season?: string;
+  /** Players in the upstream feed before FPL identity matching (sources that match players only); playerCount/sourcePlayerCount is the match coverage */
+  sourcePlayerCount?: number;
 }
 
 export interface ProjectionInput {
@@ -46,7 +48,7 @@ export interface FfhSessionInput {
 }
 
 export interface ImportProjectionInput {
-  /** External source id, "ffh" (Fantasy Football Hub) or "drafthound" (DraftHound). */
+  /** External source id, "ffh" (Fantasy Football Hub), "drafthound" (DraftHound), "pundit" (Fantasy Football Pundit assume-starting points), or "pundit-ffh" (Pundit points × FFH expected minutes hybrid). */
   source: string;
   /**
      * How many upcoming whole gameweeks to import (default 10, clamped to 1-38)
@@ -577,4 +579,3 @@ export interface MegaRun {
   chipWindow: number[];
   scenarios: MegaScenario[];
 }
-

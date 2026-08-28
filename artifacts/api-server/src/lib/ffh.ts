@@ -154,10 +154,14 @@ async function fetchAllPlayers(
   return players;
 }
 
-export async function importFfhProjection(
+/**
+ * Fetch FFH predictions for a gameweek window as canonical rows keyed by
+ * official FPL id. Shared by the FFH import and the Pundit + FFH hybrid.
+ */
+export async function fetchFfhRows(
   minGameweek: number,
   maxGameweek: number,
-): Promise<ProjectionMeta> {
+): Promise<CanonicalPlayerRow[]> {
   const cookie = getStoredCookie();
   if (!cookie) {
     throw new FfhSessionError(
@@ -166,9 +170,6 @@ export async function importFfhProjection(
   }
   const token = await fetchAccessToken(cookie);
   const players = await fetchAllPlayers(token, minGameweek, maxGameweek);
-
-  const gameweeks: number[] = [];
-  for (let gw = minGameweek; gw <= maxGameweek; gw++) gameweeks.push(gw);
 
   const rows: CanonicalPlayerRow[] = [];
   const seen = new Set<number>();
@@ -203,6 +204,16 @@ export async function importFfhProjection(
       "Fantasy Football Hub returned no players with FPL ids.",
     );
   }
+  return rows;
+}
+
+export async function importFfhProjection(
+  minGameweek: number,
+  maxGameweek: number,
+): Promise<ProjectionMeta> {
+  const rows = await fetchFfhRows(minGameweek, maxGameweek);
+  const gameweeks: number[] = [];
+  for (let gw = minGameweek; gw <= maxGameweek; gw++) gameweeks.push(gw);
 
   let season: string | null = null;
   try {

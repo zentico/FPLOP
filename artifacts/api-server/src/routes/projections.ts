@@ -29,6 +29,11 @@ import {
   DraftHoundUpstreamError,
   importDraftHoundProjection,
 } from "../lib/drafthound";
+import {
+  PunditUpstreamError,
+  importPunditFfhHybrid,
+  importPunditProjection,
+} from "../lib/pundit";
 import { getGameweekInfo, getSeasonName } from "../lib/fpl";
 import { saveProjectionSnapshot } from "../lib/projections";
 import { computePoolStats, projectionCsvPath } from "../lib/solver";
@@ -145,7 +150,8 @@ router.post("/projections/import", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  if (parsed.data.source !== "ffh" && parsed.data.source !== "drafthound") {
+  const KNOWN_SOURCES = ["ffh", "drafthound", "pundit", "pundit-ffh"];
+  if (!KNOWN_SOURCES.includes(parsed.data.source)) {
     res.status(400).json({ error: `Unknown source "${parsed.data.source}"` });
     return;
   }
@@ -154,6 +160,10 @@ router.post("/projections/import", async (req, res): Promise<void> => {
     let meta;
     if (parsed.data.source === "drafthound") {
       meta = await importDraftHoundProjection();
+    } else if (parsed.data.source === "pundit") {
+      meta = await importPunditProjection();
+    } else if (parsed.data.source === "pundit-ffh") {
+      meta = await importPunditFfhHybrid();
     } else {
       const { nextGameweek } = await getGameweekInfo();
       const minGw = nextGameweek;
@@ -166,7 +176,8 @@ router.post("/projections/import", async (req, res): Promise<void> => {
       res.status(401).json({ error: err.message });
     } else if (
       err instanceof FfhUpstreamError ||
-      err instanceof DraftHoundUpstreamError
+      err instanceof DraftHoundUpstreamError ||
+      err instanceof PunditUpstreamError
     ) {
       res.status(502).json({ error: err.message });
     } else {

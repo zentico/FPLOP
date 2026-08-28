@@ -235,12 +235,15 @@ export default function Home() {
     reader.readAsText(file);
   };
 
-  const handleImport = (source: "ffh" | "drafthound") => {
+  const handleImport = (source: "ffh" | "drafthound" | "pundit" | "pundit-ffh") => {
     importMutation.mutate({ data: { source } }, {
       onSuccess: (data) => {
         queryClient.invalidateQueries({ queryKey: getListProjectionsQueryKey() });
         setProjectionId(data.id);
-        toast({ title: "Predictions imported", description: `${data.playerCount} players, GW${data.gameweeks[0]}–${data.gameweeks[data.gameweeks.length - 1]}` });
+        const coverage = data.sourcePlayerCount
+          ? ` (matched ${data.playerCount} of ${data.sourcePlayerCount} feed players)`
+          : "";
+        toast({ title: "Predictions imported", description: `${data.playerCount} players, GW${data.gameweeks[0]}–${data.gameweeks[data.gameweeks.length - 1]}${coverage}` });
       },
       onError: (err: any) => {
         toast({
@@ -557,6 +560,27 @@ export default function Home() {
                     </p>
                     <Button onClick={() => handleImport("drafthound")} disabled={importMutation.isPending} variant="secondary">
                       {importMutation.isPending ? "Importing…" : "Import DraftHound predictions"}
+                    </Button>
+                  </div>
+                  <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:bg-muted/30 transition-colors">
+                    <DownloadCloud className="h-10 w-10 mx-auto text-primary mb-4" />
+                    <p className="text-sm font-medium mb-1">Fantasy Football Pundit</p>
+                    <p className="text-xs text-muted-foreground mb-4 max-w-md mx-auto">
+                      Import Pundit's free published points predictor for the current 6-gameweek horizon. Uses its assume-starting points (not its start-probability-adjusted points). No account needed; players are matched to official FPL ids by team, position and name.
+                    </p>
+                    <Button onClick={() => handleImport("pundit")} disabled={importMutation.isPending} variant="secondary">
+                      {importMutation.isPending ? "Importing…" : "Import Pundit predictions"}
+                    </Button>
+                  </div>
+                  <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:bg-muted/30 transition-colors">
+                    <DownloadCloud className="h-10 w-10 mx-auto text-primary mb-4" />
+                    <p className="text-sm font-medium mb-1">Pundit + FFH hybrid</p>
+                    <p className="text-xs text-muted-foreground mb-4 max-w-md mx-auto">
+                      Fetches Pundit and Fantasy Football Hub together and combines them: <span className="font-mono">Pundit assume-starting points × clamp(FFH expected minutes ÷ 90, 0, 1)</span>. Saved as its own source so its accuracy is tracked separately.
+                      {!ffhSession?.configured && " Requires a saved Hub session cookie (below)."}
+                    </p>
+                    <Button onClick={() => handleImport("pundit-ffh")} disabled={importMutation.isPending || !ffhSession?.configured} variant="secondary">
+                      {importMutation.isPending ? "Importing…" : "Create hybrid snapshot"}
                     </Button>
                   </div>
                   <div className="mt-4 border rounded-lg p-4">
