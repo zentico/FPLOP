@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { getGetSolveQueryKey } from "@workspace/api-client-react";
-import type { GameweekPlan, PickPlayer } from "@workspace/api-client-react";
+import type { GameweekPlan, PickPlayer, PoolPlayerStat } from "@workspace/api-client-react";
 
 export default function SolveDetail() {
   const { id } = useParams();
@@ -41,7 +41,9 @@ export default function SolveDetail() {
   const projectionId = solve?.request?.projectionId;
   const { data: poolStats } = useGetProjectionPoolStats(projectionId!, {
     query: {
-      enabled: !!projectionId && hasNumericRef,
+      enabled:
+        !!projectionId &&
+        (hasNumericRef || (!!solve?.result && !solve.request.firstGameweek)),
       queryKey: getGetProjectionPoolStatsQueryKey(projectionId!),
     },
   });
@@ -271,7 +273,11 @@ export default function SolveDetail() {
 
           {/* All-gameweeks squad matrix */}
           {(plan?.gameweeks?.length ?? 0) > 1 && (
-            <SquadMatrix gameweeks={plan!.gameweeks} decayBase={decayBase} />
+            <SquadMatrix
+              gameweeks={plan!.gameweeks}
+              decayBase={decayBase}
+              playerStats={poolStats}
+            />
           )}
 
           {/* Gameweek Plans */}
@@ -794,10 +800,21 @@ type MatrixCell =
 // Stable identity: player ID when available (new runs), display name otherwise (old runs).
 const playerKey = (p: PickPlayer) => p.id ?? p.name;
 
-function SquadMatrix({ gameweeks, decayBase }: { gameweeks: GameweekPlan[]; decayBase: number }) {
+function SquadMatrix({
+  gameweeks,
+  decayBase,
+  playerStats,
+}: {
+  gameweeks: GameweekPlan[];
+  decayBase: number;
+  playerStats?: PoolPlayerStat[];
+}) {
   const { rows } = React.useMemo(() => {
     // Union of all squad players across gameweeks
     const players = new Map<string, { key: string; name: string; team: string; position: string; firstGwIdx: number }>();
+    const statsByName = new Map(
+      (playerStats ?? []).map((player) => [player.name.toLowerCase(), player]),
+    );
     gameweeks.forEach((gw, i) => {
       for (const p of [...gw.lineup, ...gw.bench]) {
         const key = playerKey(p);
@@ -806,6 +823,21 @@ function SquadMatrix({ gameweeks, decayBase }: { gameweeks: GameweekPlan[]; deca
         }
       }
     });
+    // A player transferred out before the first displayed squad may not occur
+    // in any modeled gameweek, so add them from the projection metadata.
+    for (const name of gameweeks[0]?.transfersOut ?? []) {
+      const stat = statsByName.get(name.toLowerCase());
+      const key = stat ? String(stat.id) : name;
+      if (!players.has(key)) {
+        players.set(key, {
+          key,
+          name: stat?.name ?? name,
+          team: stat?.team ?? "",
+          position: stat?.position ?? "?",
+          firstGwIdx: 0,
+        });
+      }
+    }
 
     // IN/OUT are derived from actual squad membership between consecutive gameweeks,
     // so they stay correct for chip weeks and out-then-back-in sequences.
@@ -813,15 +845,29 @@ function SquadMatrix({ gameweeks, decayBase }: { gameweeks: GameweekPlan[]; deca
       const inGwIdx = new Set<number>();
       const inSquad = (gw: GameweekPlan) =>
         gw.lineup.some(p => playerKey(p) === meta.key) || gw.bench.some(p => playerKey(p) === meta.key);
+      const firstTransfersIn = new Set(
+        (gameweeks[0]?.transfersIn ?? []).map((name) => name.toLowerCase()),
+      );
+      const firstTransfersOut = new Set(
+        (gameweeks[0]?.transfersOut ?? []).map((name) => name.toLowerCase()),
+      );
       const cells: MatrixCell[] = gameweeks.map((gw, i) => {
         const xi = gw.lineup.find(p => playerKey(p) === meta.key);
         const b = xi ? undefined : gw.bench.find(p => playerKey(p) === meta.key);
         if (xi || b) {
-          if (i > 0 && !inSquad(gameweeks[i - 1])) inGwIdx.add(i);
+          if (
+            (i === 0 && firstTransfersIn.has(meta.name.toLowerCase())) ||
+            (i > 0 && !inSquad(gameweeks[i - 1]))
+          ) {
+            inGwIdx.add(i);
+          }
           if (xi) return { kind: "xi" as const, captain: xi.isCaptain, vice: xi.isViceCaptain, points: xi.expectedPoints };
           return { kind: "bench" as const, order: b!.benchOrder ?? null, points: b!.expectedPoints };
         }
         // Mark the gameweek the player left the squad
+        if (i === 0 && firstTransfersOut.has(meta.name.toLowerCase())) {
+          return { kind: "out" as const };
+        }
         if (i > 0 && inSquad(gameweeks[i - 1])) return { kind: "out" as const };
         return { kind: "absent" as const };
       });
@@ -834,7 +880,7 @@ function SquadMatrix({ gameweeks, decayBase }: { gameweeks: GameweekPlan[]; deca
       a.name.localeCompare(b.name),
     );
     return { rows };
-  }, [gameweeks]);
+  }, [gameweeks, playerStats]);
 
   return (
     <Card>
