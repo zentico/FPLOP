@@ -120,7 +120,7 @@ export default function Home() {
   const [advFlags, setAdvFlags] = React.useState<{ noFutureTransfer: boolean; randomized: boolean }>({ noFutureTransfer: false, randomized: false });
   // Booked transfers: moves the user has already decided on
   const [booked, setBooked] = React.useState<{ gw: string; inP: string; outP: string }[]>([]);
-  const [opposingPlay, setOpposingPlay] = React.useState<"off" | "penalty" | "forbid">("penalty");
+  const [opposingPlay, setOpposingPlay] = React.useState<"off" | "penalty" | "forbid">("off");
 
   // Queries
   const { data: projections, isLoading: isLoadingProjections } = useListProjections();

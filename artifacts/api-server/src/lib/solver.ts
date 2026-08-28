@@ -660,7 +660,7 @@ const CHIP_CODE_SHORT: Record<string, string> = {
   triple_captain: "tc",
 };
 
-function applyOpposingPlay(
+export function applyOpposingPlay(
   config: Record<string, unknown>,
   opposingPlay: string,
 ): void {
@@ -669,6 +669,11 @@ function applyOpposingPlay(
     // targeted — attacker-vs-attacker matchups are not zero-sum.
     config["no_opposing_play"] = opposingPlay === "forbid" ? true : "penalty";
     config["opposing_play_group"] = "position";
+    if (opposingPlay === "penalty") {
+      // open-fpl-solver creates both directed forms of each defender-attacker
+      // pair. Halve its per-variable value so one real clash costs 0.5 points.
+      config["opposing_play_penalty"] = 0.25;
+    }
   }
 }
 
