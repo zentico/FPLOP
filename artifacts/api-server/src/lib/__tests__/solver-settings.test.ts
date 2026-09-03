@@ -1,7 +1,11 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   applyOpposingPlay,
   calculateEndingFreeTransfers,
+  ensureSquadPlayersInProjection,
 } from "../solver";
 
 describe("opposing-play settings", () => {
@@ -42,4 +46,46 @@ describe("free-transfer rollover", () => {
       );
     },
   );
+});
+
+describe("missing current-squad projections", () => {
+  it("adds a zero-point run-local row without changing existing players", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "fpl-projection-"));
+    const csvPath = path.join(dir, "run.csv");
+    fs.writeFileSync(
+      csvPath,
+      [
+        "ID,Name,Pos,Team,Value,Ownership,3_Pts,3_xMins",
+        "1,Raya,G,ARS,6,35.2,4.2,90",
+        "",
+      ].join("\n"),
+    );
+
+    const added = ensureSquadPlayersInProjection(csvPath, [
+      {
+        playerId: 1,
+        name: "Raya",
+        team: "ARS",
+        position: "G",
+        sellPrice: 6,
+      },
+      {
+        playerId: 140,
+        name: "Sánchez",
+        team: "CHE",
+        position: "G",
+        sellPrice: 5,
+      },
+    ]);
+
+    expect(added).toEqual([140]);
+    expect(fs.readFileSync(csvPath, "utf-8")).toBe(
+      [
+        "ID,Name,Pos,Team,Value,Ownership,3_Pts,3_xMins",
+        "1,Raya,G,ARS,6,35.2,4.2,90",
+        "140,Sánchez,G,CHE,5,0,0,0",
+        "",
+      ].join("\n"),
+    );
+  });
 });

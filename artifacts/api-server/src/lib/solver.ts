@@ -304,6 +304,73 @@ function writeRunProjection(
   return { factors, kept, total: rows.length };
 }
 
+type SquadProjectionFallback = {
+  playerId: number;
+  name: string;
+  team: string;
+  position: string;
+  sellPrice: number;
+};
+
+/**
+ * The upstream solver requires every current-squad player to exist in the
+ * projection datasource, even if that player has no forecast. Projection
+ * providers sometimes omit unavailable or fringe players, so add zero-point
+ * run-local rows for missing squad members. The source snapshot stays intact.
+ */
+export function ensureSquadPlayersInProjection(
+  csvPath: string,
+  squad: SquadProjectionFallback[],
+): number[] {
+  if (squad.length === 0) return [];
+  const content = fs.readFileSync(csvPath, "utf-8");
+  const rows = parseCsv(content);
+  const headers = content
+    .split(/\r?\n/, 1)[0]!
+    .split(",")
+    .map((header) => header.trim());
+  const idCol = headers.find((header) => ["ID", "Id", "id"].includes(header));
+  if (!idCol) throw new Error("Projection is missing an ID column");
+
+  const presentIds = new Set(rows.map((row) => Number(row[idCol])));
+  const missing = squad.filter((player) => !presentIds.has(player.playerId));
+  if (missing.length === 0) return [];
+
+  const nameCol = headers.find((header) =>
+    ["Name", "name", "Player"].includes(header),
+  );
+  const posCol = headers.find((header) =>
+    ["Pos", "Position", "pos"].includes(header),
+  );
+  const teamCol = headers.find((header) =>
+    ["Team", "team", "Club"].includes(header),
+  );
+  const priceCol = headers.find((header) =>
+    ["Value", "Price", "BV", "SV", "Cost", "now_cost"].includes(header),
+  );
+  const ownershipCol = headers.find((header) => header === "Ownership");
+  const appendedLines = missing.map((player) =>
+    headers
+      .map((header) => {
+        let value = "";
+        if (header === idCol) value = String(player.playerId);
+        else if (header === nameCol) value = player.name;
+        else if (header === posCol) value = player.position;
+        else if (header === teamCol) value = player.team;
+        else if (header === priceCol) value = String(player.sellPrice);
+        else if (header === ownershipCol) value = "0";
+        else if (/^\d+_(Pts|xMins)$/.test(header)) value = "0";
+        return csvField(value);
+      })
+      .join(","),
+  );
+  fs.writeFileSync(
+    csvPath,
+    `${content.trimEnd()}\n${appendedLines.join("\n")}\n`,
+  );
+  return missing.map((player) => player.playerId);
+}
+
 interface PickRow {
   id: string;
   week: string;
@@ -817,6 +884,10 @@ export async function startSolve(
   let logPath: string;
   let startedAt: number;
   try {
+    const currentTeam =
+      !request.firstGameweek && request.teamId
+        ? await getFplTeam(request.teamId)
+        : null;
     if (useAdjusted) {
       let keepIds: Set<number> | null = null;
       if (filter) {
@@ -837,9 +908,8 @@ export async function startSolve(
         }
         // When optimizing an existing team, the current squad must stay in
         // the pool — the solver can't sell players it can't see.
-        if (!request.firstGameweek && request.teamId) {
-          const team = await getFplTeam(request.teamId);
-          for (const p of team.squad) keepIds.add(p.playerId);
+        if (currentTeam) {
+          for (const p of currentTeam.squad) keepIds.add(p.playerId);
         }
       }
       const written = writeRunProjection(
@@ -857,6 +927,18 @@ export async function startSolve(
         projectionCsvPath(request.projectionId),
         path.join(SOLVER_DATA_DIR, `${datasource}.csv`),
       );
+    }
+    if (currentTeam) {
+      const addedIds = ensureSquadPlayersInProjection(
+        path.join(SOLVER_DATA_DIR, `${datasource}.csv`),
+        currentTeam.squad,
+      );
+      if (addedIds.length > 0) {
+        logger.warn(
+          { runId, playerIds: addedIds },
+          "Added missing current-squad players to run projection",
+        );
+      }
     }
 
     const configPath = path.join(runDir, "config.json");
