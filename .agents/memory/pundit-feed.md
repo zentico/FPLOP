@@ -1,10 +1,10 @@
 ---
 name: Fantasy Football Pundit feed
-description: How the Pundit projections feed is accessed and how its columns must be read
+description: How the redesigned Pundit predictor data is accessed and mapped to official FPL players
 ---
 
-- The Pundit website (fantasyfootballpundit.com) blocks datacenter IPs with a SiteGround captcha; the predictor table's real data source is a published Google Sheet CSV (URL vendored in the pundit adapter). Fetch the sheet, not the page.
-- **Why:** direct scraping fails from Replit; the sheet is the public feed the page itself loads via PapaParse.
-- Column semantics: `StartingPredicted` = assume-starting points for the current GW; `GW2`..`GW6` are horizon-relative (2nd..6th gameweek of the window), NOT absolute gameweek numbers. `Predicted`/`GWns` columns are start-probability-adjusted — do not use them for assume-starting snapshots.
-- **How to apply:** anchor the window at FPL's next gameweek and always run the cumulative (`NextKGWsStart`) consistency check — it is the only guard against misreading the layout, since the CSV carries no gameweek labels or timestamp.
+- The redesigned predictor is a Next.js page whose React Server Component payload embeds one record per player and gameweek. The old published Google Sheet is deprecated and must not be used as the import source.
+- **Why:** the sheet no longer matches the redesigned frontend and requires fragile name matching. Every current page record carries FPL `player_code`, and all observed codes mapped uniquely to official bootstrap data.
+- `predicted_points` is the assume-starting value. Despite its name, `predicted_points_start` is start-probability-adjusted (for example, 90% produces 0.9× the assume-starting value).
+- **How to apply:** fetch the predictor page, decode its embedded records, map `player_code` to official FPL element IDs via bootstrap `code`, and require the page's explicit gameweeks to match FPL's next six-gameweek window.
 - FFH session cookies (stored file and the FFH_SESSION_COOKIE secret) expire within ~a week; hybrid imports need the user to paste a fresh appSession cookie in the Import tab.

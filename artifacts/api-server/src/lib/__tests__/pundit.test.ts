@@ -11,9 +11,11 @@ process.env.FPLOP_STORE_DIR ??= fs.mkdtempSync(
 const {
   PunditUpstreamError,
   buildHybridRows,
+  buildPunditFrontendRows,
   buildPunditCanonicalRows,
   matchPunditPlayers,
   parsePunditCsv,
+  parsePunditPage,
   punditGameweekWindow,
   validatePunditCumulative,
 } = await import("../pundit");
@@ -66,6 +68,111 @@ describe("parsePunditCsv", () => {
 
   it("refuses suspiciously small player lists", () => {
     expect(() => parsePunditCsv(csvWith(20))).toThrow(PunditUpstreamError);
+  });
+});
+
+const frontendRecord = (
+  code: number,
+  gw: number,
+  overrides: Record<string, unknown> = {},
+) =>
+  JSON.stringify({
+    gw,
+    player_code: code,
+    web_name: `Player ${code}`,
+    first_name: "Test",
+    second_name: `Player ${code}`,
+    position: "Defender",
+    element_type: 2,
+    team_name: "Arsenal",
+    team_short: "ARS",
+    team_abbr: "ARS",
+    badge_url: "/badges/1.png",
+    price: "5.5",
+    selected_by_percent: "6.5",
+    predicted_points: "4.800",
+    predicted_points_start: "3.840",
+    start_pct: "80.00",
+    fixture_count: 1,
+    source: "odds",
+    opponent_abbr: "AVL",
+    is_home: false,
+    difficulty: 3,
+    ...overrides,
+  }).replaceAll('"', '\\"');
+
+const frontendPage = (players = 120, gameweeks = [3, 4, 5, 6, 7, 8]) =>
+  `<script>self.__next_f.push([1,"${Array.from(
+    { length: players },
+    (_, index) =>
+      gameweeks
+        .map((gameweek) => frontendRecord(1000 + index, gameweek))
+        .join(","),
+  ).join(",")}"])</script>`;
+
+describe("redesigned Pundit predictor", () => {
+  it("parses official player codes and assume-starting points from the embedded page data", () => {
+    const rows = parsePunditPage(frontendPage());
+    expect(rows).toHaveLength(720);
+    expect(rows[0]).toMatchObject({
+      gameweek: 3,
+      playerCode: 1000,
+      elementType: 2,
+      price: 5.5,
+      ownership: 6.5,
+      startPct: 0.8,
+      startPoints: 4.8,
+    });
+  });
+
+  it("maps player codes directly to official FPL ids", () => {
+    const records = parsePunditPage(frontendPage());
+    const bootstrap = {
+      elements: Array.from({ length: 120 }, (_, index) => ({
+        id: index + 1,
+        code: 1000 + index,
+        web_name: `Official ${index}`,
+        first_name: "Official",
+        second_name: String(index),
+        selected_by_percent: "1.0",
+        team: 1,
+        element_type: 2,
+        now_cost: 55,
+      })),
+      teams: [{ id: 1, name: "Arsenal", short_name: "ARS" }],
+      events: [],
+    };
+    const built = buildPunditFrontendRows(
+      records,
+      bootstrap,
+      [3, 4, 5, 6, 7, 8],
+    );
+
+    expect(built.sourcePlayerCount).toBe(120);
+    expect(built.canonical[0]).toMatchObject({
+      fplId: 1,
+      name: "Official 0",
+      position: "D",
+    });
+    expect(built.canonical[0]!.byGameweek.get(3)).toEqual({
+      points: 4.8,
+      minutes: 90,
+    });
+  });
+
+  it("rejects a predictor whose gameweek window does not match FPL", () => {
+    const records = parsePunditPage(frontendPage(120, [4, 5, 6, 7, 8, 9]));
+    expect(() =>
+      buildPunditFrontendRows(
+        records,
+        {
+          elements: [],
+          teams: [],
+          events: [],
+        },
+        [3, 4, 5, 6, 7, 8],
+      ),
+    ).toThrow(PunditUpstreamError);
   });
 });
 

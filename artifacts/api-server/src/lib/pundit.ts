@@ -10,16 +10,166 @@ import {
 } from "./projections";
 import type { ProjectionMeta } from "./store";
 
-/**
- * Public CSV feed behind fantasyfootballpundit.com/fpl-points-predictor/
- * (the page's own table loads this published Google Sheet).
- */
-const PUNDIT_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaiTmUKjtQ7MxiGibN2GAZ8m9NHF3IA2U-yE0PhBpCOXHewhs57PrjZO7GQzZvrEGGBW7HFEE43yX0/pub?output=csv";
+const PUNDIT_PAGE_URL =
+  "https://www.fantasyfootballpundit.com/fpl-points-predictor/";
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 
 export class PunditUpstreamError extends Error {}
+
+export interface PunditFrontendRecord {
+  gameweek: number;
+  playerCode: number;
+  elementType: number;
+  name: string;
+  team: string;
+  price: number;
+  ownership: number;
+  startPct: number;
+  /** Points assuming the player starts. */
+  startPoints: number;
+}
+
+/**
+ * Parse the projection records embedded in the redesigned Next.js page.
+ * The page serializes each record inside its React Server Component payload,
+ * so JSON quotes appear escaped in the HTML source.
+ */
+export function parsePunditPage(content: string): PunditFrontendRecord[] {
+  const serialized =
+    content.match(/\{\\"gw\\":\d+,\\"player_code\\":\d+[^{}]*\}/g) ?? [];
+  const records: PunditFrontendRecord[] = [];
+  const seen = new Set<string>();
+
+  for (const raw of serialized) {
+    let value: Record<string, unknown>;
+    try {
+      value = JSON.parse(raw.replaceAll('\\"', '"')) as Record<string, unknown>;
+    } catch {
+      throw new PunditUpstreamError(
+        "Fantasy Football Pundit's embedded projection data could not be decoded; its page format may have changed.",
+      );
+    }
+    const numberField = (key: string): number => {
+      const parsed = Number(value[key]);
+      if (!Number.isFinite(parsed)) {
+        throw new PunditUpstreamError(
+          `Fantasy Football Pundit's embedded projection data has an invalid ${key} value; its page format may have changed.`,
+        );
+      }
+      return parsed;
+    };
+    const gameweek = numberField("gw");
+    const playerCode = numberField("player_code");
+    const key = `${playerCode}|${gameweek}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    records.push({
+      gameweek,
+      playerCode,
+      elementType: numberField("element_type"),
+      name: String(value["web_name"] ?? "").trim(),
+      team: String(value["team_name"] ?? "").trim(),
+      price: numberField("price"),
+      ownership: numberField("selected_by_percent"),
+      startPct: numberField("start_pct") / 100,
+      // Despite the field names, the redesigned UI uses predicted_points for
+      // its "assume starting" mode and predicted_points_start after applying
+      // start probability.
+      startPoints: numberField("predicted_points"),
+    });
+  }
+
+  const players = new Set(records.map((record) => record.playerCode));
+  if (players.size < 100) {
+    throw new PunditUpstreamError(
+      `Fantasy Football Pundit returned only ${players.size} players from its redesigned predictor; refusing a suspiciously small import.`,
+    );
+  }
+  return records;
+}
+
+export function buildPunditFrontendRows(
+  records: PunditFrontendRecord[],
+  bootstrap: Bootstrap,
+  gameweeks: number[],
+): {
+  canonical: CanonicalPlayerRow[];
+  sourcePlayerCount: number;
+} {
+  const expectedGws = new Set(gameweeks);
+  const actualGws = new Set(records.map((record) => record.gameweek));
+  if (
+    actualGws.size !== expectedGws.size ||
+    [...actualGws].some((gameweek) => !expectedGws.has(gameweek))
+  ) {
+    throw new PunditUpstreamError(
+      `Fantasy Football Pundit's predictor covers gameweeks ${[...actualGws].sort((a, b) => a - b).join(", ")} but FPL's expected window is ${gameweeks.join(", ")}. Import aborted.`,
+    );
+  }
+
+  const elementByCode = new Map(
+    bootstrap.elements.map((element) => [element.code, element]),
+  );
+  const byCode = new Map<number, Map<number, PunditFrontendRecord>>();
+  for (const record of records) {
+    const byGameweek =
+      byCode.get(record.playerCode) ??
+      new Map<number, PunditFrontendRecord>();
+    byGameweek.set(record.gameweek, record);
+    byCode.set(record.playerCode, byGameweek);
+  }
+
+  const canonical: CanonicalPlayerRow[] = [];
+  const unknownCodes: number[] = [];
+  for (const [code, sourceByGameweek] of byCode) {
+    const element = elementByCode.get(code);
+    if (!element) {
+      if (unknownCodes.length < 15) unknownCodes.push(code);
+      continue;
+    }
+    if (gameweeks.some((gameweek) => !sourceByGameweek.has(gameweek))) {
+      throw new PunditUpstreamError(
+        `Fantasy Football Pundit's predictor has an incomplete gameweek horizon for player code ${code}. Import aborted.`,
+      );
+    }
+    const first = sourceByGameweek.get(gameweeks[0]!)!;
+    const position = ELEMENT_TYPE_TO_POS[element.element_type];
+    if (!position || first.elementType !== element.element_type) {
+      throw new PunditUpstreamError(
+        `Fantasy Football Pundit's position for player code ${code} does not match official FPL data. Import aborted.`,
+      );
+    }
+    canonical.push({
+      fplId: element.id,
+      name: element.web_name,
+      team: first.team,
+      position,
+      price: first.price,
+      ownership: first.ownership,
+      byGameweek: new Map(
+        gameweeks.map((gameweek) => {
+          const source = sourceByGameweek.get(gameweek)!;
+          return [
+            gameweek,
+            {
+              points: source.startPoints,
+              minutes: source.startPoints !== 0 ? 90 : 0,
+            },
+          ];
+        }),
+      ),
+    });
+  }
+
+  const coverage = canonical.length / byCode.size;
+  if (coverage < 0.95) {
+    throw new PunditUpstreamError(
+      `Only ${canonical.length} of ${byCode.size} Fantasy Football Pundit player codes matched official FPL data (${Math.round(coverage * 100)}%). Import aborted. Unknown code examples: ${unknownCodes.join(", ")}.`,
+    );
+  }
+  return { canonical, sourcePlayerCount: byCode.size };
+}
 
 const POS_MAP: Record<string, string> = {
   GK: "G",
@@ -406,23 +556,21 @@ export function buildHybridRows(
   return { rows, missingFromFfh };
 }
 
-async function fetchPunditRows(): Promise<PunditRow[]> {
+async function fetchPunditRows(): Promise<PunditFrontendRecord[]> {
   let res: Response;
   try {
-    res = await fetch(PUNDIT_CSV_URL, { headers: { "User-Agent": UA } });
+    res = await fetch(PUNDIT_PAGE_URL, { headers: { "User-Agent": UA } });
   } catch {
     throw new PunditUpstreamError(
-      "Could not reach the Fantasy Football Pundit feed.",
+      "Could not reach the Fantasy Football Pundit points predictor.",
     );
   }
   if (!res.ok) {
     throw new PunditUpstreamError(
-      `Fantasy Football Pundit feed returned status ${res.status}.`,
+      `Fantasy Football Pundit points predictor returned status ${res.status}.`,
     );
   }
-  const rows = parsePunditCsv(await res.text());
-  validatePunditCumulative(rows);
-  return rows;
+  return parsePunditPage(await res.text());
 }
 
 function toMatchable(bootstrap: Bootstrap): {
@@ -458,22 +606,15 @@ async function preparePundit(): Promise<{
     getGameweekInfo(),
     getBootstrap(),
   ]);
-  const { players, teams } = toMatchable(bootstrap);
-  const outcome = matchPunditPlayers(rows, players, teams);
-  const coverage = outcome.matched / rows.length;
-  if (coverage < MIN_MATCH_COVERAGE) {
-    throw new PunditUpstreamError(
-      `Only ${outcome.matched} of ${rows.length} Fantasy Football Pundit players could be matched to official FPL players (${Math.round(coverage * 100)}%). Import aborted — the feed or FPL data may have changed. Unmatched examples: ${outcome.unmatchedNames.join(", ")}.`,
-    );
-  }
   const gameweeks = punditGameweekWindow(nextGameweek);
+  const built = buildPunditFrontendRows(rows, bootstrap, gameweeks);
   return {
     canonical: enrichCanonicalRowsWithBootstrap(
-      buildPunditCanonicalRows(rows, outcome.ids, gameweeks),
+      built.canonical,
       bootstrap,
     ),
     gameweeks,
-    sourcePlayerCount: rows.length,
+    sourcePlayerCount: built.sourcePlayerCount,
   };
 }
 

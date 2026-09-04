@@ -723,7 +723,7 @@ export default function Home() {
                     <div className="min-w-0 flex-1 text-left">
                       <p className="text-sm font-medium mb-1">Fantasy Football Pundit</p>
                       <p className="text-xs text-muted-foreground">
-                        Import Pundit's free published points predictor for the current 6-gameweek horizon. Uses its assume-starting points (not its start-probability-adjusted points). No account needed; players are matched to official FPL ids by team, position and name.
+                        Import Pundit's free points predictor for the current 6-gameweek horizon. Uses its assume-starting points (not its start-probability-adjusted points). No account needed; players are matched directly through their official FPL codes.
                       </p>
                     </div>
                     <Button className="w-full sm:w-auto shrink-0" onClick={() => handleImport("pundit")} disabled={importMutation.isPending} variant="secondary">

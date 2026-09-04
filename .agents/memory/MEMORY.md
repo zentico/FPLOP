@@ -2,7 +2,7 @@
 - [api-client-react dist staleness](api-client-dist-staleness.md) — project-reference consumers typecheck against stale dist/*.d.ts; rebuild with `tsc -b lib/api-client-react` after codegen; hooks need explicit queryKey.
 - [Solver start gameweek](solver-gw-window.md) — solves start at FPL's next GW even in first-GW mode; never hard-code GW1; baseline re-solves must exclude the primary's result files.
 - [Orval param naming](orval-param-naming.md) — mixing path+query params on one operation makes orval emit two `<Op>Params` exports and codegen fails; use path params instead.
-- [Pundit feed](pundit-feed.md) — site is captcha-blocked; use its published Google Sheet CSV; GW2..GW6 columns are horizon-relative; validate via NextKGWsStart cumulatives.
+- [Pundit feed](pundit-feed.md) — use redesigned page payload, not deprecated sheet; map FPL player_code directly; predicted_points is the assume-starting value.
 - [FFH predictions import](ffh-import.md) — password login is captcha-blocked; use user's appSession cookie → /auth/access-token → public-api /league/players (paginate with `after`, limit≤100).
 - [FantaLens feed](fantalens-feed.md) — Inertia JSON protocol (version handshake), dash-separated `gw` param, per_page≤100, null expected_minutes = 0; projection metas must omit (not null) absent optional fields.
 - [Weighted projection blends](blend-projections.md) — blends materialize as immutable snapshots; previews must round like the canonical CSV; missing players = zero, never reweighted.
