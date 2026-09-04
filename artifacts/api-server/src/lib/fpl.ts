@@ -10,6 +10,7 @@ interface BootstrapElement {
   team: number;
   element_type: number;
   now_cost: number;
+  ep_next?: string | null;
 }
 
 interface BootstrapTeam {

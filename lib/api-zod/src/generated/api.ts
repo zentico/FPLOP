@@ -146,7 +146,7 @@ export const importProjectionBodyMaxGameweeksMax = 38;
 
 
 export const ImportProjectionBody = zod.object({
-  "source": zod.string().describe('External source id, \"ffh\" (Fantasy Football Hub), \"drafthound\" (DraftHound), \"pundit\" (Fantasy Football Pundit assume-starting points), \"pundit-ffh\" (Pundit points × FFH expected minutes hybrid), or \"fantalens\" (FantaLens public expected points and minutes).'),
+  "source": zod.string().describe('External source id, \"ffh\" (Fantasy Football Hub), \"drafthound\" (DraftHound), \"pundit\" (Fantasy Football Pundit assume-starting points), \"pundit-ffh\" (Pundit points × FFH expected minutes hybrid), \"fantalens\" (FantaLens public expected points and minutes), or \"official-fpl\" (official FPL next-gameweek expected points with no expected-minutes forecast).'),
   "maxGameweeks": zod.number().min(1).max(importProjectionBodyMaxGameweeksMax).optional().describe('How many upcoming whole gameweeks to import (default 10, clamped to 1-38)')
 })
 

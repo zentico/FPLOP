@@ -633,6 +633,12 @@ function buildConfig(
     use_fh: [],
     use_tc: [],
   };
+  if ((request.horizon ?? 5) === 1) {
+    // The solver's default is designed for cumulative multi-GW xMins. A
+    // one-week source may legitimately provide no minutes (Official FPL), and
+    // even a full appearance is only 90, so do not filter by default.
+    config["xmin_lb"] = 0;
+  }
 
   if (request.firstGameweek) {
     config["preseason"] = true;

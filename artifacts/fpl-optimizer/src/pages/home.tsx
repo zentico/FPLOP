@@ -301,7 +301,7 @@ export default function Home() {
     reader.readAsText(file);
   };
 
-  const handleImport = (source: "ffh" | "drafthound" | "pundit" | "pundit-ffh" | "fantalens") => {
+  const handleImport = (source: "ffh" | "drafthound" | "pundit" | "pundit-ffh" | "fantalens" | "official-fpl") => {
     importMutation.mutate({ data: { source } }, {
       onSuccess: (data) => {
         queryClient.invalidateQueries({ queryKey: getListProjectionsQueryKey() });
@@ -691,6 +691,18 @@ export default function Home() {
                 </TabsContent>
 
                 <TabsContent value="import" className="mt-4 space-y-4">
+                  <div className="border-2 border-dashed border-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-muted/30 transition-colors">
+                    <DownloadCloud className="h-8 w-8 shrink-0 text-primary" />
+                    <div className="min-w-0 flex-1 text-left">
+                      <p className="text-sm font-medium mb-1">Official Fantasy Premier League</p>
+                      <p className="text-xs text-muted-foreground">
+                        Import FPL's own expected-points estimate for the next gameweek. Intended for single-gameweek solves only; FPL does not provide expected minutes or a multi-gameweek forecast.
+                      </p>
+                    </div>
+                    <Button className="w-full sm:w-auto shrink-0" onClick={() => handleImport("official-fpl")} disabled={importMutation.isPending} variant="secondary">
+                      {importMutation.isPending ? "Importing…" : "Import official FPL estimate"}
+                    </Button>
+                  </div>
                   <div className="border-2 border-dashed border-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-muted/30 transition-colors">
                     <DownloadCloud className="h-8 w-8 shrink-0 text-primary" />
                     <div className="min-w-0 flex-1 text-left">

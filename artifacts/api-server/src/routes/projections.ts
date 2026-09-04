@@ -40,6 +40,10 @@ import {
   FantaLensUpstreamError,
   importFantaLensProjection,
 } from "../lib/fantalens";
+import {
+  OfficialFplProjectionError,
+  importOfficialFplProjection,
+} from "../lib/official-fpl";
 import { getGameweekInfo, getSeasonName } from "../lib/fpl";
 import { BlendError, buildBlend } from "../lib/blend";
 import {
@@ -177,7 +181,7 @@ router.post("/projections/import", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const KNOWN_SOURCES = ["ffh", "drafthound", "pundit", "pundit-ffh", "fantalens"];
+  const KNOWN_SOURCES = ["ffh", "drafthound", "pundit", "pundit-ffh", "fantalens", "official-fpl"];
   if (!KNOWN_SOURCES.includes(parsed.data.source)) {
     res.status(400).json({ error: `Unknown source "${parsed.data.source}"` });
     return;
@@ -185,7 +189,9 @@ router.post("/projections/import", async (req, res): Promise<void> => {
   const span = Math.min(Math.max(parsed.data.maxGameweeks ?? 10, 1), 38);
   try {
     let meta;
-    if (parsed.data.source === "drafthound") {
+    if (parsed.data.source === "official-fpl") {
+      meta = await importOfficialFplProjection();
+    } else if (parsed.data.source === "drafthound") {
       meta = await importDraftHoundProjection();
     } else if (parsed.data.source === "pundit") {
       meta = await importPunditProjection();
@@ -207,7 +213,8 @@ router.post("/projections/import", async (req, res): Promise<void> => {
       err instanceof FfhUpstreamError ||
       err instanceof DraftHoundUpstreamError ||
       err instanceof PunditUpstreamError ||
-      err instanceof FantaLensUpstreamError
+      err instanceof FantaLensUpstreamError ||
+      err instanceof OfficialFplProjectionError
     ) {
       res.status(502).json({ error: err.message });
     } else {
