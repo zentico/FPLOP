@@ -23,6 +23,11 @@ export interface SolveRun {
   request: SolveInput;
   /** @nullable */
   projectionFilename?: string | null;
+  /**
+     * First gameweek covered by this run, used for history cleanup
+     * @nullable
+     */
+  startGameweek?: number | null;
   /** @nullable */
   totalExpectedPoints?: number | null;
   /**

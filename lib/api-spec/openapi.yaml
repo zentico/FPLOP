@@ -1158,6 +1158,9 @@ components:
           $ref: "#/components/schemas/SolveInput"
         projectionFilename:
           type: ["string", "null"]
+        startGameweek:
+          type: ["number", "null"]
+          description: First gameweek covered by this run, used for history cleanup
         totalExpectedPoints:
           type: ["number", "null"]
         totalBaseExpectedPoints:

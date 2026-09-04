@@ -410,6 +410,7 @@ export const ListSolvesResponseItem = zod.object({
 }).describe('Advanced solver settings, mirroring open-fpl-solver config keys'),zod.null()]).optional()
 }),
   "projectionFilename": zod.string().nullish(),
+  "startGameweek": zod.number().nullish().describe('First gameweek covered by this run, used for history cleanup'),
   "totalExpectedPoints": zod.number().nullish(),
   "totalBaseExpectedPoints": zod.number().nullish().describe('Total expected points before differential adjustment (null when k = 0)'),
   "finalGapPercent": zod.number().nullish().describe('Final optimality gap (%) the solver achieved at completion'),
@@ -670,6 +671,7 @@ export const CreateSolveResponse = zod.object({
 }).describe('Advanced solver settings, mirroring open-fpl-solver config keys'),zod.null()]).optional()
 }),
   "projectionFilename": zod.string().nullish(),
+  "startGameweek": zod.number().nullish().describe('First gameweek covered by this run, used for history cleanup'),
   "totalExpectedPoints": zod.number().nullish(),
   "totalBaseExpectedPoints": zod.number().nullish().describe('Total expected points before differential adjustment (null when k = 0)'),
   "finalGapPercent": zod.number().nullish().describe('Final optimality gap (%) the solver achieved at completion'),
@@ -1044,6 +1046,7 @@ export const GetSolveResponse = zod.object({
 }).describe('Advanced solver settings, mirroring open-fpl-solver config keys'),zod.null()]).optional()
 }),
   "projectionFilename": zod.string().nullish(),
+  "startGameweek": zod.number().nullish().describe('First gameweek covered by this run, used for history cleanup'),
   "totalExpectedPoints": zod.number().nullish(),
   "totalBaseExpectedPoints": zod.number().nullish().describe('Total expected points before differential adjustment (null when k = 0)'),
   "finalGapPercent": zod.number().nullish().describe('Final optimality gap (%) the solver achieved at completion'),

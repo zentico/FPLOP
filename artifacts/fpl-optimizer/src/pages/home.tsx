@@ -61,6 +61,7 @@ export default function Home() {
   // Selected projection snapshots, in selection order. One selection solves
   // that snapshot directly; two or more form a weighted blend.
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
+  const [showStaleProjections, setShowStaleProjections] = React.useState(false);
   // Raw (unnormalized) weight text per projection id; blends normalize globally.
   const [blendWeights, setBlendWeights] = React.useState<Record<string, string>>({});
   const isBlend = selectedIds.length > 1;
@@ -321,6 +322,41 @@ export default function Home() {
     });
   };
 
+  const currentGameweek = gameweekInfo?.nextGameweek ?? 1;
+  const staleProjections = (projections ?? []).filter(
+    (projection) => (projection.gameweeks[0] ?? currentGameweek) < currentGameweek,
+  );
+  const visibleProjections = showStaleProjections
+    ? projections ?? []
+    : (projections ?? []).filter(
+        (projection) =>
+          (projection.gameweeks[0] ?? currentGameweek) >= currentGameweek,
+      );
+  const handleDeletePriorGameweeks = async () => {
+    if (!staleProjections.length) return;
+    if (
+      !window.confirm(
+        `Delete ${staleProjections.length} projection snapshot${staleProjections.length === 1 ? "" : "s"} that start before GW${currentGameweek}? Their CSV files will be permanently removed.`,
+      )
+    ) return;
+    try {
+      await Promise.all(
+        staleProjections.map((projection) =>
+          deleteMutation.mutateAsync({ id: projection.id }),
+        ),
+      );
+      setSelectedIds((ids) =>
+        ids.filter((id) => !staleProjections.some((item) => item.id === id)),
+      );
+      await queryClient.invalidateQueries({
+        queryKey: getListProjectionsQueryKey(),
+      });
+      toast({ title: `${staleProjections.length} prior-gameweek projections deleted` });
+    } catch {
+      toast({ title: "Could not delete all prior projections", variant: "destructive" });
+    }
+  };
+
   const handleSaveCookie = () => {
     updateSessionMutation.mutate({ data: { cookie: cookieInput } }, {
       onSuccess: () => {
@@ -578,7 +614,24 @@ export default function Home() {
                       <p className="text-xs text-muted-foreground">
                         Select one projection, or several to blend them with weights.
                       </p>
-                      {projections.map((p) => {
+                      <div className="flex items-center justify-between gap-3 flex-wrap rounded-lg border bg-muted/20 px-3 py-2">
+                        <label className="flex items-center gap-2 text-sm cursor-pointer">
+                          <Switch checked={showStaleProjections} onCheckedChange={setShowStaleProjections} />
+                          Show {staleProjections.length} source{staleProjections.length === 1 ? "" : "s"} starting before GW{currentGameweek}
+                        </label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive border-destructive/40 hover:bg-destructive/10"
+                          disabled={!staleProjections.length || deleteMutation.isPending}
+                          onClick={handleDeletePriorGameweeks}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete prior gameweeks
+                        </Button>
+                      </div>
+                      {visibleProjections.map((p) => {
                         const selected = selectedIds.includes(p.id);
                         const rawWeight = blendWeights[p.id] ?? "1";
                         const w = Number(rawWeight.trim() || NaN);

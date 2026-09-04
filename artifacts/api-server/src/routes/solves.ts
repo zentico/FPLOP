@@ -15,6 +15,7 @@ import {
   projectionHasOwnership,
   resolvePlayerRefs,
   startSolve,
+  deleteRunArtifacts,
 } from "../lib/solver";
 import {
   type MegaRunMeta,
@@ -69,7 +70,18 @@ function summary(run: SolveRunMeta): Record<string, unknown> {
     run.status === "completed" && run.result
       ? 1 + (run.result.alternatives?.length ?? 0)
       : (run.request.options?.numIterations ?? 1);
-  return { ...run, result: null, playedChips: playedChips(run), planCount };
+  const projection = listProjectionMetas().find(
+    (item) => item.id === run.request.projectionId,
+  );
+  const startGameweek =
+    run.result?.gameweeks[0]?.gameweek ?? projection?.gameweeks[0] ?? null;
+  return {
+    ...run,
+    result: null,
+    playedChips: playedChips(run),
+    planCount,
+    startGameweek,
+  };
 }
 
 router.get("/solves", async (_req, res): Promise<void> => {
@@ -462,6 +474,9 @@ router.delete("/solves/mega/:id", async (req, res): Promise<void> => {
     return;
   }
   const childIds = new Set(megas[idx]!.scenarios.map((s) => s.runId));
+  for (const run of listRunMetas()) {
+    if (childIds.has(run.id)) deleteRunArtifacts(run);
+  }
   megas.splice(idx, 1);
   saveMegaMetas(megas);
   saveRunMetas(listRunMetas().filter((r) => !childIds.has(r.id)));
@@ -494,6 +509,11 @@ router.delete("/solves", async (_req, res): Promise<void> => {
   const keptChildIds = new Set(
     keptMegas.flatMap((m) => m.scenarios.map((s) => s.runId)),
   );
+  for (const run of listRunMetas()) {
+    if (!active(run.status) && !keptChildIds.has(run.id)) {
+      deleteRunArtifacts(run);
+    }
+  }
   saveMegaMetas(keptMegas);
   saveRunMetas(
     listRunMetas().filter((r) => active(r.status) || keptChildIds.has(r.id)),
@@ -513,6 +533,7 @@ router.delete("/solves/:id", async (req, res): Promise<void> => {
     res.status(404).json({ error: "Solve run not found" });
     return;
   }
+  deleteRunArtifacts(runs[idx]!);
   runs.splice(idx, 1);
   saveRunMetas(runs);
   res.sendStatus(204);

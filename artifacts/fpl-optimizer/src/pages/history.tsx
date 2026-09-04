@@ -1,5 +1,5 @@
 import React from "react";
-import { useListSolves, useDeleteSolve, useDeleteAllSolves, useListMegaSolves, useDeleteMegaSolve, getListSolvesQueryKey, getListMegaSolvesQueryKey } from "@workspace/api-client-react";
+import { useListSolves, useDeleteSolve, useDeleteAllSolves, useListMegaSolves, useDeleteMegaSolve, useGetGameweekInfo, getListSolvesQueryKey, getListMegaSolvesQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { FlaskConical } from "lucide-react";
 import { Link } from "wouter";
@@ -15,10 +15,51 @@ export default function HistoryPage() {
   const { data: solves, isLoading } = useListSolves();
   const deleteMutation = useDeleteSolve();
   const { data: megas } = useListMegaSolves();
+  const { data: gameweekInfo } = useGetGameweekInfo();
   const deleteMegaMutation = useDeleteMegaSolve();
   const deleteAllMutation = useDeleteAllSolves();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const currentGameweek = gameweekInfo?.nextGameweek ?? 1;
+  const priorMegas = (megas ?? []).filter(
+    (mega) =>
+      mega.status !== "running" &&
+      mega.status !== "queued" &&
+      (mega.chipWindow[0] ?? currentGameweek) < currentGameweek,
+  );
+  const priorMegaChildIds = new Set(
+    priorMegas.flatMap((mega) => mega.scenarios.map((scenario) => scenario.runId)),
+  );
+  const priorSolves = (solves ?? []).filter(
+    (solve) =>
+      solve.status !== "running" &&
+      solve.status !== "queued" &&
+      solve.startGameweek != null &&
+      solve.startGameweek < currentGameweek &&
+      !priorMegaChildIds.has(solve.id),
+  );
+  const handleDeletePriorGameweeks = async () => {
+    const count = priorSolves.length + priorMegas.length;
+    if (!count) return;
+    if (
+      !window.confirm(
+        `Delete ${count} historical item${count === 1 ? "" : "s"} starting before GW${currentGameweek}? This cannot be undone.`,
+      )
+    ) return;
+    try {
+      await Promise.all([
+        ...priorSolves.map((solve) => deleteMutation.mutateAsync({ id: solve.id })),
+        ...priorMegas.map((mega) => deleteMegaMutation.mutateAsync({ id: mega.id })),
+      ]);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: getListSolvesQueryKey() }),
+        queryClient.invalidateQueries({ queryKey: getListMegaSolvesQueryKey() }),
+      ]);
+      toast({ title: `${count} prior-gameweek history items deleted` });
+    } catch {
+      toast({ title: "Could not delete all prior history", variant: "destructive" });
+    }
+  };
 
   const handleDeleteMega = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -71,6 +112,19 @@ export default function HistoryPage() {
           </h1>
           <p className="text-muted-foreground mt-2">Past optimization runs and their outcomes.</p>
         </div>
+        <div className="flex gap-2 flex-wrap">
+        <Button
+          variant="outline"
+          className="text-destructive border-destructive/40 hover:bg-destructive/10"
+          disabled={
+            priorSolves.length + priorMegas.length === 0 ||
+            deleteMutation.isPending ||
+            deleteMegaMutation.isPending
+          }
+          onClick={handleDeletePriorGameweeks}
+        >
+          <Trash2 className="h-4 w-4 mr-2" /> Delete prior gameweeks
+        </Button>
         <Button
           variant="outline"
           className="text-destructive border-destructive/40 hover:bg-destructive/10"
@@ -89,6 +143,7 @@ export default function HistoryPage() {
         >
           <Trash2 className="h-4 w-4 mr-2" /> Delete all
         </Button>
+        </div>
       </div>
 
       {megas && megas.length > 0 && (

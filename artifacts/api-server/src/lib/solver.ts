@@ -48,6 +48,30 @@ export function projectionCsvPath(projectionId: string): string {
   return current;
 }
 
+/** Remove all filesystem artifacts owned by one persisted solve run. */
+export function deleteRunArtifacts(
+  run: Pick<import("./store").SolveRunMeta, "id" | "request">,
+): void {
+  fs.rmSync(path.join(RUNS_DIR, run.id), { recursive: true, force: true });
+  fs.rmSync(
+    path.join(
+      SOLVER_DATA_DIR,
+      `${run.request.projectionId}-r${run.id}.csv`,
+    ),
+    { force: true },
+  );
+  try {
+    const marker = `-r${run.id}_`;
+    for (const filename of fs.readdirSync(SOLVER_RESULTS_DIR)) {
+      if (filename.includes(marker)) {
+        fs.rmSync(path.join(SOLVER_RESULTS_DIR, filename), { force: true });
+      }
+    }
+  } catch {
+    // The results directory may not exist yet for queued/failed runs.
+  }
+}
+
 /** Map of player id -> price, read from the projection csv. */
 function priceMap(projectionId: string): Map<string, number> {
   const map = new Map<string, number>();
