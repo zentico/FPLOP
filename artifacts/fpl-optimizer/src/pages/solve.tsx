@@ -611,7 +611,10 @@ function playerNameAliases(name: string): string[] {
   const full = parts.join("");
   if (parts.length < 2) return [full];
   const last = parts.at(-1)!;
-  return [full, last, `${parts[0]![0]}${last}`];
+  // Initialled provider names such as "B.Fernandes" have the same normalized
+  // full and initial+surname aliases. Do not count the same player twice and
+  // incorrectly mark that alias as ambiguous.
+  return [...new Set([full, last, `${parts[0]![0]}${last}`])];
 }
 
 function GameweekView({
