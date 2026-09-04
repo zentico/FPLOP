@@ -1,5 +1,5 @@
 import React from "react";
-import { useUploadProjection, useImportProjection, useGetFfhSessionStatus, useUpdateFfhSession, useListProjections, useDeleteProjection, useGetProjectionPlayers, useGetProjectionPoolStats, useGetGameweekInfo, useGetFplTeam, useCreateSolve, useCreateMegaSolve, getGetFplTeamQueryKey, getGetProjectionPlayersQueryKey, getGetProjectionPoolStatsQueryKey, getListProjectionsQueryKey, previewProjectionBlend } from "@workspace/api-client-react";
+import { useUploadProjection, useImportProjection, useGetFfhSessionStatus, useUpdateFfhSession, useListProjections, useDeleteProjection, useGetProjectionPlayers, useGetProjectionPoolStats, useGetGameweekInfo, useGetFplTeam, useCreateSolve, useCreateMegaSolve, getGetFplTeamQueryKey, getGetProjectionPlayersQueryKey, getGetProjectionPoolStatsQueryKey, getListProjectionsQueryKey, previewProjectionBlend, getAccuracy, listResults } from "@workspace/api-client-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -334,24 +334,56 @@ export default function Home() {
       );
   const handleDeletePriorGameweeks = async () => {
     if (!staleProjections.length) return;
-    if (
-      !window.confirm(
-        `Delete ${staleProjections.length} projection snapshot${staleProjections.length === 1 ? "" : "s"} that start before GW${currentGameweek}? Their CSV files will be permanently removed.`,
-      )
-    ) return;
     try {
+      const [accuracyEntries, resultArchives] = await Promise.all([
+        getAccuracy(),
+        listResults(),
+      ]);
+      const accuracyProjectionIds = new Set(
+        accuracyEntries.map((entry) => entry.projectionId),
+      );
+      const deletable = staleProjections.filter(
+        (projection) =>
+          (projection.gameweeks.at(-1) ?? currentGameweek) < currentGameweek &&
+          !accuracyProjectionIds.has(projection.id) &&
+          !projection.gameweeks.some(
+            (gameweek) =>
+              gameweek < currentGameweek &&
+              !resultArchives.some(
+                (archive) =>
+                  archive.gameweek === gameweek &&
+                  (!projection.season || archive.season === projection.season),
+              ),
+          ),
+      );
+      const preserved = staleProjections.length - deletable.length;
+      if (!deletable.length) {
+        toast({
+          title: "No redundant prior projections",
+          description: `${preserved} hidden snapshot${preserved === 1 ? " is" : "s are"} retained for season accuracy or current/future gameweeks.`,
+        });
+        return;
+      }
+      if (
+        !window.confirm(
+          `Delete ${deletable.length} expired, redundant projection snapshot${deletable.length === 1 ? "" : "s"}? ${preserved} snapshot${preserved === 1 ? "" : "s"} needed for season accuracy or current/future gameweeks will be retained.`,
+        )
+      ) return;
       await Promise.all(
-        staleProjections.map((projection) =>
+        deletable.map((projection) =>
           deleteMutation.mutateAsync({ id: projection.id }),
         ),
       );
       setSelectedIds((ids) =>
-        ids.filter((id) => !staleProjections.some((item) => item.id === id)),
+        ids.filter((id) => !deletable.some((item) => item.id === id)),
       );
       await queryClient.invalidateQueries({
         queryKey: getListProjectionsQueryKey(),
       });
-      toast({ title: `${staleProjections.length} prior-gameweek projections deleted` });
+      toast({
+        title: `${deletable.length} redundant prior-gameweek projections deleted`,
+        description: `${preserved} retained for season accuracy or current/future gameweeks.`,
+      });
     } catch {
       toast({ title: "Could not delete all prior projections", variant: "destructive" });
     }
@@ -614,23 +646,6 @@ export default function Home() {
                       <p className="text-xs text-muted-foreground">
                         Select one projection, or several to blend them with weights.
                       </p>
-                      <div className="flex items-center justify-between gap-3 flex-wrap rounded-lg border bg-muted/20 px-3 py-2">
-                        <label className="flex items-center gap-2 text-sm cursor-pointer">
-                          <Switch checked={showStaleProjections} onCheckedChange={setShowStaleProjections} />
-                          Show {staleProjections.length} source{staleProjections.length === 1 ? "" : "s"} starting before GW{currentGameweek}
-                        </label>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="text-destructive border-destructive/40 hover:bg-destructive/10"
-                          disabled={!staleProjections.length || deleteMutation.isPending}
-                          onClick={handleDeletePriorGameweeks}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete prior gameweeks
-                        </Button>
-                      </div>
                       {visibleProjections.map((p) => {
                         const selected = selectedIds.includes(p.id);
                         const rawWeight = blendWeights[p.id] ?? "1";
@@ -690,6 +705,23 @@ export default function Home() {
                         </div>
                         );
                       })}
+                      <div className="flex items-center justify-between gap-3 flex-wrap rounded-lg border bg-muted/20 px-3 py-2">
+                        <label className="flex items-center gap-2 text-sm cursor-pointer">
+                          <Switch checked={showStaleProjections} onCheckedChange={setShowStaleProjections} />
+                          Show {staleProjections.length} source{staleProjections.length === 1 ? "" : "s"} starting before GW{currentGameweek}
+                        </label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive border-destructive/40 hover:bg-destructive/10"
+                          disabled={!staleProjections.length || deleteMutation.isPending}
+                          onClick={handleDeletePriorGameweeks}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete redundant prior gameweeks
+                        </Button>
+                      </div>
                       {isBlend && (
                         <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 text-xs space-y-1">
                           {!blendWeightsValid ? (
