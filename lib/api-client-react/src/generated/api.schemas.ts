@@ -117,7 +117,7 @@ export interface FfhSessionInput {
 }
 
 export interface ImportProjectionInput {
-  /** External source id, "ffh" (Fantasy Football Hub), "drafthound" (DraftHound), "pundit" (Fantasy Football Pundit assume-starting points), "pundit-ffh" (Pundit points × FFH expected minutes hybrid), "fantalens" (FantaLens public expected points and minutes), or "official-fpl" (official FPL next-gameweek expected points with no expected-minutes forecast). */
+  /** External source id, "ffh" (Fantasy Football Hub), "drafthound" (DraftHound), "pundit" (Fantasy Football Pundit assume-starting points), "pundit-ffh" (Pundit points × FFH expected minutes hybrid), "fantalens" (FantaLens public expected points and minutes), "official-fpl" (official FPL next-gameweek expected points with no expected-minutes forecast), or "solio" (latest GW-range tab from the configured Solio Google Sheet). */
   source: string;
   /**
      * How many upcoming whole gameweeks to import (default 10, clamped to 1-38)

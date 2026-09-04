@@ -301,7 +301,7 @@ export default function Home() {
     reader.readAsText(file);
   };
 
-  const handleImport = (source: "ffh" | "drafthound" | "pundit" | "pundit-ffh" | "fantalens" | "official-fpl") => {
+  const handleImport = (source: "ffh" | "drafthound" | "pundit" | "pundit-ffh" | "fantalens" | "official-fpl" | "solio") => {
     importMutation.mutate({ data: { source } }, {
       onSuccess: (data) => {
         queryClient.invalidateQueries({ queryKey: getListProjectionsQueryKey() });
@@ -691,6 +691,18 @@ export default function Home() {
                 </TabsContent>
 
                 <TabsContent value="import" className="mt-4 space-y-4">
+                  <div className="border-2 border-dashed border-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-muted/30 transition-colors">
+                    <DownloadCloud className="h-8 w-8 shrink-0 text-primary" />
+                    <div className="min-w-0 flex-1 text-left">
+                      <p className="text-sm font-medium mb-1">Solio</p>
+                      <p className="text-xs text-muted-foreground">
+                        Refresh from the latest gameweek-range tab in the Solio Google Sheet. Players are matched conservatively to official FPL data by team, name, and price.
+                      </p>
+                    </div>
+                    <Button className="w-full sm:w-auto shrink-0" onClick={() => handleImport("solio")} disabled={importMutation.isPending} variant="secondary">
+                      {importMutation.isPending ? "Importing…" : "Refresh Solio"}
+                    </Button>
+                  </div>
                   <div className="border-2 border-dashed border-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-muted/30 transition-colors">
                     <DownloadCloud className="h-8 w-8 shrink-0 text-primary" />
                     <div className="min-w-0 flex-1 text-left">

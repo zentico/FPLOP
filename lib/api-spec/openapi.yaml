@@ -712,7 +712,7 @@ components:
       properties:
         source:
           type: string
-          description: External source id, "ffh" (Fantasy Football Hub), "drafthound" (DraftHound), "pundit" (Fantasy Football Pundit assume-starting points), "pundit-ffh" (Pundit points × FFH expected minutes hybrid), "fantalens" (FantaLens public expected points and minutes), or "official-fpl" (official FPL next-gameweek expected points with no expected-minutes forecast).
+          description: External source id, "ffh" (Fantasy Football Hub), "drafthound" (DraftHound), "pundit" (Fantasy Football Pundit assume-starting points), "pundit-ffh" (Pundit points × FFH expected minutes hybrid), "fantalens" (FantaLens public expected points and minutes), "official-fpl" (official FPL next-gameweek expected points with no expected-minutes forecast), or "solio" (latest GW-range tab from the configured Solio Google Sheet).
         maxGameweeks:
           type: number
           minimum: 1
