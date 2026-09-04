@@ -34,16 +34,58 @@ export interface Bootstrap {
 
 let bootstrapCache: { data: Bootstrap; at: number } | null = null;
 
-async function fplFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { "User-Agent": "Mozilla/5.0 (fpl-optimizer)" },
-  });
-  if (!res.ok) {
-    throw Object.assign(new Error(`FPL API ${res.status} for ${path}`), {
-      status: res.status,
-    });
+type FetchLike = typeof fetch;
+
+const RETRYABLE_FPL_STATUSES = new Set([429, 500, 502, 503, 504]);
+
+/**
+ * Fetch FPL JSON with short bounded retries for transient upstream failures.
+ * Optional dependencies make retry behavior deterministic in unit tests.
+ */
+export async function fplFetch<T>(
+  path: string,
+  options: {
+    fetchImpl?: FetchLike;
+    sleep?: (milliseconds: number) => Promise<void>;
+    attempts?: number;
+  } = {},
+): Promise<T> {
+  const fetchImpl = options.fetchImpl ?? fetch;
+  const sleep =
+    options.sleep ??
+    ((milliseconds: number) =>
+      new Promise<void>((resolve) => setTimeout(resolve, milliseconds)));
+  const attempts = Math.max(1, options.attempts ?? 3);
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const res = await fetchImpl(`${BASE_URL}${path}`, {
+        headers: { "User-Agent": "Mozilla/5.0 (fpl-optimizer)" },
+      });
+      if (res.ok) return (await res.json()) as T;
+      const error = Object.assign(
+        new Error(`FPL API ${res.status} for ${path}`),
+        { status: res.status },
+      );
+      if (!RETRYABLE_FPL_STATUSES.has(res.status) || attempt === attempts) {
+        throw error;
+      }
+      lastError = error;
+    } catch (error) {
+      const status = (error as { status?: unknown })?.status;
+      if (
+        (typeof status === "number" && !RETRYABLE_FPL_STATUSES.has(status)) ||
+        attempt === attempts
+      ) {
+        throw error;
+      }
+      lastError = error;
+    }
+    // 250ms before the second attempt, then 750ms before the third.
+    await sleep(250 * (attempt * 2 - 1));
   }
-  return (await res.json()) as T;
+  throw lastError;
 }
 
 export async function getBootstrap(): Promise<Bootstrap> {
@@ -194,7 +236,7 @@ export async function getTeamChipsPlayed(
 
 interface EventPicks {
   picks: { element: number }[];
-  entry_history?: { bank: number };
+  entry_history?: { bank: number; total_points?: number };
 }
 
 export async function getFplTeam(teamId: number): Promise<{
@@ -212,7 +254,17 @@ export async function getFplTeam(teamId: number): Promise<{
     sellPrice: number;
   }[];
 }> {
-  const entry = await fplFetch<Entry>(`/entry/${teamId}/`);
+  let entry: Entry | null = null;
+  let entryError: unknown;
+  try {
+    entry = await fplFetch<Entry>(`/entry/${teamId}/`);
+  } catch (error) {
+    entryError = error;
+    const status = (error as { status?: unknown })?.status;
+    if (typeof status === "number" && !RETRYABLE_FPL_STATUSES.has(status)) {
+      throw error;
+    }
+  }
   const bootstrap = await getBootstrap();
   const elementById = new Map(bootstrap.elements.map((e) => [e.id, e]));
   const teamById = new Map(bootstrap.teams.map((t) => [t.id, t]));
@@ -224,12 +276,29 @@ export async function getFplTeam(teamId: number): Promise<{
     position: string;
     sellPrice: number;
   }[] = [];
-  let bank = (entry.last_deadline_bank ?? 0) / 10;
+  let bank = (entry?.last_deadline_bank ?? 0) / 10;
+  let picks: EventPicks | null = null;
 
-  if (entry.current_event) {
-    const picks = await fplFetch<EventPicks>(
+  if (entry?.current_event) {
+    picks = await fplFetch<EventPicks>(
       `/entry/${teamId}/event/${entry.current_event}/picks/`,
     );
+  } else if (!entry) {
+    // During FPL's post-deadline maintenance window, entry and history return
+    // 503 while the latest completed picks remain available. Those picks are
+    // the squad entering the next gameweek and are sufficient for a solve.
+    const completedEvent = bootstrap.events
+      .filter((event) => event.finished)
+      .sort((a, b) => b.id - a.id)[0]?.id;
+    const nextEvent = bootstrap.events.find((event) => event.is_next)?.id;
+    const fallbackEvent = completedEvent ?? (nextEvent ? nextEvent - 1 : 0);
+    if (fallbackEvent < 1) throw entryError;
+    picks = await fplFetch<EventPicks>(
+      `/entry/${teamId}/event/${fallbackEvent}/picks/`,
+    );
+  }
+
+  if (picks) {
     if (picks.entry_history) {
       bank = picks.entry_history.bank / 10;
     }
@@ -246,12 +315,14 @@ export async function getFplTeam(teamId: number): Promise<{
   }
 
   return {
-    teamId: entry.id,
-    name: entry.name,
-    managerName:
-      `${entry.player_first_name} ${entry.player_last_name}`.trim(),
-    overallRank: entry.summary_overall_rank,
-    totalPoints: entry.summary_overall_points,
+    teamId: entry?.id ?? teamId,
+    name: entry?.name ?? `FPL Team ${teamId}`,
+    managerName: entry
+      ? `${entry.player_first_name} ${entry.player_last_name}`.trim()
+      : "",
+    overallRank: entry?.summary_overall_rank ?? null,
+    totalPoints:
+      entry?.summary_overall_points ?? picks?.entry_history?.total_points ?? null,
     bank,
     squad,
   };

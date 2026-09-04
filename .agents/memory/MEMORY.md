@@ -7,3 +7,4 @@
 - [FantaLens feed](fantalens-feed.md) — Inertia JSON protocol (version handshake), dash-separated `gw` param, per_page≤100, null expected_minutes = 0; projection metas must omit (not null) absent optional fields.
 - [Weighted projection blends](blend-projections.md) — blends materialize as immutable snapshots; previews must round like the canonical CSV; missing players = zero, never reweighted.
 - [CRPM accuracy metric](crpm-accuracy.md) — CRPM is 100 × mean absolute cubed inverse-percentile miss, using the same prediction and full-official-player rank populations as ARPM.
+- [FPL maintenance fallback](fpl-maintenance-fallback.md) — during post-deadline updates, entry/history may return 503 while latest completed picks and bootstrap remain usable.
